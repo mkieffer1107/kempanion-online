@@ -1,0 +1,211 @@
+/* Kempanion Online — shared pixel UI design system.
+   Every screen/component should build from these tokens and classes. */
+
+:root {
+  /* palette */
+  --ink: #1b1229;
+  --ink-2: #2e2142;
+  --paper: #fff6ea;
+  --paper-2: #f3e3cf;
+  --sakura-1: #ffe3ea;
+  --sakura-2: #ffb7c5;
+  --sakura-3: #f48fb1;
+  --sakura-4: #d6608a;
+  --uf-orange: #fa4616;
+  --uf-blue: #0021a5;
+  --night: #1a1030;
+  --night-2: #2a1d4a;
+  --gold: #ffd25a;
+  --ok: #5bd16b;
+  --warn: #ffb020;
+  --bad: #ff5a5f;
+  --p1: #f6c945; /* Piggy 1 — sunny yellow */
+  --p2: #4a90e2; /* Piggy 2 — surgical blue */
+  --p3: #b07ce8; /* Piggy 3 — lavender */
+  --player: #7fd6c2;
+
+  /* VN text box */
+  --box-bg: linear-gradient(180deg, rgba(28, 20, 58, 0.9), rgba(16, 10, 36, 0.94));
+  --box-edge: #ffd6e0;
+  --box-text: #fffaf3;
+
+  /* one "UI pixel": borders and bevels are multiples of this */
+  --px: 3px;
+
+  --font-body: 'DotGothic16', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: 'Pixelify Sans', 'DotGothic16', system-ui, sans-serif;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  color-scheme: dark;
+}
+
+@media (max-width: 700px), (max-height: 500px) {
+  :root { --px: 2px; }
+}
+
+/* KempaPager accent (flag ui_accent, picked in Piggy 3's first event; App sets html[data-accent] in game screens).
+   Sakura pink is the default. Orange is a touch softer so it doesn't buzz on the dark screens (his words). */
+:root[data-accent='orange'] {
+  --sakura-1: #ffe8d9; --sakura-2: #ffb995; --sakura-3: #fb8f5a; --sakura-4: #d9652c; --box-edge: #ffdcc7;
+}
+:root[data-accent='lavender'] {
+  --sakura-1: #efe6ff; --sakura-2: #d0b8f6; --sakura-3: #b28fe9; --sakura-4: #8c63d2; --box-edge: #e6d9ff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  text-rendering: optimizeSpeed;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+#app { position: fixed; inset: 0; overflow: hidden; }
+
+img, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+.pixelated { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+button, input, textarea, select { font: inherit; color: inherit; }
+
+/* ── panels ───────────────────────────────────────── */
+
+.px-panel {
+  --panel-bg: var(--paper);
+  --panel-ink: var(--ink);
+  --panel-hi: #ffffff;
+  --panel-lo: var(--paper-2);
+  background: var(--panel-bg);
+  color: var(--panel-ink);
+  border: var(--px) solid var(--ink);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--panel-hi),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--panel-lo);
+  clip-path: polygon(
+    0 var(--px), var(--px) var(--px), var(--px) 0,
+    calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
+    100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
+    var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px))
+  );
+}
+
+.px-panel.dark {
+  --panel-bg: rgba(26, 16, 48, 0.92);
+  --panel-ink: var(--paper);
+  --panel-hi: rgba(255, 214, 224, 0.35);
+  --panel-lo: rgba(0, 0, 0, 0.45);
+  border-color: var(--box-edge);
+}
+
+.px-panel.sakura {
+  --panel-bg: var(--sakura-1);
+  --panel-hi: #ffffff;
+  --panel-lo: var(--sakura-2);
+}
+
+/* VN-style text box */
+.vn-box {
+  background: var(--box-bg);
+  color: var(--box-text);
+  border: var(--px) solid var(--box-edge);
+  outline: var(--px) solid var(--ink);
+  box-shadow: 0 0 0 calc(var(--px) * 2) rgba(0, 0, 0, 0.35);
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* ── buttons ───────────────────────────────────────── */
+
+.px-btn {
+  --btn-bg: var(--paper);
+  --btn-ink: var(--ink);
+  --btn-hi: #ffffff;
+  --btn-lo: #d9c3a9;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.35em 0.9em;
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  border: var(--px) solid var(--ink);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--btn-hi),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--btn-lo),
+    0 var(--px) 0 var(--ink);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.1;
+  transition: transform 60ms steps(2), filter 80ms;
+}
+.px-btn:hover { filter: brightness(1.06); }
+.px-btn:active, .px-btn.pressed {
+  transform: translateY(var(--px));
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--btn-lo),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--btn-hi);
+}
+.px-btn:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: var(--px); }
+.px-btn:disabled { filter: grayscale(0.8) brightness(0.8); cursor: not-allowed; transform: none; }
+
+.px-btn.primary { --btn-bg: var(--sakura-2); --btn-hi: var(--sakura-1); --btn-lo: var(--sakura-4); }
+.px-btn.orange { --btn-bg: var(--uf-orange); --btn-ink: #fff; --btn-hi: #ff8a5f; --btn-lo: #b02f08; }
+.px-btn.blue { --btn-bg: var(--uf-blue); --btn-ink: #fff; --btn-hi: #4d6bff; --btn-lo: #001470; }
+.px-btn.ghost { --btn-bg: rgba(26, 16, 48, 0.75); --btn-ink: var(--paper); --btn-hi: rgba(255,255,255,0.18); --btn-lo: rgba(0,0,0,0.4); border-color: var(--box-edge); }
+.px-btn.small { min-height: 36px; padding: 0.2em 0.6em; font-size: 0.85em; }
+@media (pointer: coarse) { .px-btn.small { min-height: 44px; } }
+
+/* ── meters ───────────────────────────────────────── */
+
+.px-meter {
+  position: relative;
+  height: calc(var(--px) * 4);
+  background: var(--ink);
+  border: var(--px) solid var(--ink);
+  box-shadow: 0 0 0 var(--px) rgba(255, 255, 255, 0.4);
+}
+.px-meter > .fill {
+  height: 100%;
+  background: var(--meter-color, var(--ok));
+  box-shadow: inset 0 var(--px) 0 rgba(255, 255, 255, 0.35);
+  transition: width 300ms steps(10);
+}
+
+/* ── misc ───────────────────────────────────────── */
+
+.px-title { font-family: var(--font-display); letter-spacing: 0.04em; }
+.jp { font-family: var(--font-body); letter-spacing: 0.08em; }
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.px-scroll { overflow: auto; scrollbar-width: thin; scrollbar-color: var(--sakura-3) transparent; }
+.px-scroll::-webkit-scrollbar { width: 8px; }
+.px-scroll::-webkit-scrollbar-thumb { background: var(--sakura-3); }
+
+@keyframes px-blink { 50% { opacity: 0; } }
+@keyframes px-bob { 50% { transform: translateY(calc(var(--px) * -1)); } }
+.blink { animation: px-blink 1s steps(1) infinite; }
+.bob { animation: px-bob 0.8s steps(2) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blink, .bob { animation: none; }
+}
+.reduce-motion .blink, .reduce-motion .bob { animation: none; }

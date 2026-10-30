@@ -1,0 +1,295 @@
+[
+  {
+    "id": "cg_p1_petal_dive",
+    "pigs": [
+      "piggy-1"
+    ],
+    "bg": "plaza",
+    "prompt": "Scene 'Petal Dive', midday on the Plaza of the Americas lawn: Piggy 1 lies upside down on his back in a soft drift of pink sakura petals under a blooming sakura tree, legs kicked up, laughing, holding a white-blue-yellow volleyball overhead with both hooves like a trophy. Live oaks with Spanish moss behind, sunlight dappling, petals still falling. Playful, bright."
+  },
+  {
+    "id": "cg_p1_whiteboard",
+    "pigs": [
+      "piggy-1"
+    ],
+    "bg": "malachowsky",
+    "prompt": "Scene 'The Whiteboard', afternoon on the lawn in front of Malachowsky Hall's silver faceted facade: Piggy 1 cheers with a marker raised in one hoof beside a rolling whiteboard covered in a six-circle volleyball rotation with looping arrows drawn over a circular-queue diagram (circles, arrows and boxes only). Triumphant eureka energy, sakura petals in the breeze."
+  },
+  {
+    "id": "cg_p1_sunrise_serve",
+    "pigs": [
+      "piggy-1"
+    ],
+    "outfits": {
+      "piggy-1": "volleyball"
+    },
+    "bg": "volleyball_courts",
+    "prompt": "Scene 'Sunrise Serve', dawn at the sand volleyball courts: Piggy 1 in his teal-and-white volleyball jersey and navy knee pads mid-jump-serve, a small round silhouette with rim light against a huge peach-and-gold sunrise, the ball tossed high above him, sand spraying from his takeoff, palm trees and a distant brick clock tower. Epic, hopeful, sports-anime key frame."
+  },
+  {
+    "id": "cg_p1_two_screens",
+    "pigs": [
+      "piggy-1"
+    ],
+    "bg": "sakura_house_night",
+    "prompt": "Scene 'Two Screens', night on the Sakura House front porch steps: Piggy 1 sits hunched with a laptop on his knees (one half of the screen shows a volleyball court diagram, the other half lines of code), the screen glow reflecting on his glasses, a volleyball resting against his hoof, warm string lights overhead, the yard sakura dropping petals in the dark. Quiet, thoughtful, a little vulnerable."
+  },
+  {
+    "id": "cg_p1_kill_shot",
+    "pigs": [
+      "piggy-1"
+    ],
+    "outfits": {
+      "piggy-1": "volleyball"
+    },
+    "bg": "volleyball_courts",
+    "prompt": "Scene 'Kill Shot', afternoon at a crowded sand court during a club match: Piggy 1 in his teal-and-white volleyball jersey at the peak of a spike high above the net, knees tucked, hitting arm cocked back, determined face, the afternoon sun blazing right behind him, the ball about to be slammed, sand and petals in the air, a blurred cheering crowd below (shapes only). Dynamic diagonal composition, speed lines in pixel style. The crowd is an out-of-focus mass of soft rounded blob silhouettes in muted pastels: no faces, no human hair or skin, no recognizable people."
+  },
+  {
+    "id": "cg_p1_yours",
+    "pigs": [
+      "piggy-1"
+    ],
+    "outfits": {
+      "piggy-1": "volleyball"
+    },
+    "bg": "plaza",
+    "prompt": "Scene 'Yours!', a point-of-view shot from the player standing on the Plaza lawn at sunset: Piggy 1 in his volleyball jersey with both hooves still up just after setting the ball, mouth open mid-shout, beaming, the volleyball arcing toward the viewer in the foreground, sakura petals in the air, a pink-orange sky behind the live oaks. Emotional payoff, warm and bright."
+  },
+  {
+    "id": "cg_p1_247am",
+    "pigs": [
+      "piggy-1"
+    ],
+    "bg": "marston_night",
+    "prompt": "Scene '2:47 AM', late night at a Marston Science Library study table: Piggy 1 in his yellow tee has fallen asleep face-down on a pile of flash cards, glasses askew, both front hooves resting on the flash cards (exactly two arms and two legs), a laptop glowing beside him with a spreadsheet (blank cells), a desk lamp's warm pool of light, dark windows. Cozy, funny, tender."
+  },
+  {
+    "id": "cg_p1_petal_spike",
+    "pigs": [
+      "piggy-1"
+    ],
+    "outfits": {
+      "piggy-1": "volleyball"
+    },
+    "bg": "legend_sakura",
+    "prompt": "Scene 'Petal Spike', the ending at dusk under the enormous Legendary Sakura beside Century Tower (glowing clock faces, orange-pink sky): Piggy 1 in his volleyball jersey grins up at the viewer with hooves still raised from his set as a volleyball punches up into the blossoms and a waterfall of petals pours down around him. Joyful, romantic, the emotional climax."
+  },
+  {
+    "id": "cg_p2_follow_the_hoof",
+    "pigs": [
+      "piggy-2"
+    ],
+    "outfits": {
+      "piggy-2": "scrubs"
+    },
+    "bg": "reitz",
+    "prompt": "Scene 'Follow the Hoof', midday at a folding table booth outside the Reitz Union decorated with a sakura branch: Piggy 2 in pale blue scrubs leans toward the viewer holding one hoof level like a doctor checking eye tracking, a tiny penlight in the other hoof, deadpan serious face with the smallest hint of a smile, a blank hand-written sign taped to the table. Funny, charming first meeting."
+  },
+  {
+    "id": "cg_p2_poor_willis",
+    "pigs": [
+      "piggy-2"
+    ],
+    "bg": "communicore",
+    "prompt": "Scene 'Alas, Poor Willis', morning light in an empty lecture classroom inside the College of Medicine: Piggy 2 in his blue tee stands at the lectern holding a squishy pink brain model at arm's length like Hamlet with Yorick's skull, his other hoof pressed to his chest, utterly dramatic yet deadpan. Rows of empty seats, sunbeams, a sakura branch in the window. Comedic."
+  },
+  {
+    "id": "cg_p2_scrubbed_in",
+    "pigs": [
+      "piggy-2"
+    ],
+    "outfits": {
+      "piggy-2": "scrubs"
+    },
+    "bg": "or_suite",
+    "prompt": "Scene 'Scrubbed In', dawn in the research operating room: Piggy 2 in pale blue scrubs, a light-blue surgical cap with his chestnut bangs peeking out and a surgical mask, gloved hooves raised at chest height in the classic after-scrubbing pose, intense focused eyes. Behind him green monitor lines glow and a training mannequin lies under light-blue drapes (no blood, clean and calm). Cool teal light. The training mannequin's head is an obvious plastic CPR dummy: a smooth, glossy, pale-grey featureless dome with no eyes, ears, nose or hair."
+  },
+  {
+    "id": "cg_p2_light_box",
+    "pigs": [
+      "piggy-2"
+    ],
+    "bg": "communicore_night",
+    "prompt": "Scene 'Light Box', dusk in a dark classroom of the College of Medicine: Piggy 2 in his blue tee leans close to a monitor showing grayscale MRI slices of a pig spine, the blue screen light glowing on his snout and glasses, a fascinated quiet smile, orange dusk sky in the window behind. Moody, reverent, nerdy."
+  },
+  {
+    "id": "cg_p2_blanket_burrito",
+    "pigs": [
+      "piggy-2"
+    ],
+    "bg": "home_p2",
+    "prompt": "Scene 'Blanket Burrito', daytime in Piggy 2's cluttered room full of medical-supply boxes: a sick, sleepy Piggy 2 is wrapped tightly in a soft blanket burrito with only his face, glasses and spiky hair showing, flushed cheeks, a thermometer in his mouth, sitting on his cot. Around him: gauze boxes, a model spine, rows of labeled water bottles, a squishy brain model on a shelf. Cute, cozy, a little pitiful."
+  },
+  {
+    "id": "cg_p2_he_walks",
+    "pigs": [
+      "piggy-2"
+    ],
+    "bg": "communicore",
+    "prompt": "Scene 'He Walks', daytime in a College of Medicine study room: Piggy 2 in his blue tee sits at a desk crying happy tears with one hoof over his mouth, lit by a laptop video call. The laptop screen shows only a padded hallway floor and a bright spiking green trace on a monitor graph (no animal drawn). Emotional, triumphant, tender."
+  },
+  {
+    "id": "cg_p2_discharge_summary",
+    "pigs": [],
+    "bg": "marston",
+    "prompt": "Scene 'Discharge Summary', morning sunlight on the third floor of Marston Science Library: in the foreground an open notebook with a neatly handwritten note (squiggle lines only) and a small doodle of a heart with a stethoscope; behind it an empty desk chair, a fortress of stacked medical textbooks, two coffee cups and a folded pair of thin silver glasses left on the books. Warm, quiet, wistful."
+  },
+  {
+    "id": "cg_p2_rx_refills",
+    "pigs": [
+      "piggy-2"
+    ],
+    "outfits": {
+      "piggy-2": "scrubs"
+    },
+    "bg": "legend_sakura",
+    "prompt": "Scene 'Rx: Refills', the ending at dusk under the enormous Legendary Sakura beside Century Tower: Piggy 2 in pale blue scrubs points one hoof up into gold-lit blossoms, an affectionate blush on his cheeks, holding out a small prescription slip toward the viewer with the other hoof, heavy petals falling, glowing clock faces and an orange-pink sky. Sweet, romantic, a little deadpan."
+  },
+  {
+    "id": "cg_p3_name_badge",
+    "pigs": [
+      "piggy-3"
+    ],
+    "bg": "reitz",
+    "prompt": "Scene 'Name Badge', daytime at the Kempanion booth table outside the Reitz Union: Piggy 3 in his lavender tee, curls slightly askew, holds out a small lavender 3D-printed name badge toward the viewer in both hooves, a bashful hopeful smile with a light blush, sakura branches and the glass atrium behind. Sweet first-meeting moment."
+  },
+  {
+    "id": "cg_p3_two_monitors",
+    "pigs": [
+      "piggy-3"
+    ],
+    "outfits": {
+      "piggy-3": "hoodie"
+    },
+    "bg": "physics_lab",
+    "prompt": "Scene 'Two Monitors', afternoon in the computational physics lab: Piggy 3 in his black hoodie sits between two big monitors of scrolling brainwave traces (the left one clean and smooth, the right one full of jagged spikes), pointing excitedly at the left screen with one hoof while looking back at the viewer, mid-explanation, glow on his round glasses. Curious, nerdy, warm."
+  },
+  {
+    "id": "cg_p3_first_layer",
+    "pigs": [
+      "piggy-3"
+    ],
+    "bg": "marston_night",
+    "prompt": "Scene 'First Layer', night in a small makerspace corner of Marston Science Library: on a 3D printer bed a crisp little pink sakura charm sits beside a tangled pink 'spaghetti' failed print; behind them Piggy 3 in his lavender tee smiles bashfully, chin on his hooves, lit by the printer's LED glow. Tender, funny, cozy."
+  },
+  {
+    "id": "cg_p3_bat_river",
+    "pigs": [
+      "piggy-3"
+    ],
+    "bg": "lake_alice",
+    "prompt": "Scene 'Bat River', dusk at Lake Alice by the two wooden bat houses on stilts: Piggy 3 in his lavender tee wears a homemade wired EEG headband over his curls and sits on the boardwalk with a laptop showing a rolling smooth wave, gazing up in awe as a huge river of tiny bats pours out across an orange-purple sky, reflections on the water. Awe, calm, beautiful."
+  },
+  {
+    "id": "cg_p3_pair_programming",
+    "pigs": [
+      "piggy-3"
+    ],
+    "outfits": {
+      "piggy-3": "hoodie"
+    },
+    "bg": "home_p3",
+    "prompt": "Scene 'Pair Programming', warm afternoon light in Piggy 3's lavender maker's den: Piggy 3 in his black hoodie sits on the floor with a laptop on a cushion, leaning shoulder to shoulder toward the unseen viewer, pointing at code on the screen and grinning, three 3D printers and fairy lights behind. Cozy, intimate, happy."
+  },
+  {
+    "id": "cg_p3_demo_day",
+    "pigs": [
+      "piggy-3",
+      "piggy-1",
+      "piggy-2"
+    ],
+    "outfits": {
+      "piggy-3": "hoodie"
+    },
+    "bg": "reitz",
+    "prompt": "Scene 'Demo Day', daytime at a showcase table outside the Reitz Union: in the center Piggy 3 in his black hoodie strikes a dramatic over-the-top manga 'menacing' pose with pixel 'ゴゴゴ' kana symbols rising behind him (the only allowed text), a laptop on the table; on the left Piggy 1 (yellow tee) and on the right Piggy 2 (blue tee) hold up a big glittery sign between them (blank squiggles), cheering. Triumphant, hilarious, found family."
+  },
+  {
+    "id": "cg_p3_job_complete",
+    "pigs": [
+      "piggy-3"
+    ],
+    "outfits": {
+      "piggy-3": "hoodie"
+    },
+    "bg": "marston_night",
+    "prompt": "Scene 'Job Complete', late night at a study carrel in Marston Science Library: Piggy 3 in his black hoodie is asleep with his cheek on the keyboard, the hood half over his glasses, a terminal window glowing with a success checkmark, and a small glowing handheld pager beside him showing a tiny pixel sakura tree. Quiet, tender, cozy."
+  },
+  {
+    "id": "cg_p3_full_bloom",
+    "pigs": [
+      "piggy-3"
+    ],
+    "bg": "legend_sakura",
+    "prompt": "Scene 'Full Bloom', the ending at dusk under the enormous Legendary Sakura beside Century Tower: Piggy 3 in his lavender tee holds up a small glowing handheld pager toward the viewer showing a pixel sakura tree in full bloom, an affectionate blush and a soft smile, petals swirling all around, the tower dark against an orange-pink sky. Romantic, heartfelt."
+  },
+  {
+    "id": "cg_trio_lunch_on_the_lawn",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "bg": "plaza",
+    "prompt": "Scene 'Lunch on the Lawn', midday under the live oaks of the Plaza of the Americas: the three pigs in their everyday clothes sit on a picnic blanket with a volleyball pattern, with sweet tea and rice balls. In the foreground a fat gray campus squirrel holds Piggy 1's half-peeled banana; Piggy 1 (yellow tee) points at it in outrage, Piggy 2 (blue tee) gives the squirrel a deadpan salute, Piggy 3 (lavender tee) laughs. Petals drifting, dappled sunlight. Comedic slice-of-life."
+  },
+  {
+    "id": "cg_trio_costume_contest",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "outfits": {
+      "piggy-1": "volleyball",
+      "piggy-2": "scrubs",
+      "piggy-3": "hoodie"
+    },
+    "bg": "lake_alice",
+    "prompt": "Scene 'Costume Contest', Halloween dusk on the Lake Alice boardwalk under an orange-violet sky: Piggy 1 in his teal volleyball uniform strikes a sporty pose, Piggy 2 in pale blue scrubs and a light-blue surgical cap gives a stiff salute, Piggy 3 in his black hoodie with the hood up grins; a river of tiny bats streams out of the two wooden bat houses behind them, a few small pumpkins on the railing. Spooky-cute, festive."
+  },
+  {
+    "id": "cg_trio_swamp_sway",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "bg": "stadium",
+    "prompt": "Scene 'Swamp Sway', late-afternoon sun in the packed orange-and-blue stadium stands: the three pigs in their everyday tees stand in a row with arms linked, swaying, smiling with their eyes closed, the green football field below and a blurred crowd of colorful shapes around them (no faces, no logos, no letters). Warm golden light, togetherness."
+  },
+  {
+    "id": "cg_trio_marston_sunrise",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "outfits": {
+      "piggy-3": "hoodie"
+    },
+    "bg": "marston",
+    "prompt": "Scene 'Library West, Sunrise' (the 3 AM study pact), dawn at a big library study table with pink light through tall windows: Piggy 1 (yellow tee) sleeps hugging a volleyball, Piggy 2 (blue tee) sleeps bolt upright still holding a highlighter, Piggy 3 in his black hoodie sleeps with one hoof on a laptop showing a pixel tomato timer. Books, coffee cups and flash cards everywhere. Tender, funny, exhausted."
+  },
+  {
+    "id": "cg_trio_hanami_for_four",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "bg": "legend_sakura",
+    "prompt": "Scene 'Hanami for Four', the true ending at dusk under the enormous Legendary Sakura beside Century Tower: the three pigs in their everyday clothes sit together on a petal-covered picnic blanket with a sub sandwich, apple pie and rice balls, raising paper cups toward the viewer in a toast; a fourth paper cup at the bottom edge is the player's. Petals falling heavily, glowing clock faces, orange-pink sky. Joyful, emotional, found family. The fourth cup stands on its own on the blanket in the foreground: the player is unseen, with no visible hands, arms or hooves."
+  },
+  {
+    "id": "cg_trio_see_you_next_semester",
+    "pigs": [
+      "piggy-1",
+      "piggy-2",
+      "piggy-3"
+    ],
+    "bg": "reitz",
+    "prompt": "Scene 'See You Next Semester', the view from a campus bus window at golden hour outside the Reitz Union: on the sidewalk Piggy 1 (yellow tee) jumps with both hooves up, Piggy 2 (blue tee) gives a textbook-perfect wave, Piggy 3 (lavender tee) films on his phone, all smiling, petals in the air, the window frame edge visible. Bittersweet, warm goodbye."
+  }
+]

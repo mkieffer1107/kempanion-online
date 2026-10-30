@@ -1,0 +1,138 @@
+/* Kempanion meta screens: shared PC-98 window, wallpaper and small helpers. Prefix: km-. */
+
+.km-screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--paper);
+  background: var(--night);
+  font-family: var(--font-body);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* sakura wallpaper for margins and empty space */
+.km-wallpaper {
+  position: absolute;
+  inset: 0;
+  background-color: var(--night);
+  background-image:
+    linear-gradient(180deg, rgba(26, 16, 48, 0) 0%, rgba(42, 29, 74, 0.85) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' shape-rendering='crispEdges'%3E%3Cg fill='%23382656'%3E%3Crect x='3' y='2' width='1' height='1'/%3E%3Crect x='2' y='3' width='3' height='1'/%3E%3Crect x='3' y='4' width='1' height='1'/%3E%3Crect x='15' y='14' width='1' height='1'/%3E%3Crect x='14' y='15' width='3' height='1'/%3E%3Crect x='15' y='16' width='1' height='1'/%3E%3C/g%3E%3Cg fill='%23624480'%3E%3Crect x='3' y='3' width='1' height='1'/%3E%3Crect x='15' y='15' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100% 100%, 72px 72px;
+  image-rendering: pixelated;
+}
+
+/* a 480x270 painting drawn like the stage: cover + nearest-neighbour */
+.km-cover {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: var(--focus, 50%) 50%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* PC-98 window: cut corners, Blossom outer line, Plum inner line, Ink fill, dither band on top */
+.km-window {
+  --c: calc(var(--px) * 2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--paper);
+  background: rgba(27, 20, 40, 0.92);
+  border: var(--px) solid var(--sakura-2);
+  box-shadow: inset 0 0 0 var(--px) #5b3a6e;
+  clip-path: polygon(
+    var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)
+  );
+}
+.km-window::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--px) * 2);
+  background: repeating-conic-gradient(var(--sakura-2) 0 25%, transparent 0 50%) 0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.km-window.paper {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 var(--px) var(--paper-2);
+}
+
+.km-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: max(12px, var(--safe-top)) max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
+  background: rgba(10, 6, 22, 0.62);
+}
+
+/* name plate: speaker color fill, Ink outline and text */
+.km-plate {
+  display: inline-block;
+  padding: 0.1em 0.7em 0.15em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--plate, var(--sakura-2));
+  border: var(--px) solid var(--ink);
+  text-shadow: none;
+}
+
+.km-acorns {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 32px;
+  padding: 0.1em 0.65em;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.35);
+  border: var(--px) solid var(--gold);
+  white-space: nowrap;
+}
+
+.km-jp { font-family: var(--font-body); letter-spacing: 0.08em; }
+.km-title { font-family: var(--font-display); letter-spacing: 0.04em; }
+
+/* ▶ + inverted colors: the selection cue never relies on color alone */
+.km-sel { background: var(--sakura-1); color: var(--ink); }
+
+.km-empty {
+  display: grid;
+  place-items: center;
+  gap: 0.6em;
+  padding: 2em 1em;
+  text-align: center;
+  color: rgba(255, 246, 234, 0.75);
+}
+
+.km-step-in { animation: km-step-in 180ms steps(4) both; }
+@keyframes km-step-in {
+  from { transform: translateY(calc(var(--px) * 3)); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.km-pop-in { animation: km-pop-in 160ms steps(4) both; }
+@keyframes km-pop-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.km-reduced .km-step-in, .km-reduced .km-pop-in { animation: km-fade 200ms linear both; }
+@keyframes km-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .km-step-in, .km-pop-in { animation: km-fade 200ms linear both; }
+}

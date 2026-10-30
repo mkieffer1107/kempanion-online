@@ -1,0 +1,37 @@
+{
+  "name": "kempanion-online",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Kempanion Online — a visual novel x virtual pet set at the University of Florida. A Kempa AI production.",
+  "type": "module",
+  "scripts": {
+    "dev": "bun scripts/gen-characters.ts && vite",
+    "build": "bun scripts/gen-characters.ts && bun run build:synth && vite build",
+    "build:web": "bun scripts/gen-characters.ts && vite build",
+    "build:synth": "bun scripts/build-synth.ts",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "bun test",
+    "sync-sprites": "bun scripts/sync-sprites.ts",
+    "bake-backgrounds": "bun scripts/bake-backgrounds.ts",
+    "gen": "bun scripts/gen-characters.ts",
+    "make-cursors": "bun scripts/make-cursors.ts"
+  },
+  "dependencies": {
+    "@fontsource/dotgothic16": "^5.3.1",
+    "@fontsource/pixelify-sans": "^5.3.0",
+    "@huggingface/transformers": "4.3.2",
+    "@huggingface/transformers-structured-output": "4.3.2",
+    "onnxruntime-web": "1.31.0-dev.20260914-8d85527a0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@tsconfig/svelte": "5.0.8",
+    "@types/bun": "^1.4.4",
+    "sharp": "0.35.5",
+    "svelte": "5.57.3",
+    "svelte-check": "4.7.7",
+    "typescript": "6.0.3",
+    "vite": "8.3.5"
+  }
+}

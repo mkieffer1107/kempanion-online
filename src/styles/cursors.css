@@ -1,0 +1,38 @@
+/* Pixel-art hand cursors (drawn by scripts/make-cursors.ts → public/cursors). Fine pointers only: touch
+   screens show no cursor at all.
+     point — the default everywhere (pages, buttons, links); text fields keep the native I-beam.
+     grab  — over a pig you can pick up (hub stage sets data-cursor="grab").
+     hold  — while a pig is in the hand (the hub stage, and <html> during a drag: data-cursor="hold").
+   Hotspots are CSS px of the 32×32 cursor (the script prints them). Each rule lists a plain url() first, then
+   -webkit-image-set() and image-set() with the @2x art: browsers keep the last declaration they understand.
+   !important is needed to win over the components' own `cursor: pointer` rules. */
+
+@media (pointer: fine) {
+  :where(html, html *) {
+    cursor: url('/cursors/point.png') 3 3, pointer !important;
+    cursor: -webkit-image-set(url('/cursors/point.png') 1x, url('/cursors/point@2x.png') 2x) 3 3, pointer !important;
+    cursor: image-set(url('/cursors/point.png') 1x, url('/cursors/point@2x.png') 2x) 3 3, pointer !important;
+  }
+
+  :where(
+    input:not([type='button'], [type='submit'], [type='reset'], [type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'], [type='image']),
+    textarea,
+    [contenteditable]:not([contenteditable='false'])
+  ) {
+    cursor: text !important;
+  }
+
+  [data-cursor='grab'],
+  [data-cursor='grab'] * {
+    cursor: url('/cursors/grab.png') 13 27, grab !important;
+    cursor: -webkit-image-set(url('/cursors/grab.png') 1x, url('/cursors/grab@2x.png') 2x) 13 27, grab !important;
+    cursor: image-set(url('/cursors/grab.png') 1x, url('/cursors/grab@2x.png') 2x) 13 27, grab !important;
+  }
+
+  [data-cursor='hold'],
+  [data-cursor='hold'] * {
+    cursor: url('/cursors/hold.png') 11 27, grabbing !important;
+    cursor: -webkit-image-set(url('/cursors/hold.png') 1x, url('/cursors/hold@2x.png') 2x) 11 27, grabbing !important;
+    cursor: image-set(url('/cursors/hold.png') 1x, url('/cursors/hold@2x.png') 2x) 11 27, grabbing !important;
+  }
+}

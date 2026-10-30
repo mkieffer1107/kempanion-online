@@ -1,0 +1,7 @@
+Reimagine the reference photo as a background for a Japanese school visual novel. Keep the real architecture recognizable (massing, materials, colors, window rhythm), but repaint everything in the style below, recompose it as a wide eye-level establishing shot, and set it on a sunny spring afternoon with blue sky and soft clouds. Remove all people, cars, signs, text, letters and logos.
+
+A background illustration for a Japanese visual novel, rendered as authentic 16-bit era pixel art (PC-98 / Super Famicom style): crisp chunky pixels on a strict grid as if the native resolution were 480x270, a limited palette of about 48 colors, careful ordered dithering in gradients, clean dark outlines, no anti-aliasing, no blur, no painterly brushwork.
+Composition: a wide 16:9 eye-level visual-novel background. Keep every important element inside the middle 80% of the image height (the top and bottom edges will be cropped) and keep the main landmark near the horizontal center (narrow phone screens crop the sides). Leave the lower-middle area visually calm so a character portrait can stand in front of it.
+No people, no characters, no text, no letters, no logos, no signage text, no UI, no watermark.
+
+Scene: Ben Hill Griffin Stadium, the famous 'Swamp', seen from high in the stands: a steep bowl of bright orange and blue seating, a lush green football field with plain white yard lines (no letters, no logos, no numbers), tall light towers, the far rim of the stadium and pink sakura treetops visible beyond it. Empty seats, no people.

@@ -1,0 +1,8 @@
+A sprite sheet for a 2D game: exactly SIX animation frames of the SAME chibi pig character shown in the reference image, arranged left to right in ONE horizontal row, evenly spaced with clear empty space between the frames, on a fully transparent background.
+
+Animation "held up": the character is being lifted by an invisible hand that pinches the back of his shirt collar, so he dangles in mid-air. The top of his head is at the same height in every frame and his body hangs straight down below it. His short arms and stubby legs wiggle and kick playfully:
+- frame 1: startled — eyes wide, arms raised, legs together, tiny surprised mouth;
+- frames 2 to 5: wiggling — legs kicking alternately left and right, arms waving up and down, a giggling happy face with a light blush, the body swaying a few degrees left and right;
+- frame 6: calm dangling with a content smile, arms and legs relaxed.
+
+Keep the exact same character design as the reference: hair color and style, glasses, outfit and its colors, pink pig skin, pig snout, pig ears, small curly tail, and dark brown cloven hooves for hands and feet (no fingers, no shoes). Same art style as the reference: clean thick dark outlines, soft cel shading, cute chibi proportions. Full body visible in every frame, identical scale in every frame. No hand drawn, no arms reaching in, no motion lines, no ground shadow, no text, no frame borders, no background.

@@ -1,0 +1,75 @@
+# Build Kempanion Online and publish it to GitHub Pages.
+# One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.13
+
+      # The chiptune synth is Rust → WebAssembly. Build it fresh (the committed .wasm is only a fallback).
+      - name: Install Rust (wasm32 target) and binaryen
+        run: |
+          rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+          rustup default stable
+          sudo apt-get update -qq && sudo apt-get install -y -qq binaryen
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.cargo/registry
+            ~/.cargo/git
+            synth/target
+          key: ${{ runner.os }}-kempanion-${{ hashFiles('bun.lock', 'synth/Cargo.lock', 'synth/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-kempanion-
+
+      - run: bun install --frozen-lockfile
+
+      # gen-characters → build:synth (cargo + wasm-opt) → vite build (minified, hashed, relative base './')
+      - name: Build
+        run: bun run build
+
+      # After the build, so the tests run against the synth wasm this deploy actually ships.
+      - name: Test
+        run: bun test
+
+      - name: Report bundle size
+        run: |
+          du -sh dist
+          find dist -type f -size +1M -exec ls -lh {} \; | awk '{print $5, $9}'
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

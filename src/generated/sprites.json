@@ -1,0 +1,2931 @@
+{
+ "version": 1,
+ "scale": 0.5,
+ "frame": {
+  "w": 128,
+  "h": 128,
+  "pivotX": 64,
+  "pivotY": 114
+ },
+ "portrait": {
+  "w": 192,
+  "h": 256
+ },
+ "sets": {
+  "piggy-1/everyday": {
+   "portraitAtlas": "sprites/piggy-1/everyday/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy": [
+     0,
+     512
+    ],
+    "loving": [
+     192,
+     512
+    ],
+    "proud": [
+     384,
+     512
+    ],
+    "sleepy": [
+     576,
+     512
+    ],
+    "sick": [
+     0,
+     768
+    ],
+    "crying": [
+     192,
+     768
+    ],
+    "excited": [
+     384,
+     768
+    ],
+    "thinking": [
+     576,
+     768
+    ],
+    "shy_blush": [
+     0,
+     1024
+    ],
+    "flustered_blush": [
+     192,
+     1024
+    ],
+    "affectionate_blush": [
+     384,
+     1024
+    ],
+    "bashful_smile": [
+     576,
+     1024
+    ]
+   },
+   "face": "sprites/piggy-1/everyday/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "blink": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      1100,
+      100,
+      100,
+      100,
+      100,
+      1500
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "look_around": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      334,
+      333,
+      333,
+      334,
+      333,
+      333
+     ],
+     "loop": true
+    },
+    "walk_right": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "walk_front": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 640,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "walk_back": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 768,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "run_right": {
+     "page": "sprites/piggy-1/everyday/anim-0.png",
+     "y": 896,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "tumble": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      300,
+      80,
+      80,
+      100,
+      80,
+      350
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sit_down": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "stand_up": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "eat": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "drink": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "bath": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "brush_teeth": {
+     "page": "sprites/piggy-1/everyday/anim-1.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "yawn": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sleep": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      410,
+      420,
+      420,
+      410,
+      420,
+      420
+     ],
+     "loop": true
+    },
+    "wake_up": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 256,
+     "frames": 9,
+     "durations": [
+      300,
+      160,
+      200,
+      200,
+      180,
+      180,
+      180,
+      200,
+      400
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sick": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "happy": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "sad": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "angry": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "scared": {
+     "page": "sprites/piggy-1/everyday/anim-2.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "love": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "shy": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "surprised": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "confused": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "celebrate": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "dance": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "play_ball": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 768,
+     "frames": 7,
+     "durations": [
+      250,
+      100,
+      150,
+      150,
+      150,
+      100,
+      300
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "bored": {
+     "page": "sprites/piggy-1/everyday/anim-3.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "hungry": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thirsty": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "dirty": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "cry": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "laugh": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "proud": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thinking": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "pet_reaction": {
+     "page": "sprites/piggy-1/everyday/anim-4.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-1/everyday/anim-5.png",
+     "y": 0,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "run_left": {
+     "page": "sprites/piggy-1/everyday/anim-5.png",
+     "y": 128,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-1/everyday/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  },
+  "piggy-1/volleyball": {
+   "portraitAtlas": "sprites/piggy-1/volleyball/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy_blush": [
+     0,
+     512
+    ],
+    "flustered_blush": [
+     192,
+     512
+    ],
+    "affectionate_blush": [
+     384,
+     512
+    ],
+    "bashful_smile": [
+     576,
+     512
+    ]
+   },
+   "face": "sprites/piggy-1/volleyball/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_right": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 256,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_serve": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 512,
+     "frames": 7,
+     "durations": [
+      250,
+      150,
+      180,
+      120,
+      100,
+      150,
+      250
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_bump": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_set": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_spike": {
+     "page": "sprites/piggy-1/volleyball/anim-0.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_dig": {
+     "page": "sprites/piggy-1/volleyball/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_block": {
+     "page": "sprites/piggy-1/volleyball/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "volleyball_ready": {
+     "page": "sprites/piggy-1/volleyball/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "volleyball_win": {
+     "page": "sprites/piggy-1/volleyball/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-1/volleyball/anim-1.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-1/volleyball/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  },
+  "piggy-2/everyday": {
+   "portraitAtlas": "sprites/piggy-2/everyday/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy": [
+     0,
+     512
+    ],
+    "loving": [
+     192,
+     512
+    ],
+    "proud": [
+     384,
+     512
+    ],
+    "sleepy": [
+     576,
+     512
+    ],
+    "sick": [
+     0,
+     768
+    ],
+    "crying": [
+     192,
+     768
+    ],
+    "excited": [
+     384,
+     768
+    ],
+    "thinking": [
+     576,
+     768
+    ],
+    "shy_blush": [
+     0,
+     1024
+    ],
+    "flustered_blush": [
+     192,
+     1024
+    ],
+    "affectionate_blush": [
+     384,
+     1024
+    ],
+    "bashful_smile": [
+     576,
+     1024
+    ]
+   },
+   "face": "sprites/piggy-2/everyday/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "blink": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      1100,
+      100,
+      100,
+      100,
+      100,
+      1500
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "look_around": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      334,
+      333,
+      333,
+      334,
+      333,
+      333
+     ],
+     "loop": true
+    },
+    "walk_right": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "walk_front": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 640,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "walk_back": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 768,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "run_right": {
+     "page": "sprites/piggy-2/everyday/anim-0.png",
+     "y": 896,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "tumble": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      300,
+      80,
+      80,
+      100,
+      80,
+      350
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sit_down": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "stand_up": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "eat": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "drink": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "bath": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "brush_teeth": {
+     "page": "sprites/piggy-2/everyday/anim-1.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "yawn": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sleep": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      410,
+      420,
+      420,
+      410,
+      420,
+      420
+     ],
+     "loop": true
+    },
+    "wake_up": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 256,
+     "frames": 9,
+     "durations": [
+      300,
+      160,
+      200,
+      200,
+      180,
+      180,
+      180,
+      200,
+      400
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sick": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "happy": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "sad": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "angry": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "scared": {
+     "page": "sprites/piggy-2/everyday/anim-2.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "love": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "shy": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "surprised": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "confused": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "celebrate": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "dance": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "play_ball": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "bored": {
+     "page": "sprites/piggy-2/everyday/anim-3.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "hungry": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thirsty": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "dirty": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "cry": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "laugh": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "proud": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thinking": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "pet_reaction": {
+     "page": "sprites/piggy-2/everyday/anim-4.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-2/everyday/anim-5.png",
+     "y": 0,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "run_left": {
+     "page": "sprites/piggy-2/everyday/anim-5.png",
+     "y": 128,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-2/everyday/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  },
+  "piggy-2/scrubs": {
+   "portraitAtlas": "sprites/piggy-2/scrubs/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy_blush": [
+     0,
+     512
+    ],
+    "flustered_blush": [
+     192,
+     512
+    ],
+    "affectionate_blush": [
+     384,
+     512
+    ],
+    "bashful_smile": [
+     576,
+     512
+    ]
+   },
+   "face": "sprites/piggy-2/scrubs/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_right": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 256,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "review_mri": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "brain_model": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "neuro_exam": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "write_chart": {
+     "page": "sprites/piggy-2/scrubs/anim-0.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "scrub_up": {
+     "page": "sprites/piggy-2/scrubs/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "surgical_focus": {
+     "page": "sprites/piggy-2/scrubs/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "preop_check": {
+     "page": "sprites/piggy-2/scrubs/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "clinical_success": {
+     "page": "sprites/piggy-2/scrubs/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-2/scrubs/anim-1.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-2/scrubs/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  },
+  "piggy-3/everyday": {
+   "portraitAtlas": "sprites/piggy-3/everyday/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy": [
+     0,
+     512
+    ],
+    "loving": [
+     192,
+     512
+    ],
+    "proud": [
+     384,
+     512
+    ],
+    "sleepy": [
+     576,
+     512
+    ],
+    "sick": [
+     0,
+     768
+    ],
+    "crying": [
+     192,
+     768
+    ],
+    "excited": [
+     384,
+     768
+    ],
+    "thinking": [
+     576,
+     768
+    ],
+    "shy_blush": [
+     0,
+     1024
+    ],
+    "flustered_blush": [
+     192,
+     1024
+    ],
+    "affectionate_blush": [
+     384,
+     1024
+    ],
+    "bashful_smile": [
+     576,
+     1024
+    ]
+   },
+   "face": "sprites/piggy-3/everyday/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "blink": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      1100,
+      100,
+      100,
+      100,
+      100,
+      1500
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "look_around": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      334,
+      333,
+      333,
+      334,
+      333,
+      333
+     ],
+     "loop": true
+    },
+    "walk_right": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "walk_front": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 640,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "walk_back": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 768,
+     "frames": 4,
+     "durations": [
+      250,
+      250,
+      250,
+      250
+     ],
+     "loop": true
+    },
+    "run_right": {
+     "page": "sprites/piggy-3/everyday/anim-0.png",
+     "y": 896,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "tumble": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      300,
+      80,
+      80,
+      100,
+      80,
+      350
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sit_down": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "stand_up": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "eat": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "drink": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "bath": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "brush_teeth": {
+     "page": "sprites/piggy-3/everyday/anim-1.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "yawn": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sleep": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      410,
+      420,
+      420,
+      410,
+      420,
+      420
+     ],
+     "loop": true
+    },
+    "wake_up": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 256,
+     "frames": 9,
+     "durations": [
+      300,
+      160,
+      200,
+      200,
+      180,
+      180,
+      180,
+      200,
+      400
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "sick": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "happy": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "sad": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "angry": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "scared": {
+     "page": "sprites/piggy-3/everyday/anim-2.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "love": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "shy": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "surprised": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "confused": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "celebrate": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "dance": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "play_ball": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 768,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "bored": {
+     "page": "sprites/piggy-3/everyday/anim-3.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "hungry": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thirsty": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "dirty": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "cry": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "laugh": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "proud": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "thinking": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": true
+    },
+    "pet_reaction": {
+     "page": "sprites/piggy-3/everyday/anim-4.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-3/everyday/anim-5.png",
+     "y": 0,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "run_left": {
+     "page": "sprites/piggy-3/everyday/anim-5.png",
+     "y": 128,
+     "frames": 8,
+     "durations": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-3/everyday/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  },
+  "piggy-3/hoodie": {
+   "portraitAtlas": "sprites/piggy-3/hoodie/portraits.png",
+   "portraits": {
+    "neutral": [
+     0,
+     0
+    ],
+    "happy": [
+     192,
+     0
+    ],
+    "laughing": [
+     384,
+     0
+    ],
+    "sad": [
+     576,
+     0
+    ],
+    "angry": [
+     0,
+     256
+    ],
+    "surprised": [
+     192,
+     256
+    ],
+    "scared": [
+     384,
+     256
+    ],
+    "confused": [
+     576,
+     256
+    ],
+    "shy_blush": [
+     0,
+     512
+    ],
+    "flustered_blush": [
+     192,
+     512
+    ],
+    "affectionate_blush": [
+     384,
+     512
+    ],
+    "bashful_smile": [
+     576,
+     512
+    ]
+   },
+   "face": "sprites/piggy-3/hoodie/face.png",
+   "anims": {
+    "idle": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      330,
+      330,
+      340,
+      330,
+      330,
+      340
+     ],
+     "loop": true
+    },
+    "wave": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_right": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 256,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "jump": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      167,
+      167,
+      167,
+      167,
+      167,
+      167
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "typing": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 512,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "debugging": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 640,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "explain_code": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 768,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "ai_idea": {
+     "page": "sprites/piggy-3/hoodie/anim-0.png",
+     "y": 896,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "code_review": {
+     "page": "sprites/piggy-3/hoodie/anim-1.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "build_success": {
+     "page": "sprites/piggy-3/hoodie/anim-1.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "coffee_break": {
+     "page": "sprites/piggy-3/hoodie/anim-1.png",
+     "y": 256,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "invite_to_code": {
+     "page": "sprites/piggy-3/hoodie/anim-1.png",
+     "y": 384,
+     "frames": 6,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": false,
+     "retriggerDelayMs": 600
+    },
+    "walk_left": {
+     "page": "sprites/piggy-3/hoodie/anim-1.png",
+     "y": 512,
+     "frames": 8,
+     "durations": [
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125,
+      125
+     ],
+     "loop": true
+    },
+    "held": {
+     "page": "sprites/piggy-3/hoodie/extra-0.png",
+     "y": 0,
+     "frames": 6,
+     "durations": [
+      180,
+      120,
+      120,
+      120,
+      120,
+      200
+     ],
+     "loop": true
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "title": {
+  "focusY": 0.55
+ },
+ "dorm": {
+  "focusY": 0.45
+ },
+ "lake_alice": {
+  "focusY": 0.5
+ },
+ "volleyball_courts": {
+  "focusY": 0.5
+ },
+ "map": {
+  "w": 480,
+  "h": 320
+ }
+}
