@@ -88,17 +88,22 @@ async function buildBackground(id: string, tod: TimeOfDay, grade?: boolean): Pro
   };
   if (!hasBackground(id)) return placeholder();
   const wantNight = graded && (tod === 'night' || tod === 'evening') && hasNightVariant(id);
+  // A painted night is drawn directly: the unused day image needn't delay it or be downloaded.
+  // A missing/broken night still falls through to the usual synthesized night from the day painting.
+  if (wantNight && tod === 'night') {
+    const night = await loadImage(`bg/${id}_night.png`);
+    if (night) {
+      drawCover(ctx, night);
+      return canvas;
+    }
+  }
   const [day, night] = await Promise.all([
     loadImage(`bg/${id}.png`),
-    wantNight ? loadImage(`bg/${id}_night.png`) : Promise.resolve(null),
+    wantNight && tod === 'evening' ? loadImage(`bg/${id}_night.png`) : Promise.resolve(null),
   ]);
   if (!day) return placeholder();
   if (!graded || tod === 'day') {
     drawCover(ctx, day);
-    return canvas;
-  }
-  if (tod === 'night' && night) {
-    drawCover(ctx, night);
     return canvas;
   }
   let nightPx: Uint8ClampedArray | null = null;
@@ -115,7 +120,7 @@ async function buildBackground(id: string, tod: TimeOfDay, grade?: boolean): Pro
   return canvas;
 }
 
-/** Warm the cache for a background (both the day image and the variant for `tod`). */
+/** Warm the cache for a background with the images needed for `tod`. */
 export function preloadBackground(id: string, tod: TimeOfDay): Promise<void> {
   return backgroundCanvas(id, tod).then(() => undefined);
 }

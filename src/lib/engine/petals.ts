@@ -297,6 +297,9 @@ export class PetalSystem {
       if (!p.on || p.front !== front) continue;
       const x = Math.round(p.x + (p.landed ? 0 : p.swayA * Math.sin(p.phase))) + ox - 2;
       const y = Math.round(p.y) + oy - 1;
+      // Every frame fits in 5×4 pixels. Keep simulating offscreen petals, but do not submit
+      // their rectangles to the canvas (include the shake offset before testing).
+      if (x + 5 <= 0 || x >= this.lw || y + 4 <= 0 || y >= this.h) continue;
       const shape = front ? BIG[p.frame] : SMALL[p.frame];
       if (p.landed) ctx.globalAlpha = stepped(p.fade, 4);
       for (let j = 0; j < shape.length; j += 5) {

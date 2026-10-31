@@ -428,6 +428,9 @@ export class Rain {
       const y = Math.round(d.y) + oy;
       const segs = 1 + Math.min(2, Math.round(Math.abs(slope) * d.len));
       const segLen = Math.ceil(d.len / segs);
+      // A slanted drop may cross the edge even when its first segment is outside.
+      const endX = x + Math.round(slope * segLen * (segs - 1));
+      if (Math.max(x, endX) + 1 <= 0 || Math.min(x, endX) >= this.lw || y + segLen * segs <= 0 || y >= this.h) continue;
       for (let k = 0; k < segs; k++) ctx.fillRect(x + Math.round(slope * segLen * k), y + segLen * k, 1, segLen);
     }
     if (!near) return;

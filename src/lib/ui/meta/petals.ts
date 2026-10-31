@@ -37,6 +37,32 @@ const BIG: string[][] = [
   ['.bb.', 'babb', 'bbbc', '.cc.'],
 ];
 
+// The eight opaque pixel shapes never change. Rasterize them once per palette instead of
+// resubmitting every colored pixel on every animation frame.
+const frameCache = new Map<Pal, HTMLCanvasElement[]>();
+
+function petalFrames(pal: Pal): HTMLCanvasElement[] {
+  const cached = frameCache.get(pal);
+  if (cached) return cached;
+  const frames = [...SMALL, ...BIG].map((rows) => {
+    const tile = document.createElement('canvas');
+    tile.width = Math.max(...rows.map((row) => row.length));
+    tile.height = rows.length;
+    const g = tile.getContext('2d')!;
+    for (let y = 0; y < rows.length; y++) {
+      for (let x = 0; x < rows[y].length; x++) {
+        const ch = rows[y][x] as keyof Pal | '.';
+        if (ch === '.') continue;
+        g.fillStyle = pal[ch];
+        g.fillRect(x, y, 1, 1);
+      }
+    }
+    return tile;
+  });
+  frameCache.set(pal, frames);
+  return frames;
+}
+
 interface Petal {
   x: number;
   y: number;
@@ -58,6 +84,7 @@ export function runPetals(canvas: HTMLCanvasElement, opts: PetalOptions): PetalH
   if (!maybe) return { stop() {}, resize() {} };
   const ctx: CanvasRenderingContext2D = maybe;
   const pal = opts.night ? NIGHT : DAY;
+  const frames = petalFrames(pal);
   let w = 1;
   let h = 1;
   let wind = 0;
@@ -96,18 +123,9 @@ export function runPetals(canvas: HTMLCanvasElement, opts: PetalOptions): PetalH
   const petals: Petal[] = Array.from({ length: Math.max(0, opts.count) }, () => spawn(true));
 
   function draw(p: Petal) {
-    const rows = (p.big ? BIG : SMALL)[p.frame];
     const ox = Math.round(p.x + p.amp * Math.sin(p.omega * t + p.phase));
     const oy = Math.round(p.y);
-    for (let y = 0; y < rows.length; y++) {
-      const row = rows[y];
-      for (let x = 0; x < row.length; x++) {
-        const ch = row[x] as keyof Pal | '.';
-        if (ch === '.') continue;
-        ctx.fillStyle = pal[ch];
-        ctx.fillRect(ox + x, oy + y, 1, 1);
-      }
-    }
+    ctx.drawImage(frames[(p.big ? 4 : 0) + p.frame], ox, oy);
   }
 
   function tick(now: number) {
