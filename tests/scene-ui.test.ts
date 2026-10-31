@@ -69,7 +69,7 @@ describe('KempaPager panel above the picture (phone portrait)', () => {
   test('Scene hands the stage element to the top panel; the panel measures it and has a one-row compact form', () => {
     const scene = read('src/lib/ui/screens/Scene.svelte');
     expect(scene).toMatch(/<div class="stage-wrap" bind:this=\{stageEl\}/);
-    expect(scene).toMatch(/<PagerInset place="top" picture=\{stageEl\} \/>/);
+    expect(scene).toMatch(/<PagerInset place="top" picture=\{stageEl\} strip=\{id === 'tutorial_hub'\} \/>/);
     const inset = read('src/lib/vn/components/PagerInset.svelte');
     expect(inset).toMatch(/class:compact/);
     expect(inset).toMatch(/new ResizeObserver\(fit\)/);

@@ -21,7 +21,7 @@
     onclick={(event) => { event.stopPropagation(); if (dialogue.canAdvance) hapticTap(event); dialogue.advance(); }}>
   {#each rewards as reward (reward.icon)}
     <div class={['reward', { currency: reward.icon === 'acorn' }]}>
-      <Icon id={reward.icon} size={24} />
+      <Icon id={reward.icon} size={place === 'top' ? 16 : 24} />
       <span>{reward.label}</span>
     </div>
   {/each}
@@ -44,11 +44,17 @@
     pointer-events: none;
   }
   .top {
-    top: calc(var(--safe-top) + 8px);
+    top: calc(var(--safe-top) + 6px);
+    width: min(100% - 24px, 420px);
+    height: 52px;
+    padding: 4px 6px;
+    box-shadow: 0 0 0 calc(var(--px) * 2) #b45a7a, 0 6px 0 rgba(0, 0, 0, 0.35);
     left: 50%;
     translate: -50% 0;
     pointer-events: auto;
   }
+  .top .reward { min-height: 0; gap: 0; padding: 0; }
+  .top .reward span { font-size: 10px; line-height: 11px; }
   .stage { top: 4%; left: 2.5%; }
   .reward {
     display: flex;

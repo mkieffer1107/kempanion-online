@@ -12,7 +12,7 @@
   import { pagerInset } from '../pager.svelte';
   import { PAGER_KEY, pagerCompact, pagerKey } from './pager-fit';
 
-  let { place = 'stage', picture }: { place?: 'top' | 'stage'; picture?: HTMLElement } = $props();
+  let { place = 'stage', picture, strip = false }: { place?: 'top' | 'stage'; picture?: HTMLElement; strip?: boolean } = $props();
 
   const LABEL: Record<PagerKey, string> = {
     feed: 'Feed', drink: 'Drink', play: 'Play', wash: 'Wash', light: 'Light', care: 'Care', talk: 'Talk', stats: 'Stats',
@@ -44,6 +44,8 @@
   }
 
   $effect(() => {
+    // Tutorial care keys and rewards share one fixed phone strip, even on tall phones.
+    if (strip && place === 'top') { compact = true; keyH = PAGER_KEY; return; }
     const el = panel;
     const pic = picture;
     if (place !== 'top' || !el || !pic) return;
@@ -71,7 +73,7 @@
 </script>
 
 {#if pagerInset.keys}
-  <figure class="pager {place}" class:compact style:--key-h="{keyH}px" bind:this={panel} aria-label="The KempaPager's care keys">
+  <figure class="pager {place}" class:compact class:strip style:--key-h="{keyH}px" bind:this={panel} aria-label="The KempaPager's care keys">
     {#each ROWS as row, i (i)}
       <div class="row">
         {#each row as k (k)}
@@ -115,6 +117,8 @@
     column-gap: 10px;
     padding: 4px 6px;
   }
+  .pager.top.strip { height: 52px; }
+  .pager.top.strip .key { min-height: 0; height: 100%; }
   .compact .row { gap: 4px; }
   .compact .key { min-height: var(--key-h, 40px); padding: 2px; }
   .compact .glyph { --glyph: clamp(16px, calc(var(--key-h, 40px) - 12px), 28px); }
