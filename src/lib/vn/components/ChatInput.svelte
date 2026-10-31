@@ -2,7 +2,6 @@
   // Free-chat row: quick-reply chips, a text field (140 chars, enterkeyhint=send, 16px+ so iOS doesn't zoom),
   // SEND and Leave. SEND shows "…" while the brain thinks or the reply is typing. Answers dialogue.ask().
   import { audio } from '../../audio';
-  import { randomName } from '../name-entry';
   import { dialogue } from '../dialogue.svelte';
   import { liftAboveKeyboard } from './keyboard';
 
@@ -73,7 +72,6 @@
   {/if}
   {#if isName}
     <div class="chips">
-      <button type="button" class="chip" disabled={!ready} onclick={() => { value = randomName(value.trim()); audio.sfx('ui_toggle'); }}>Random</button>
       <span class="length" aria-live="polite">{value.length}/{max}</span>
     </div>
   {/if}

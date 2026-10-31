@@ -1,6 +1,6 @@
 <script lang="ts">
-  // "What should the piggies call you?" — native text field (12 chars, ticks as you type), RANDOM and OK.
-  import { NAME_MAX, RANDOM_NAMES, cleanText, pickOne } from './content';
+  // "What should the piggies call you?" — native text field (12 chars, ticks as you type) and OK.
+  import { NAME_MAX, cleanText } from './content';
   import { blip, ui } from './sfx';
 
   let {
@@ -19,13 +19,6 @@
     const el = input;
     if (el) queueMicrotask(() => el.focus({ preventScroll: true }));
   });
-
-  function random() {
-    let next = pickOne(RANDOM_NAMES);
-    for (let i = 0; i < 4 && next === clean; i++) next = pickOne(RANDOM_NAMES);
-    name = next;
-    ui.toggle();
-  }
 
   function submit(e: SubmitEvent) {
     e.preventDefault();
@@ -58,7 +51,6 @@
     <span class="len" aria-hidden="true">{Array.from(name).length}/{NAME_MAX}</span>
   </div>
   <div class="buttons">
-    <button type="button" class="px-btn ghost" onclick={random}>RANDOM</button>
     <button type="submit" class="px-btn primary" disabled={!clean}>OK</button>
   </div>
 </form>
@@ -100,7 +92,7 @@
   }
   .buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   .buttons .px-btn { min-height: 48px; font-size: 18px; }
