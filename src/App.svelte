@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { installHaptics } from './lib/haptics';
   // App shell: screen router with quick curtain transitions, boot/sim loop, audio unlock + volumes,
   // global keyboard shortcuts (GAME_DESIGN §14), event toasts, title badge, root classes, and the
   // overlays scripts can await (mini-games launched from scenes).
@@ -417,6 +418,7 @@
   // ── mount: boot, hooks, audio unlock, sim loop, visibility ──
   onMount(() => {
     game.boot();
+    const stopHaptics = installHaptics(() => game.save.flags['ui.haptics'] !== false);
 
     // VN hooks: the runner awaits [minigame] (it applies mini-game rewards itself).
     vnHooks.runMinigame = (id, opts) => overlays.runMinigame(id, opts.pig);
@@ -462,6 +464,7 @@
     if (debug && jump && jump in SCREENS) game.go(jump, Object.fromEntries(url.entries()));
 
     return () => {
+      stopHaptics();
       clearInterval(sim);
       removeEventListener('pointerdown', firstGesture, { capture: true });
       removeEventListener('keydown', firstGesture, { capture: true });

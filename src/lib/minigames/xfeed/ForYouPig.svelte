@@ -17,7 +17,6 @@
   import { Sprite, assetUrl, faceUrl, loadBackground, loadImage } from '../common/sprites';
   import { iconUrl } from '../../content/icons';
   import { audio } from '../../audio';
-  import { haptic } from '../../ui/meta/sfx';
   import type { SfxId } from '../../types';
   import { game } from '../../state/game.svelte';
   import { now } from '../../state/clock';
@@ -177,10 +176,6 @@
     }
   }
 
-  function buzz(pattern: number | number[]): void {
-    if (coarse) haptic(pattern);
-  }
-
   function announce(text: string, prio = 0): void {
     if (!annPending || prio >= annPending.prio) annPending = { text, prio };
   }
@@ -338,7 +333,6 @@
       }
       case 'sfx':
         sfx(f.sfx);
-        if (f.sfx === 'question') buzz(15);
         break;
       case 'pop': {
         const el = els.get(f.post);
@@ -355,7 +349,6 @@
         break;
       case 'grass':
         if (f.on) {
-          buzz([20, 40, 20]);
           announce('Brain battery empty. He put the phone down to touch grass for three seconds.', 2);
         } else announce('Back on the feed.', 2);
         break;
@@ -402,7 +395,6 @@
     selected = null;
     if (!r) return;
     const p = e.posts[n];
-    if (p.state === 'saved' && p.cls === 'gem') buzz([10, 30, 10]);
     announce(callNote(p, e.combo), 1);
     for (const f of e.takeFx()) handleFx(f);
   }

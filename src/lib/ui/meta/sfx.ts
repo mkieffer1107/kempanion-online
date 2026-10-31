@@ -9,13 +9,9 @@ function sfx(id: SfxId) {
   try { untrack(() => audio.sfx(id)); } catch { /* audio is optional */ }
 }
 
-export function haptic(pattern: number | number[]) {
-  try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
-}
-
 export const ui = {
   move: () => sfx('ui_move'),
-  select: () => { sfx('ui_select'); haptic(10); },
+  select: () => sfx('ui_select'),
   back: () => sfx('ui_back'),
   open: () => sfx('ui_open'),
   close: () => sfx('ui_close'),

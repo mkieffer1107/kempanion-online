@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hapticTap } from '../../haptics';
   // The KempaPager: your Kempanion at his current spot, LCD care keys, direct play (tap = pet,
   // drag = pick him up and carry him, flick = toss; rub while held = tickle), item sheets, wants, golden
   // petals, crumbs, roll call and the welcome-back letter. Triggered hub scenes play first (via the scene screen).
@@ -500,6 +501,7 @@
     if (!e.isPrimary || press || (e.pointerType === 'mouse' && e.button !== 0)) return;
     if ((e.target as HTMLElement).closest('button, a, input')) return;
     const onPig = pigHit(e.clientX, e.clientY, e.pointerType === 'touch');
+    if (onPig) hapticTap(e);
     press = { id: e.pointerId, x0: e.clientX, y0: e.clientY, onPig, lifted: false, lastX: e.clientX, dir: 0, turns: [] };
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
     if (!onPig || !canLift()) return;

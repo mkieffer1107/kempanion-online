@@ -7,6 +7,7 @@
   import { DialogueBox, DialogueControls, dialogue, getScene, runScene, stopScene } from '../../vn';
   import PagerInset from '../../vn/components/PagerInset.svelte';
   import BrainInset from '../../vn/components/BrainInset.svelte';
+  import RewardsInset from '../../vn/components/RewardsInset.svelte';
   import CgOverlay from '../../vn/components/CgOverlay.svelte';
   import MumbleBubbles from '../../vn/components/MumbleBubbles.svelte';
   import { robotMumbleWords } from '../../vn/components/robot-mumble';
@@ -27,8 +28,10 @@
   const prologue = id === 'prologue' && !params.replay;
   let menuOpen = $state(false);
   let stageEl = $state<HTMLDivElement>();
+  // Each companion's currency explanation starts with this phrase; full text is available during typing.
+  const rewardsShown = $derived(id === 'tutorial_hub' && dialogue.visible && dialogue.text.startsWith('Acorns are '));
   // Keep this space during HIDE too, so hiding the controls never moves the picture.
-  const topClearance = $derived(pagerInset.keys !== null || brainInset.on ? 64 : 0);
+  const topClearance = $derived(rewardsShown ? 80 : pagerInset.keys !== null || brainInset.on ? 64 : 0);
   // Only the focused robot rant gets clouds. Advancing to Piggy 2 removes them at once; the later nervous reply
   // stays as scripted. Each page follows the existing dialogue controller, including instant text and AUTO.
   const robotMumble = $derived(id === 'prologue' && dialogue.visible && dialogue.speaker === 'piggy-3'
@@ -110,6 +113,7 @@
       {#if viewport.mode !== 't'}
         <PagerInset place="stage" />
         <BrainInset place="stage" />
+        {#if rewardsShown && !dialogue.uiHidden}<RewardsInset place="stage" />{/if}
         {#if viewport.mode === 's'}<DialogueBox layout="overlay" controls={false} menu={menuBtn} />{/if}
       {/if}
     </div>
@@ -118,6 +122,7 @@
   {#snippet overlay()}
     {#if viewport.mode === 't'}<PagerInset place="top" picture={stageEl} />{/if}
     {#if viewport.mode === 't'}<BrainInset place="top" />{/if}
+    {#if viewport.mode === 't' && rewardsShown && !dialogue.uiHidden}<RewardsInset place="top" />{/if}
   {/snippet}
 
   {#snippet bottom()}

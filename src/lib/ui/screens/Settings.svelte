@@ -356,6 +356,7 @@
           The brain shortcut stays at the top of Home and Talk, even when Big Brain is off.</p>
         <ModelPanel />
       {:else if tab === 'access'}
+        {@render toggle('Touch feedback', game.save.flags['ui.haptics'] !== false, () => (game.save.flags['ui.haptics'] = game.save.flags['ui.haptics'] === false), 'Brief taps where supported; iPhone feedback depends on Safari and system settings')}
         {@render toggle('Reduce motion', s.reduceMotion, () => (game.save.settings.reduceMotion = !s.reduceMotion), ui.systemReduce ? 'Your system already asks for reduced motion' : 'Petals off, no shakes, crossfades instead of wipes')}
         {@render toggle('High-contrast text box', ui.highContrast, () => (game.save.flags['ui.highContrast'] = !ui.highContrast))}
         {@render toggle('Gentle mode', game.save.flags['pet.gentle'] === true, () => (game.save.flags['pet.gentle'] = game.save.flags['pet.gentle'] !== true), 'No sickness, and needs stay frozen while you’re away')}

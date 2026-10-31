@@ -40,6 +40,7 @@ function fnBody(src: string, name: string): string {
 
 /** Every settings flag at a non-default value. */
 const CUSTOM = {
+  'ui.haptics': false,
   'ui.textSize': 'xl', 'ui.petals': 'off', 'ui.thoughts': 'off', 'ui.highContrast': true, 'ui.muteHidden': false,
   'ui.skipReadOnly': true, 'pet.gentle': true, 'minigame.assist': true,
 } as const;

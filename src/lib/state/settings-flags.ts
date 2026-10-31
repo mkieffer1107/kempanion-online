@@ -5,6 +5,7 @@
 import type { SaveData } from '../types';
 
 export const SETTINGS_FLAGS = [
+  'ui.haptics', // false = disable touch feedback (unset = on, where supported)
   'ui.textSize', // 's' | 'm' | 'l' | 'xl' (unset = m)
   'ui.petals', // 'lots' | 'some' | 'off' (unset = some)
   'ui.thoughts', // 'lots' | 'some' | 'off' (unset = some): the piggies' thought clouds (read by pet/thoughts.ts)

@@ -90,6 +90,7 @@
   }
   input::placeholder { color: #8a7a92; }
   input:focus-visible, button:focus-visible { outline: 2px dashed var(--gold); outline-offset: 2px; }
+  .game-keyboard input:focus-visible { outline: none; }
   .keyboard-bar { display: flex; align-items: center; justify-content: space-between; gap: 4px; font: 11px var(--font-display); color: var(--sakura-1); }
   .count { opacity: 0.75; padding-left: 4px; }
   .keyboard-switch { padding: 4px 0 4px 8px; min-height: 28px; border: 0; background: none; color: inherit; font: 12px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
