@@ -475,7 +475,7 @@ describe('triggers', () => {
 
 interface Run { log: string[]; store: string[]; flags: Record<string, boolean | number | string>; result: string }
 
-async function run(src: string, opts: { replay?: boolean; choices?: number[]; asks?: (string | null)[]; flags?: Record<string, boolean | number | string>; abortAfter?: number } = {}): Promise<Run> {
+async function run(src: string, opts: { replay?: boolean; choices?: number[]; asks?: (string | null)[]; flags?: Record<string, boolean | number | string>; items?: Record<string, number>; abortAfter?: number; abortAtText?: string } = {}): Promise<Run> {
   const scenes = parseKScript(src, 'run.ks');
   const byId = new Map(scenes.map((s) => [s.id, s]));
   const log: string[] = [];
@@ -485,9 +485,14 @@ async function run(src: string, opts: { replay?: boolean; choices?: number[]; as
   const choices = [...(opts.choices ?? [])];
   const asks = [...(opts.asks ?? [])];
   let lines = 0;
-  const cond = condState({ flag: (n) => flags[n] });
+  let stopped = false;
+  const cond = condState({ flag: (n) => flags[n], ...(opts.items ? { item: (id: string) => opts.items![id] ?? 0 } : {}) });
   const env: VnEnv = {
-    async say(l) { lines++; log.push(`${l.speaker}${l.expression ? ` ${l.expression}` : ''}: ${l.text}`); },
+    async say(l) {
+      lines++;
+      log.push(`${l.speaker}${l.expression ? ` ${l.expression}` : ''}: ${l.text}`);
+      if (opts.abortAtText && l.text.includes(opts.abortAtText)) stopped = true;
+    },
     async choose(o) { log.push(`? ${o.join(' | ')}`); return choices.shift() ?? 0; },
     async ask(o) { log.push(`ask ${o.prompt ?? ''}`); return asks.length ? asks.shift()! : null; },
     present(cmd) { log.push(`[${cmd.kind}${'id' in cmd && cmd.id ? ` ${cmd.id}` : ''}]`); },
@@ -516,11 +521,56 @@ async function run(src: string, opts: { replay?: boolean; choices?: number[]; as
       unlockOutfit: (p, o) => store.push(`outfit ${p} ${o}`),
       applyMinigame: (id, p, r) => store.push(`minigame ${id} ${p} +${r.money} +${r.bond} +${r.fun}`),
     },
-    aborted: () => opts.abortAfter !== undefined && lines >= opts.abortAfter,
+    aborted: () => stopped || (opts.abortAfter !== undefined && lines >= opts.abortAfter),
   };
   const result = await runProgram(scenes[0], env, { replay: opts.replay });
   return { log, store, flags, result };
 }
+
+describe('the prologue intake checkpoint', () => {
+  const src = readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8');
+  const checkpoint = { 'intake.done': true, 'intake.why_uf': 'computing', 'intake.sleep': 'early', 'fact.comfort_food': 'ramen' };
+  const firstLine = (r: Run) => r.log.find((line) => line.startsWith('narrator:'));
+
+  test('fresh play starts at the bus; Continue starts with the thank-you after the completed food answer', async () => {
+    const fresh = await run(src, { asks: ['ramen'] });
+    expect(firstLine(fresh)).toContain('The bus hisses');
+    expect(fresh.store).toContain('flag intake.done=true');
+    const resumed = await run(src, { flags: checkpoint });
+    expect(firstLine(resumed)).toBe('narrator: 【KEMPA AI】Thank you, Alex! Your pairing ceremony is today at dusk, under the Century Tower sakura.');
+    expect(resumed.log.some((line) => line.startsWith('ask '))).toBe(false);
+    expect(resumed.store.some((effect) => /^(name |remember |fact )/.test(effect))).toBe(false);
+    expect(resumed.flags['fact.comfort_food']).toBe('ramen');
+    for (const name of ['piggy-1', 'piggy-2', 'piggy-3']) expect(resumed.log.some((line) => line.startsWith(`${name} `))).toBe(true);
+    expect(resumed.store).toContain('companion piggy-3');
+  });
+
+  test('reloading during any first meeting cannot repeat its already awarded bond or items', async () => {
+    for (const abortAtText of ['Ooh, right on target!', 'Immediate compliance. Based.', 'Oh. Okay.']) {
+      const partial = await run(src, { flags: checkpoint, abortAtText });
+      expect(partial.result).toBe('aborted');
+      const items: Record<string, number> = {};
+      for (const effect of partial.store) {
+        const m = /^give (\w+) (\d+)$/.exec(effect);
+        if (m) items[m[1]] = Number(m[2]);
+      }
+      const resumed = await run(src, { flags: partial.flags, items });
+      expect(firstLine(resumed)).toContain('Thank you, Alex!');
+      const effects = [...partial.store, ...resumed.store];
+      for (const pig of ['piggy-1', 'piggy-2', 'piggy-3']) expect(effects.filter((s) => s === `bond ${pig} 5`)).toHaveLength(1);
+      for (const item of ['water_bottle', 'kempapager']) expect(effects.filter((s) => s === `give ${item} 1`)).toHaveLength(1);
+    }
+  });
+
+  test('existing saves that met the pigs keep their rewards, and album replay still starts at the beginning', async () => {
+    const flags = { ...checkpoint, met_p1: true, met_p2: true, met_p3: true };
+    const resumed = await run(src, { flags, items: { water_bottle: 1, kempapager: 1 } });
+    expect(resumed.store.some((s) => /^give |^bond piggy-\d 5$/.test(s))).toBe(false);
+    const replay = await run(src, { flags, replay: true });
+    expect(firstLine(replay)).toContain('The bus hisses');
+    expect(replay.store).toEqual([]);
+  });
+});
 
 describe('interpreter', () => {
   const SRC = [

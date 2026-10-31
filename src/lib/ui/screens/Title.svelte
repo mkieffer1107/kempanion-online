@@ -252,7 +252,8 @@
   function route(id: ItemId) {
     switch (id) {
       case 'continue':
-        game.go(game.save.companion ? 'hub' : 'select', { from: 'title' });
+        if (game.save.companion) game.go('hub', { from: 'title' });
+        else game.go('scene', { id: 'prologue', back: 'hub' });
         break;
       case 'new':
         game.go('newgame');

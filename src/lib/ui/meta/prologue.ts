@@ -36,7 +36,7 @@ export interface SkipNote {
   replay?: boolean;
   /** The scene has a `trigger:`, so it can come back on its own when it isn't marked as seen. */
   triggered?: boolean;
-  /** The prologue (it only plays once, from NEW GAME). */
+  /** The prologue (NEW GAME, or CONTINUE from its intake checkpoint before choosing a companion). */
   prologue?: boolean;
   /** The prologue's intake form isn't done yet (the skip leads to the intake form). */
   intake?: boolean;
@@ -47,8 +47,8 @@ export function skipNote(o: SkipNote): string {
   if (o.replay) return 'Leave this replay?';
   if (o.prologue) {
     return o.intake
-      ? 'Skip the rest of the intro? It won’t play again, but you’ll still fill in the Kempa intake form.'
-      : 'Skip the rest of the intro? It won’t play again.';
+      ? 'Skip the rest of the intro? You’ll still fill in the Kempa intake form first.'
+      : 'Skip the rest of the intro?';
   }
   return o.triggered
     ? 'Skip the rest of this scene? It won’t count as seen, so it can come back later.'

@@ -134,12 +134,20 @@ describe('typewriter timing', () => {
 });
 
 describe('save helpers', () => {
-  test('a settings-only save is not "meaningful"', () => {
+  test('Continue needs completed intake, not just settings, a name, or partial story progress', () => {
     const s = fresh();
     expect(isMeaningfulSave(s, false)).toBe(false);
     expect(isMeaningfulSave(s, true)).toBe(false);
     s.player.name = 'Sam';
+    expect(isMeaningfulSave(s, true)).toBe(false);
+    s.flags['intake.why_uf'] = 'computing';
+    s.flags['intake.sleep'] = 'early';
+    s.seenScenes.push('some_scene');
+    expect(isMeaningfulSave(s, true)).toBe(false);
+    s.flags['intake.done'] = true;
     expect(isMeaningfulSave(s, true)).toBe(true);
+    expect(isMeaningfulSave(s, false)).toBe(false);
+    expect(continueSummary(s, T0)).toBe('Introduction · Sam');
     const t = fresh();
     t.companion = 'piggy-3';
     expect(isMeaningfulSave(t, true)).toBe(true);

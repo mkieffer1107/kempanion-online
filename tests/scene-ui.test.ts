@@ -118,11 +118,11 @@ describe('MENU → Skip scene', () => {
     expect(skipNote({ replay: true, triggered: true })).toBe('Leave this replay?');
   });
 
-  test('the prologue: it never comes back, and before its intake the form still has to be filled in', () => {
+  test('the prologue skips ahead to selection, after completing the intake if needed', () => {
     expect(skipNote({ prologue: true, intake: true })).toBe(
-      'Skip the rest of the intro? It won’t play again, but you’ll still fill in the Kempa intake form.',
+      'Skip the rest of the intro? You’ll still fill in the Kempa intake form first.',
     );
-    expect(skipNote({ prologue: true, intake: false })).toBe('Skip the rest of the intro? It won’t play again.');
+    expect(skipNote({ prologue: true, intake: false })).toBe('Skip the rest of the intro?');
     for (const intake of [true, false]) expect(skipNote({ prologue: true, intake, triggered: false })).not.toMatch(/come back/);
   });
 
@@ -144,7 +144,7 @@ describe('MENU → Skip scene', () => {
 describe('what a skipped prologue still sets up', () => {
   const [prologue] = parseKScript(read('src/lib/content/scenes/prologue.ks'), 'prologue.ks');
 
-  test('the prologue has no trigger (it only plays from NEW GAME)', () => {
+  test('the prologue has no automatic trigger (the title starts or continues it)', () => {
     expect(prologue.id).toBe('prologue');
     expect(prologue.meta.trigger).toBeUndefined();
   });
@@ -215,12 +215,12 @@ describe('a skipped prologue leaves no half-made save behind the intake form', (
     expect(finish).toMatch(/freshSave\(\);\s*game\.save\.player\.name = r\.name;/);
   });
 
-  test("a blank save isn't one the title offers to CONTINUE; the half-made one (a name, nothing else) was", () => {
+  test('neither a blank save nor a half-made intake is offered to CONTINUE', () => {
     const blank = fresh();
     expect(isMeaningfulSave(blank, true)).toBe(false);
     const half = fresh();
     half.player.name = 'Kei';
-    expect(isMeaningfulSave(half, true)).toBe(true);
+    expect(isMeaningfulSave(half, true)).toBe(false);
   });
 });
 

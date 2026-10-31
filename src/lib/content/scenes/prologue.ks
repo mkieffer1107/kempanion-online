@@ -1,4 +1,5 @@
 # Prologue. New Game plays this scene, then the hub (where tutorial_hub takes over).
+# Until a companion is chosen, Continue returns to the completed intake checkpoint.
 # Intake form (GAME_DESIGN §3), three short first meetings (each pig's heart event 1 is its own scene),
 # the pairing under the Century Tower sakura, and the first night at Sakura House.
 #
@@ -21,6 +22,9 @@ cg: cg_trio_key_visual
 [petals light]
 [bgm prologue]
 [fade clear 1500]
+[if flag(intake.done) && !replay]
+  [goto after_intake]
+[endif]
 narrator: The bus hisses, pulls away, and leaves you at the edge of campus with a heavy bag and a map you don't trust yet.
 [if month = 1]
   narrator: Gainesville, January. It's 48°F, and the whole campus has panicked into parkas.
@@ -129,6 +133,7 @@ narrator: 【KEMPA AI】Question 3 of 4. Early bird or night owl?
 narrator: 【KEMPA AI】Last one, question 4 of 4. What's your comfort food?
 [input comfort_food "Comfort food?" "soup"]
 [set intake.done]
+*after_intake
 [sfx success]
 narrator: 【KEMPA AI】Thank you, {player}! Your pairing ceremony is today at dusk, under the Century Tower sakura.
 narrator: 【KEMPA AI】First stop: the Kempanion booth at the Reitz Union, to pick up your KempaPager. Have fun!
@@ -158,11 +163,17 @@ player: The potato?
 piggy-1 laughing: It's a ten-ton rock! Everybody says "meet at the Potato," and you can't miss it.
 narrator: You pick up the ball.
 ? Toss it back underhand.
-  [bond piggy-1 +5]
+  [if !flag(prologue.p1_bond) && !flag(met_p1)]
+    [bond piggy-1 +5]
+    [set prologue.p1_bond]
+  [endif]
   [sfx ball_hit]
   piggy-1 excited: Ooh, right on target! Soft hands— I'm writing that down.
 ? Hand it back, very formally.
-  [bond piggy-1 +5]
+  [if !flag(prologue.p1_bond) && !flag(met_p1)]
+    [bond piggy-1 +5]
+    [set prologue.p1_bond]
+  [endif]
   piggy-1 laughing: A formal handoff! That's a clean API call, right there.
 piggy-1 surprised: Wait, is it 12:44? Period six starts at 12:50, and I'm all the way over at Malachowsky!
 piggy-1 proud: Six minutes is a tenth of an hour. I can make it.
@@ -205,15 +216,23 @@ piggy-2 neutral: {player}. Kempa intake form, page one, reviewing now.
 piggy-2 neutral: There's a volleyball scuff on your shoe. You met Piggy 1 at the Plaza.
 piggy-2 neutral: Then you walked here, in this heat, without water.
 piggy-2 neutral: Mild dehydration. Probable.
-[give water_bottle 1]
+[if item(water_bottle) = 0]
+  [give water_bottle 1]
+[endif]
 narrator: He slides a water bottle across the table. It has a label that says WATER, in his handwriting.
 piggy-2 neutral: Drink this. Doctor's orders— resident's orders. An attending would co-sign.
 ? Drink it right now.
-  [bond piggy-2 +5]
+  [if !flag(prologue.p2_bond) && !flag(met_p2)]
+    [bond piggy-2 +5]
+    [set prologue.p2_bond]
+  [endif]
   [sfx drink]
   piggy-2 happy: Immediate compliance. Based.
 ? Save it for later.
-  [bond piggy-2 +5]
+  [if !flag(prologue.p2_bond) && !flag(met_p2)]
+    [bond piggy-2 +5]
+    [set prologue.p2_bond]
+  [endif]
   piggy-2 neutral: Delayed compliance. Acceptable if finished by 1600.
   piggy-2 neutral: That's four o'clock. I'll know.
 piggy-2 neutral: I'm Piggy 2. MD, fourth-year neurosurgery resident.
@@ -231,7 +250,9 @@ piggy-3 happy: Oh, nice. We agree.
 piggy-3 bashful_smile: I'm Piggy 3, by the way. Probably should've led with that.
 [nameplate piggy-3]
 piggy-3 happy: Okay, so— you're {player}? This one's yours.
-[give kempapager 1]
+[if item(kempapager) = 0]
+  [give kempapager 1]
+[endif]
 [sfx sparkle]
 narrator: He hands you a little egg-shaped device with a pixel screen. A tiny pink pig blinks up at you.
 piggy-3 thinking: Basically the stock UI looked like a microwave clock, so I redid it.
@@ -239,11 +260,17 @@ piggy-3 bashful_smile: That's— yeah. That's why I'm late.
 piggy-3 happy: The little window—the status window—shows how your Kempanion's doing. Food, energy, clean, fun.
 piggy-3 bashful_smile: And I made the petals fall a little slower. It's nicer, you'll see.
 ? It looks amazing.
-  [bond piggy-3 +5]
+  [if !flag(prologue.p3_bond) && !flag(met_p3)]
+    [bond piggy-3 +5]
+    [set prologue.p3_bond]
+  [endif]
   piggy-3 shy_blush: Oh. Okay.
   piggy-3 shy_blush: It's not done, the icons are still kind of rough— but thank you. Really.
 ? What was wrong with microwave clocks?
-  [bond piggy-3 +5]
+  [if !flag(prologue.p3_bond) && !flag(met_p3)]
+    [bond piggy-3 +5]
+    [set prologue.p3_bond]
+  [endif]
   piggy-3 laughing: Nothing, for a microwave! This one's for a friend, though, so— different requirements.
 piggy-2 neutral: Pairing ceremony, dusk, Century Tower. Don't be late.
 piggy-3 confused: Was that at me?

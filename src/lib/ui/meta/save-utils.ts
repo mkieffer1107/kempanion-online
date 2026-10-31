@@ -5,9 +5,9 @@ import { clockString, daysBetween, localDate } from '../../time';
 import { bondLevel, knownTaste, secretFavorite, type Taste } from '../../pet';
 import type { ShopLocation } from './content';
 
-/** A save worth continuing (settings-only writes from the gate don't count). */
+/** Continue starts at the completed intake checkpoint, or an already chosen companion's home. */
 export function isMeaningfulSave(save: SaveData, hasSave: boolean): boolean {
-  return hasSave && (save.companion !== null || save.player.name.trim() !== '' || save.seenScenes.length > 0);
+  return hasSave && (save.companion !== null || !!save.flags['intake.done']);
 }
 
 /** "Day N" of the semester: a days-played counter if the sim keeps one, else calendar days since the save began. */
@@ -18,6 +18,7 @@ export function dayNumber(save: SaveData, nowMs: number): number {
 }
 
 export function continueSummary(save: SaveData, nowMs: number): string {
+  if (!save.companion && save.flags['intake.done']) return `Introduction · ${save.player.name}`;
   const place = LOCATIONS[save.location]?.name ?? 'Sakura House';
   const when = clockString(new Date(save.lastTick || nowMs));
   return `Day ${dayNumber(save, nowMs)} · ${place} · ${when}`;
