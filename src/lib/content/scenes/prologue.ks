@@ -272,14 +272,14 @@ piggy-2 neutral: Off duty. Mostly.
 [show piggy-3 happy right]
 piggy-3 happy: Hi again! Is the pager working?
 piggy-3 happy: It's working. Okay, good.
-# Piggy 3 stays delighted with his phone through the robotics mumble. Piggy 2's question prompts the worried
-# "phone_mumble" pose, then the snap-out. The mumble delivery is independent of his portrait.
+# Piggy 3 mutters into his hoof, absorbed in the robotics clip. Piggy 2's question prompts the worried
+# "phone_mumble_nervous" pose, then the snap-out. The mumble delivery is independent of his portrait.
 piggy-3 phone: Oh— hey, did you see this on X today?
 narrator: He holds his phone out at arm's length. On the screen, a robot hand folds one sock, very slowly.
 piggy-1 excited: Whoa! Can it set a volleyball?
-piggy-3 phone mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
+piggy-3 phone_mumble mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
 piggy-2 neutral: Is it autonomous, or is someone off-camera holding a controller?
-piggy-3 phone_mumble: ...wait, is it sped up? Where's the 1x label? Is that a controller in the corner of the—
+piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? Where's the 1x label? Is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
 piggy-3 thinking: Did you read the Kempa brochure? There's a legend about the big sakura by the tower.
 piggy-1 excited: The promise thing!
@@ -293,8 +293,11 @@ piggy-2 neutral: Maybe our ambassador can count them for us.
 narrator: 【KEMPA STAFF】Kempanions, introduce yourselves! Thirty seconds each!
 piggy-1 excited: Yeah! I'm Piggy 1, a first-year master's student in the KEMPA AIBHS program. Also its ambassador!
 piggy-1 proud: AI in Biomedical and Health Sciences. I practiced saying the whole thing without taking a breath.
-piggy-1 excited: Club volleyball, outside hitter— I bring snacks, sunrises and hype!
+piggy-3 excited: SI in Biomedical and Health Sciences! Superintelligence, obviously.
+piggy-1 thinking: Sure. Right after it learns to return a serve.
+piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, sunrises and hype!
 piggy-2 neutral: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
+piggy-2 neutral: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
 piggy-3 bashful_smile: Okay, that's— yeah. That's my pitch.
 piggy-1 happy: That was great!

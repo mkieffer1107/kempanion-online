@@ -946,7 +946,7 @@ export class StageWorld implements StageApi {
     a.idle.running = false;
     return p.then(() => {
       a.busy = Math.max(0, a.busy - 1);
-      if (a.busy === 0) a.idle.nextAt = this.time + rand(4000, 8000);
+      if (a.busy === 0) a.idle.nextAt = this.time + (a.pig === 'piggy-3' ? this.idleDelay(a, true) : this.idleDelay(a));
     });
   }
 
@@ -1004,6 +1004,12 @@ export class StageWorld implements StageApi {
     this.sortActors();
   }
 
+  /** Piggy 3 reaches for his phone quickly; the other pigs keep their usual idle rhythm. */
+  private idleDelay(a: Actor, first = false): number {
+    if (a.pig === 'piggy-3' && outfitHasClip(a.pig, a.outfit, 'phone')) return first ? rand(3000, 5000) : rand(4000, 7000);
+    return first ? rand(1500, 4000) : rand(4000, 8000);
+  }
+
   idleBehavior(id: string, on: boolean, opts: IdleOptions = {}): void {
     const a = this.actors.get(id);
     if (!a) return;
@@ -1012,10 +1018,17 @@ export class StageWorld implements StageApi {
     if (opts.maxX !== undefined) s.maxX = opts.maxX;
     if (opts.status !== undefined) s.status = opts.status;
     if (s.on === on) return;
+    const running = s.running;
     s.on = on;
     s.token++;
     s.running = false;
-    if (on) s.nextAt = this.time + rand(1500, 4000);
+    if (on) s.nextAt = this.time + this.idleDelay(a, true);
+    else if (running && a.busy === 0) {
+      // Stop only our idle routine. A thought pose / care action already in flight owns its own clip.
+      this.stopMove(a, false);
+      this.settle(a);
+      this.setClip(a, 'idle', true, 1);
+    }
   }
 
   private updateActor(a: Actor, dt: number) {
@@ -1077,6 +1090,8 @@ export class StageWorld implements StageApi {
     const r = Math.random();
     if (s.status && Math.random() < 0.3) {
       await this.play(a, s.status, { times: 2 });
+    } else if (a.pig === 'piggy-3' && has('phone') && !this.reduceMotion) {
+      await this.play(a, 'phone', { times: 2 });
     } else if (r < 0.55) {
       if (has('blink') && Math.random() < 0.5) await this.play(a, 'blink', { loop: false });
     } else if (r < 0.65 && has('look_around')) {
@@ -1101,7 +1116,7 @@ export class StageWorld implements StageApi {
     if (!live()) return;
     this.setClip(a, 'idle', true, 1);
     s.running = false;
-    s.nextAt = this.time + rand(4000, 8000);
+    s.nextAt = this.time + this.idleDelay(a);
   }
 
   actorAtClient(clientX: number, clientY: number): string | null {
@@ -1665,7 +1680,7 @@ export class StageWorld implements StageApi {
     a.rate = 1;
     this.setClip(a, 'idle', true, 1, true);
     a.idle.running = false;
-    a.idle.nextAt = this.time + rand(3000, 6000);
+    a.idle.nextAt = this.time + (a.pig === 'piggy-3' ? this.idleDelay(a, true) : rand(3000, 6000));
     this.resolveAir(a, air, kind);
   }
 
@@ -1968,6 +1983,12 @@ export class StageWorld implements StageApi {
     this.rain.reduce = on;
     this.golden.reduce = on;
     if (on) {
+      for (const a of this.actorList) {
+        if (a.idle.running && a.anim === 'phone') {
+          this.idleBehavior(a.id, false);
+          this.idleBehavior(a.id, true);
+        }
+      }
       this.trauma = 0;
       this.cam.z = this.cam.z1 = 1;
     }

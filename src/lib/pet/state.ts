@@ -13,7 +13,7 @@
 //   pet.<pig>.secret            boolean secret favorite discovered
 //   taste.<pig>.<item>          string  discovered taste tier (shop/bag "Loved by")
 //   pet.wantDone / pet.wantSeen string  want slot keys (fulfilled / announced)
-//   pet.<pig>.thoughts          JSON    {d, ids:[]} idle thought clouds shown today, marked when shown (≤ 40; see thoughts.ts)
+//   pet.<pig>.thoughts          JSON    {d, ids:[]} idle thought clouds shown today, marked when shown (≤ 60; see thoughts.ts)
 //   tut.thoughts                boolean the hub's one-time "that cloud is just a thought" toast has shown
 //   ui.thoughts                 string  'lots' | 'off' (unset = some): Settings → Display → Thought bubbles
 //   pet.messClock               number  awake ms accumulated toward the next mess

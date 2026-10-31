@@ -179,8 +179,10 @@ export const WANT = {
  */
 export const THOUGHT = {
   /** First beat after the screen settles (s): hub after the greet line; place after the greet bubble ends. */
-  firstS: { hub: [12, 20], place: [8, 14] },
-  /** Start-to-start gap between ambient beats (s), by beats already run this visit (< upTo): today's chatter tempo first. */
+  firstS: { hub: [6, 10], place: [8, 14] },
+  /** Hub stays chatty throughout a visit; unattended rooms ease off a little after afkMs (s). */
+  hubGapS: [12, 20], hubAfkGapS: [20, 30],
+  /** Place screens: start-to-start gap (s), by beats already run this visit (< upTo). */
   gapS: [{ upTo: 8, s: [20, 40] }, { upTo: 20, s: [40, 80] }, { upTo: Infinity, s: [120, 240] }],
   /** No pointer/key input for this long (game.lastInputAt): use the AFK gap instead (s). */
   afkMs: 3 * MIN, afkGapS: [180, 360],
@@ -194,7 +196,7 @@ export const THOUGHT = {
   restMs: 4000,
   /** The tapped line's bubble: 1800 + 55 ms × length, clamped (120 chars ≈ 8.4 s, ≈ 14 chars/s). */
   tapMs: [2500, 8500],
-  dailyMax: 40, labelMax: 20, lineMax: 120,
+  dailyMax: 60, labelMax: 20, lineMax: 120,
   /** Hub beats that become thoughts: he's fine / a need under LOW / sick. The first beat of a visit is always a thought. */
   hubShare: { fine: 0.7, low: 0.5, sick: 0.5 },
   /** He strikes the 'thinking' pose on every Nth thought that has no pose of its own (everyday outfit only). */

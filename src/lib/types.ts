@@ -36,20 +36,21 @@ export const EXPRESSIONS: readonly Expression[] = [
 
 /**
  * Portraits made for the game beyond the pack's expressions (art-src/portraits-extra): Piggy 3 holding his phone out,
- * and the same pose mumbling at it (his X mumble in Talk). They are Expressions, so a scene can say
+ * focused phone mumbling (including his X mumble in Talk), and a nervous phone mumble. Both outfits have all three.
+ * They are Expressions, so a scene can say
  * `piggy-3 phone: …`, but never in EXPRESSIONS: the brains and the LLM never pick a pose. A set without the cell (Piggy
  * 1 and Piggy 2) shows POSE_FALLBACK.
  */
-export type PortraitPose = 'phone' | 'phone_mumble';
-export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble'] as const;
-export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'confused' };
+export type PortraitPose = 'phone' | 'phone_mumble' | 'phone_mumble_nervous';
+export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble', 'phone_mumble_nervous'] as const;
+export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused' };
 
 /** Every face a portrait can show: what scenes (KScript) and the renderer accept. */
 export const PORTRAIT_FACES: readonly Expression[] = [...EXPRESSIONS, ...PORTRAIT_POSES];
 
 /**
  * Alternate outfits only ship 12 portraits; the renderer maps missing ones through this table. A set without a pose
- * cell maps it the same way (POSE_FALLBACK; both stand-ins exist in every set).
+ * cell maps it the same way (POSE_FALLBACK; the stand-ins exist in every set).
  */
 export const ALT_EXPRESSION_FALLBACK: Partial<Record<Expression, Expression>> = {
   shy: 'shy_blush',

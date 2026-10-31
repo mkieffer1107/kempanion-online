@@ -6,7 +6,7 @@
 // same thought, so a reload continues the day's sequence and a new date starts a new one.
 //
 // Save keys (also listed in pet/state.ts):
-//   pet.<pig>.thoughts   JSON    {d: 'YYYY-MM-DD', ids: ['p3.loading', …]} today's thoughts, marked when shown (≤ 40)
+//   pet.<pig>.thoughts   JSON    {d: 'YYYY-MM-DD', ids: ['p3.loading', …]} today's thoughts, marked when shown (≤ 60)
 //   tut.thoughts         boolean the hub's one-time "that cloud is just a thought" toast has shown
 //   counters.thoughts_heard      thoughts tapped (no bond, no acorns)
 //   ui.thoughts          string  'lots' | 'off' (unset = 'some'): Settings → Display → Thought bubbles
@@ -326,13 +326,15 @@ export interface GapOptions {
 
 /**
  * Start-to-start ms until the next ambient beat. Thoughts 'off': today's chatter tempo (the first tier) at every beat,
- * since Off removes thoughts only and leaves speech as it was.
+ * since Off removes thoughts only. The hub keeps a livelier cadence than place screens.
  */
 export function thoughtGap(save: SaveData, pig: PigId, now: number, o: GapOptions): number {
   const pref = thoughtPref(save);
   const rand = rngFor('thought-gap', pig, localDate(now), o.visit, o.beat);
   const tier = THOUGHT.gapS.find((g) => o.beat < g.upTo) ?? THOUGHT.gapS[THOUGHT.gapS.length - 1];
-  const [lo, hi] = pref === 'off' ? THOUGHT.gapS[0].s : o.afk ? THOUGHT.afkGapS : tier.s;
+  const [lo, hi] = o.screen === 'hub'
+    ? (o.afk && pref !== 'off' ? THOUGHT.hubAfkGapS : THOUGHT.hubGapS)
+    : pref === 'off' ? THOUGHT.gapS[0].s : o.afk ? THOUGHT.afkGapS : tier.s;
   let ms = (lo + (hi - lo) * rand()) * 1000;
   if (pref === 'lots') ms *= THOUGHT.lotsK;
   if (o.screen === 'place') ms = Math.max(THOUGHT.placeMinS * 1000, ms / Math.max(1, o.onScreen ?? 1));

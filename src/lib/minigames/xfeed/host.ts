@@ -37,7 +37,7 @@ export type Pose =
   | 'angry' | 'sick' | 'sleepy' | 'neutral';
 
 /** Until the phone portraits are synced into the atlas, these stand in (they exist in every outfit). */
-export const POSE_FALLBACK: Partial<Record<Pose, Pose>> = { phone: 'happy', phone_mumble: 'confused' };
+export const POSE_FALLBACK: Partial<Record<Pose, Pose>> = { phone: 'happy', phone_mumble: 'neutral' };
 
 /** His resting pose: nose in the phone, mumbling into it, a bit green when the brain battery runs low. */
 export function basePose(s: { mumbling: boolean; grass: boolean; battery: number }): Pose {

@@ -10,7 +10,7 @@
  *   art-src/sprites-extra/<pig>/<outfit>/<clip>/NN.png + meta.json   extra clips (extra-0.png: 'held', 'phone')
  *   art-src/portraits-extra/<pig>/<outfit>/<pose>.png                 extra portrait cells, 384×512 like the pack's,
  *                                                                     after the pack's cells in portraits.png (Piggy
- *                                                                     3's 'phone' and 'phone_mumble'; types.ts
+ *                                                                     3's phone poses; types.ts
  *                                                                     PortraitPose)
  *
  *   bun run sync-sprites                      (the pack lives in art-src/sprite-pack, git-ignored)

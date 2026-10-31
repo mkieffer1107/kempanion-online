@@ -2046,6 +2046,10 @@
     "phone_mumble": [
      192,
      1280
+    ],
+    "phone_mumble_nervous": [
+     384,
+     1280
     ]
    },
    "face": "sprites/piggy-3/everyday/face.png",
@@ -2744,6 +2748,10 @@
     ],
     "phone_mumble": [
      192,
+     768
+    ],
+    "phone_mumble_nervous": [
+     384,
      768
     ]
    },

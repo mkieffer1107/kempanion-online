@@ -1,6 +1,6 @@
 // Where Piggy 3's mumble bubbles go, and when (pure, bun-testable). While his quiet, fast mumble stream types out in
 // the dialogue box (chat.ts), each fragment's buzzword pops out of him in a small lilac cloud (MumbleBubbles.svelte
-// draws them): beside his face, never over it, the phone in his hoof, his raised fist, the dialogue window or the
+// draws them): beside his face, never over it, the phone in his hoof, his muttering hoof, the dialogue window or the
 // screen's chrome. Here: the keep-out boxes of his phone portraits, where his portrait cell sits on the stage, the slot
 // search, how many bubbles a screen shows, and which bubble pops on which page of the stream.
 // Geometry is CSS px in the stage view's box (the layer StageHost's children live in) unless it says otherwise.
@@ -23,13 +23,14 @@ export type MumbleMode = 't' | 's' | 'w';
 export type CellBox = readonly [number, number, number, number];
 
 /**
- * Keep-out boxes of the 'phone' and 'phone_mumble' portraits (one framing for both; measured on the synced cells): his
- * face (glasses with their hinges, brows, the sweat drop, snout, mouth), the phone with the hoof that holds it, and his
- * raised fist. Ears and curls may sit under a bubble's edge. An outfit without its own phone cells uses everyday's.
+ * Union of the opener 'phone' and focused 'phone_mumble' portraits, measured at half the 384×512 source size.
+ * The focused pose has wider glasses, a lower chin/phone, and a hoof over his mouth; the hoodie's opener sits higher.
+ * Keep his face (glasses/hinges, brows, snout, mouth), phone/holding hoof, and either free-hoof pose clear.
+ * Ears and curls may sit under a bubble's edge. An outfit without its own phone cells uses everyday's.
  */
 export const MUMBLE_KEEP: Readonly<Record<'everyday' | 'hoodie', { face: CellBox; phone: CellBox; fist: CellBox }>> = {
-  everyday: { face: [30, 84, 160, 172], phone: [130, 125, 181, 197], fist: [29, 165, 61, 197] },
-  hoodie: { face: [36, 74, 157, 162], phone: [128, 112, 175, 179], fist: [36, 149, 66, 178] },
+  everyday: { face: [26, 84, 166, 184], phone: [130, 125, 188, 202], fist: [29, 149, 106, 197] },
+  hoodie: { face: [26, 74, 166, 184], phone: [128, 112, 188, 202], fist: [36, 149, 106, 188] },
 };
 
 /** Stage px kept around every box: the portrait bobs 1–2 px while he talks and pops 4% on a new face. */

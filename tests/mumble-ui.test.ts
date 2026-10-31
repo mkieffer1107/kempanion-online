@@ -29,9 +29,10 @@ describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () =>
     for (const [outfit, pack] of [['everyday', 20], ['hoodie', 12]] as const) {
       const set = SETS[`piggy-3/${outfit}`];
       const names = Object.keys(set.portraits);
-      expect(names.length).toBe(pack + 2);
-      expect(names.slice(pack)).toEqual(['phone', 'phone_mumble']);
-      // the pack's cells keep their places (4 per row, in the manifest's order); the poses take the next two
+      const poses = ['phone', 'phone_mumble', 'phone_mumble_nervous'];
+      expect(names.length).toBe(pack + poses.length);
+      expect(names.slice(pack)).toEqual(poses);
+      // the pack's cells keep their places (4 per row, in the manifest's order); the poses follow
       names.forEach((n, i) => expect([n, set.portraits[n]]).toEqual([n, [(i % 4) * 192, Math.floor(i / 4) * 256]]));
       expect(set.portraitAtlas).toBe(`sprites/piggy-3/${outfit}/portraits.png`);
       // and his full-body phone clip rides in extra-0 beside 'held'
@@ -45,6 +46,7 @@ describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () =>
       const set = SETS[key];
       expect(set.portraits.phone).toBeUndefined();
       expect(set.portraits.phone_mumble).toBeUndefined();
+      expect(set.portraits.phone_mumble_nervous).toBeUndefined();
       expect(Object.keys(set.portraits).length).toBe(key.endsWith('everyday') ? 20 : 12);
     }
   });
@@ -63,9 +65,9 @@ describe('poses as portrait faces', () => {
   test("never a brain's pick: EXPRESSIONS is still the pack's 20, PORTRAIT_FACES adds the poses", () => {
     expect(EXPRESSIONS.length).toBe(20);
     for (const p of PORTRAIT_POSES) expect(EXPRESSIONS).not.toContain(p);
-    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, 'phone', 'phone_mumble']);
+    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, 'phone', 'phone_mumble', 'phone_mumble_nervous']);
     // the stand-ins are brain faces that every set has, and the renderer's fallback table carries them
-    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'confused' });
+    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused' });
     for (const p of PORTRAIT_POSES) {
       expect(EXPRESSIONS).toContain(POSE_FALLBACK[p]);
       expect(ALT_EXPRESSION_FALLBACK[p]).toBe(POSE_FALLBACK[p]);
@@ -81,9 +83,9 @@ describe('poses as portrait faces', () => {
       }
     }
     expect(resolvePortrait('piggy-1', 'everyday', 'phone').expression).toBe('happy');
-    expect(resolvePortrait('piggy-1', 'volleyball', 'phone_mumble').expression).toBe('confused');
+    expect(resolvePortrait('piggy-1', 'volleyball', 'phone_mumble').expression).toBe('neutral');
     expect(resolvePortrait('piggy-2', 'scrubs', 'phone').expression).toBe('happy');
-    expect(resolvePortrait('piggy-2', 'everyday', 'phone_mumble')).toMatchObject({ expression: 'confused', outfit: 'everyday' });
+    expect(resolvePortrait('piggy-2', 'everyday', 'phone_mumble')).toMatchObject({ expression: 'neutral', outfit: 'everyday' });
     // every face resolves to a real cell for every pig in every outfit
     for (const pig of PIG_IDS) {
       for (const outfit of ['everyday', 'volleyball', 'scrubs', 'hoodie'] as OutfitId[]) {
@@ -102,7 +104,7 @@ describe('poses as portrait faces', () => {
       '---',
       '[show piggy-3 phone right]',
       'piggy-3 phone: Oh— hey, did you see this on X today?',
-      'piggy-3 phone_mumble: ...wait, is it sped up? Where is the 1x label?',
+      'piggy-3 phone_mumble_nervous: ...wait, is it sped up? Where is the 1x label?',
       '[expr piggy-3 phone]',
       '[show piggy-3@hoodie phone_mumble right]',
       'piggy-3 flustered_blush: Sorry. Phone away.',
@@ -117,6 +119,8 @@ describe('poses as portrait faces', () => {
     // the runtime keeps the pose (unknown faces still fall back to neutral)
     expect(toExpression('phone')).toBe('phone');
     expect(toExpression('phone_mumble')).toBe('phone_mumble');
+    expect(toExpression('phone_mumble_nervous')).toBe('phone_mumble_nervous');
+    expect(resolvePortrait('piggy-2', 'everyday', 'phone_mumble_nervous').expression).toBe('confused');
     expect(toExpression('smug')).toBe('neutral');
     expect(read('src/lib/vn/runner.ts')).toContain('(PORTRAIT_FACES as readonly string[]).includes(e)');
   });
@@ -260,18 +264,43 @@ describe('mumble bubbles on the Talk stage', () => {
   test('his keep-outs sit where world.ts draws his portrait: centered in T, at the left slot in S and W', () => {
     const [phone, , landscape, desktop] = STAGES;
     const face = (s: Stage) => geoOf(s).keep[0];
-    // T: the cell is centered, so the face (cell columns 30–160) is too, within a few px
+    // T: the cell is centered, so the face (cell columns 26–166) is too, within a few px
     const f = face(phone);
     expect(Math.abs(f.x + f.w / 2 - (phone.lw * phone.u) / 2)).toBeLessThan(3 * phone.u);
-    // W: the cell starts at 100 − 96 = 4 stage px, the face 30 − 3 px in from there; the phone ends at 184 + 3
+    // W: the cell starts at 100 − 96 = 4 stage px, the face 26 − 3 px in from there; the phone ends at 188 + 3
     const d = geoOf(desktop).keep;
-    expect(d[0].x).toBeCloseTo((4 + 30 - 3) * desktop.u, 3);
-    expect(d[1].x + d[1].w).toBeCloseTo((4 + 181 + 3) * desktop.u, 3);
+    expect(d[0].x).toBeCloseTo((4 + 26 - 3) * desktop.u, 3);
+    expect(d[1].x + d[1].w).toBeCloseTo((4 + 188 + 3) * desktop.u, 3);
     expect(d[0].y).toBeCloseTo((22 + 84 - 3) * desktop.u, 3);
     expect(geoOf(landscape).keep.length).toBe(3);
     // the hoodie's phone pose sits higher
     expect(mumbleKeepOut('hoodie', 'left', 480, 1)[0].y).toBeLessThan(mumbleKeepOut('everyday', 'left', 480, 1)[0].y);
-    expect(MUMBLE_KEEP.everyday.face).toEqual([30, 84, 160, 172]);
+    expect(MUMBLE_KEEP.everyday.face).toEqual([26, 84, 166, 184]);
+  });
+
+  test('both outfit unions contain the opener and focused-pose landmarks, including the mouth-covering hoof', () => {
+    // Independent 384×512 source-art landmarks: outer glasses/chin, phone/holding hoof, free hoof.
+    const landmarks = {
+      everyday: {
+        face: [[60, 168], [320, 344], [54, 190], [330, 366]],
+        phone: [[260, 250], [362, 394], [270, 260], [376, 404]],
+        fist: [[58, 330], [122, 394], [120, 298], [210, 374]],
+      },
+      hoodie: {
+        face: [[72, 148], [314, 324], [54, 190], [330, 366]],
+        phone: [[256, 224], [350, 358], [270, 260], [376, 404]],
+        fist: [[72, 298], [132, 356], [120, 298], [210, 374]],
+      },
+    };
+    for (const outfit of ['everyday', 'hoodie'] as const) for (const part of ['face', 'phone', 'fist'] as const) {
+      const [x0, y0, x1, y1] = MUMBLE_KEEP[outfit][part];
+      for (const [x, y] of landmarks[outfit][part]) {
+        expect(x / 2).toBeGreaterThanOrEqual(x0);
+        expect(x / 2).toBeLessThanOrEqual(x1);
+        expect(y / 2).toBeGreaterThanOrEqual(y0);
+        expect(y / 2).toBeLessThanOrEqual(y1);
+      }
+    }
   });
 
   test('every bubble of a long mumble finds a place, clear of his face, the phone, the fist, the chrome and each other', () => {

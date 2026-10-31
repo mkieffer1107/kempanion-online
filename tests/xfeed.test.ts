@@ -554,7 +554,7 @@ describe('For You Pig: Piggy 3 as host', () => {
     expect(basePose({ mumbling: true, grass: true, battery: 0 })).toBe('happy');
     const set = (sprites as unknown as { sets: Record<string, { portraits: Record<string, number[]> }> }).sets['piggy-3/everyday'];
     expect(portraitCell('phone')!.pose).toBe(set.portraits.phone ? 'phone' : 'happy');
-    expect(portraitCell('phone_mumble')!.pose).toBe(set.portraits.phone_mumble ? 'phone_mumble' : 'confused');
+    expect(portraitCell('phone_mumble')!.pose).toBe(set.portraits.phone_mumble ? 'phone_mumble' : 'neutral');
     for (const p of ['happy', 'proud', 'excited', 'laughing', 'flustered_blush', 'confused', 'surprised', 'angry', 'sick', 'sleepy'] as const) {
       expect(portraitCell(p)!.pose).toBe(p);
     }

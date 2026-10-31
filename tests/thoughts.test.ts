@@ -17,7 +17,7 @@ import { ITEM_ICONS } from '../src/lib/content/icons/items';
 import { THOUGHT_ICONS } from '../src/lib/content/icons/thoughts';
 import { THOUGHT_BANKS, THOUGHT_FACES, type PigThoughts, type ThoughtDef } from '../src/lib/pet/thought-bank';
 import {
-  BARE_GATES, GATE_RE, SICK_TOPIC, THOUGHT, gateHolds, markThought, pickFromBank, pickThought, thinkBlock, thoughtGap,
+  BARE_GATES, GATE_RE, SICK_TOPIC, THOUGHT, firstBeatMs, gateHolds, markThought, pickFromBank, pickThought, thinkBlock, thoughtGap,
   thoughtMs, thoughtName, thoughtPref, thoughtTags, thoughtWeight, thoughtsToday, topicHint, type Thought, type ThoughtCtx,
 } from '../src/lib/pet/thoughts';
 import { ambientKind } from '../src/lib/ui/hub/hub';
@@ -307,7 +307,7 @@ describe('pickThought: determinism', () => {
     }
   });
 
-  test('pick and mark until null: unique ids, at most 40; the next date starts over', () => {
+  test('pick and mark until null: unique ids, at most the daily cap; the next date starts over', () => {
     for (const pig of PIG_IDS) {
       const save = freshSave();
       const now = T('2026-10-30T14:55:00');
@@ -563,7 +563,7 @@ describe('wants win; asleep and off', () => {
     expect(pickThought(save, 'piggy-3', ctxAt(at, 'piggy-3'))).not.toBeNull();
   });
 
-  test('asleep → asleep, Settings off → off, 40 today → done', () => {
+  test('asleep → asleep, Settings off → off, the daily cap → done', () => {
     const save = freshSave();
     save.companion = 'piggy-2';
     const day = T('2026-10-30T11:55:00');
@@ -578,7 +578,7 @@ describe('wants win; asleep and off', () => {
     expect(pickThought(save, 'piggy-2', ctxAt(day, 'piggy-2'))).toBeNull();
     save.flags['ui.thoughts'] = 'lots';
     expect(thoughtPref(save)).toBe('lots');
-    save.flags['pet.piggy-2.thoughts'] = JSON.stringify({ d: '2026-10-30', ids: Array.from({ length: 40 }, (_, i) => `p2.z${i}`) });
+    save.flags['pet.piggy-2.thoughts'] = JSON.stringify({ d: '2026-10-30', ids: Array.from({ length: THOUGHT.dailyMax }, (_, i) => `p2.z${i}`) });
     expect(thinkBlock(save, 'piggy-2', day)).toBe('done');
   });
 
@@ -603,14 +603,14 @@ describe('cadence and durations (§4.5)', () => {
   const gap = (beat: number, o: Partial<Parameters<typeof thoughtGap>[3]> = {}, s = save) =>
     thoughtGap(s, 'piggy-3', now, { beat, visit: 1000, afk: false, screen: 'hub', ...o });
 
-  test('each tier stays in its range and is deterministic; AFK uses the AFK gap', () => {
+  test('place tiers retain their ranges and deterministic rhythm, including AFK', () => {
     for (const [beat, [lo, hi]] of [[0, [20, 40]], [7, [20, 40]], [8, [40, 80]], [19, [40, 80]], [20, [120, 240]], [60, [120, 240]]] as const) {
       for (let visit = 0; visit < 20; visit++) {
-        const ms = gap(beat, { visit });
+        const ms = gap(beat, { visit, screen: 'place' });
         expect([beat, ms >= lo * 1000 && ms <= hi * 1000]).toEqual([beat, true]);
-        expect(gap(beat, { visit })).toBe(ms);
+        expect(gap(beat, { visit, screen: 'place' })).toBe(ms);
       }
-      const afk = gap(beat, { afk: true });
+      const afk = gap(beat, { afk: true, screen: 'place' });
       expect(afk).toBeGreaterThanOrEqual(180_000);
       expect(afk).toBeLessThanOrEqual(360_000);
     }
@@ -625,17 +625,37 @@ describe('cadence and durations (§4.5)', () => {
     off.flags['ui.thoughts'] = 'off';
     for (const beat of [0, 8, 20, 60]) {
       const ms = gap(beat, { afk: true }, off);
-      expect(ms >= 20_000 && ms <= 40_000).toBe(true);
+      expect(ms >= 12_000 && ms <= 20_000).toBe(true);
     }
     for (const beat of [0, 8, 20]) {
       const one = gap(beat, { screen: 'place', onScreen: 1 });
       const three = gap(beat, { screen: 'place', onScreen: 3 });
-      expect(one).toBe(Math.max(18_000, gap(beat)));
-      expect(Math.abs(three - Math.max(18_000, gap(beat) / 3))).toBeLessThanOrEqual(1);
+      expect(Math.abs(three - Math.max(18_000, one / 3))).toBeLessThanOrEqual(1);
       expect(three).toBeGreaterThanOrEqual(18_000);
     }
     expect(gap(0, { minMs: 99_000 })).toBe(99_000);
     expect(gap(0, { screen: 'place', onScreen: 3, minMs: 30_000 })).toBeGreaterThanOrEqual(30_000);
+  });
+
+  test('all three hub companions keep frequent beats on long visits, with a gentler AFK interval', () => {
+    for (const pig of PIG_IDS) for (const beat of [0, 8, 20, 60]) for (let visit = 0; visit < 20; visit++) {
+      for (const afk of [false, true]) {
+        const opts = { beat, visit, afk, screen: 'hub' as const };
+        const ms = thoughtGap(save, pig, now, opts);
+        expect(ms).toBeGreaterThanOrEqual(afk ? 20_000 : 12_000);
+        expect(ms).toBeLessThanOrEqual(afk ? 30_000 : 20_000);
+        expect(thoughtGap(save, pig, now, opts)).toBe(ms);
+      }
+      const first = firstBeatMs('hub', pig, now, visit);
+      expect(first).toBeGreaterThanOrEqual(6000);
+      expect(first).toBeLessThanOrEqual(10_000);
+      const place = firstBeatMs('place', pig, now, visit);
+      expect(place).toBeGreaterThanOrEqual(8000);
+      expect(place).toBeLessThanOrEqual(14_000);
+    }
+    const lots = freshSave();
+    lots.flags['ui.thoughts'] = 'lots';
+    expect(gap(0, { minMs: 8000 + THOUGHT.restMs }, lots)).toBeGreaterThanOrEqual(12_000);
   });
 
   test('thoughtMs: 6–8 s, longer for longer labels, 8 s at 20 characters', () => {

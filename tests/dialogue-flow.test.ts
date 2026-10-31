@@ -381,7 +381,7 @@ describe('the dialogue speaker stays in front after the typewriter stops', () =>
 });
 
 describe('scripted phone mumble delivery', () => {
-  for (const syntax of ['phone mumble', 'phone_mumble']) test(`${syntax}: pages stay whispered and normal phone delivery resets`, async () => {
+  for (const syntax of ['phone mumble', 'phone_mumble', 'phone_mumble_nervous']) test(`${syntax}: pages stay whispered and normal phone delivery resets`, async () => {
     const mumble = '...vision language action models, imitation learning, diffusion policies, sim-to-real transfer, tactile feedback... '
       + '...closed-loop control, action chunks, policy rollouts, world models, contact-rich manipulation, generalization... '
       + '...but what happens when the gripper meets a sock it has never seen before?';
@@ -396,7 +396,7 @@ describe('scripted phone mumble delivery', () => {
     while (true) {
       expect(await until(() => dialogue.waiting && dialogue.text !== previous)).toBe(true);
       if (dialogue.text === normal) break;
-      expect(dialogue.expression).toBe(syntax === 'phone mumble' ? 'phone' : 'phone_mumble');
+      expect(dialogue.expression).toBe(syntax.split(' ')[0]);
       expect(dialogue.mumbling).toBe(true);
       expect(dialogue.speaker).toBe('piggy-3');
       expect(dialogue.mode).toBe('scene');

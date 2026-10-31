@@ -34,6 +34,7 @@
   import { bubbleMs, cloudSize, thoughtSpeed } from '../bubbles';
   import { modalOpen, ui } from '../ui.svelte';
   import { viewport } from '../viewport.svelte';
+  import { motion } from '../meta/motion.svelte';
   import { toast } from '../toasts.svelte';
   import GameLayout from '../layout/GameLayout.svelte';
   import StageHost from '../components/StageHost.svelte';
@@ -136,7 +137,7 @@
 
   // ── thoughts (thoughts final.md §5): the ambient beat. About 70% of beats show a thought cloud, the rest are
   // today's spoken lines (need cues get half while a need is low); wants always win. Tempo: today's chatter at first,
-  // calmer later in a visit and while you're away from the keys (pet/thoughts.ts thoughtGap). ──
+  // a little calmer while you're away from the keys (pet/thoughts.ts thoughtGap). ──
   let thought = $state<Thought | null>(null);
   /** The cloud opens to his left: decided when it appears, changed only when it would leave the stage. */
   let thoughtFlip = $state(false);
@@ -161,7 +162,7 @@
     beatTimer = setTimeout(runBeat, Math.max(0, ms));
   }
 
-  /** The first beat after the room settles (after the greet line): 12–20 s, seeded per visit. */
+  /** The first beat after the room settles (after the greet line): 6–10 s, seeded per visit. */
   function scheduleFirstBeat() {
     scheduleBeat(firstBeatMs('hub', pig, now(), visit) * speed);
   }
@@ -857,7 +858,7 @@
       stage.idleBehavior('pig', false);
       void stage.playAnim('pig', 'sleep', { loop: true });
     } else {
-      stage.idleBehavior('pig', true, { status: idleStatus(outfit) });
+      syncIdle();
     }
     audio.playSong(hubSong(l, sleeping, tod === 'night'), { fadeMs: 700 });
   }
@@ -873,10 +874,14 @@
     untrack(() => void setupStage(id, l, outfit, sleeping));
   });
 
-  $effect(() => {
-    void statusAnim;
-    untrack(() => { if (ready && !asleep) stage.idleBehavior('pig', true, { status: idleStatus(p.outfit) }); });
-  });
+  function syncIdle() {
+    if (!ready || !alive || asleep) return;
+    const on = pig !== 'piggy-3' || (!beatBlocked() && !motion.reduced);
+    const status = idleStatus(p.outfit);
+    untrack(() => stage.idleBehavior('pig', on, { status }));
+  }
+
+  $effect(syncIdle);
 
   $effect(() => {
     const w = weather;
@@ -934,6 +939,8 @@
       scheduleGround();
     });
     const posTimer = setInterval(() => {
+      // The escape stack and document visibility aren't reactive; reuse this existing poll to catch either.
+      syncIdle();
       const pos = stage.actorPosition('pig');
       if (pos && (pos.x !== pigPos.x || pos.y !== pigPos.y)) pigPos = pos;
       if (holding) {
@@ -942,7 +949,7 @@
       } else if (hovering && !press) updateHover(); // he may have walked under a resting cursor
     }, 200);
 
-    // The ambient beat (thoughts and today's chatter) starts 12–20 s after the greet line.
+    // The ambient beat (thoughts and today's chatter) starts 6–10 s after the greet line.
     const greetTimer = !letter && !rollCall ? setTimeout(() => chatter(asleep ? 'sleepy' : 'greet'), 700) : undefined;
     scheduleFirstBeat();
     schedulePetal(true);

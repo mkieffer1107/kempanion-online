@@ -481,7 +481,7 @@ export interface Cell { atlas: string; x: number; y: number; pose: string }
 
 /**
  * Atlas cell for a bust pose: the pose itself once sync-sprites has added it, else its stand-in (phone → happy,
- * phone_mumble → confused), else neutral. `atlas` is relative to public/assets (wrap it with assetUrl).
+ * phone_mumble → neutral), else neutral. `atlas` is relative to public/assets (wrap it with assetUrl).
  */
 export function portraitCell(pose: Pose, outfit = 'everyday'): Cell | null {
   const set = SPRITES.sets[`piggy-3/${outfit}`] ?? SPRITES.sets['piggy-3/everyday'];
