@@ -885,7 +885,7 @@ export const P3: PigLines = {
     "ask_hobby:shows": [
       ["happy", "One Piece, weekly. And then X.com, to see what everyone thought. Mostly X.com, honestly."],
       ["thinking", "Model release livestreams. Like, people watch sports, and I watch benchmark charts. Okay, it's a lot like sports."],
-      ["excited", "Haikyu!!, because Piggy 1 made me. It's actually really good. Don't tell him I said “really.”"],
+      ["excited", "Hog Psycho 100! I started it for the psychic powers and now I'm, like, emotionally invested in everyone. The animation is ridiculous."],
     ],
     "ask_about_self:competitive": [
       ["thinking", "Only about benchmarks. Like, I want to know who won, and also against what baseline."],
