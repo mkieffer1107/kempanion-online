@@ -254,8 +254,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: 'Pig Pen Friday! Piggy 1 narrates the squirrels like a volleyball match, Piggy 2 hands me water, and I love these guys.',
   },
   {
-    id: 'p3.cypress-knees', topic: 'campus', label: 'Cypress knees', icon: 'sparkle', face: 'thinking', when: ['place:lake_alice'],
-    line: "Those cypress knees poking out of Lake Alice? Nobody's totally sure what they're for, and I love an open question.",
+    id: 'p3.cypress-knees', topic: 'campus', label: 'Cypress knees', icon: 'sparkle', face: 'thinking', when: ['place:marston'],
+    line: "Reading about cypress knees: nobody's totally sure what they're for, and I love an open question.",
   },
   {
     id: 'p3.thunder-count', topic: 'weather', label: 'Thunder counting', icon: 'energy', face: 'thinking', when: ['weather:storm'],
