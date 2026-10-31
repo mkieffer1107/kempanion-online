@@ -24,7 +24,12 @@ plugin({
 /** Every stage / audio call is a no-op (timed ones resolve at once, as with no <Stage /> mounted). */
 const silent = new Proxy({}, { get: (_, k) => (k === 'then' ? undefined : () => Promise.resolve()) });
 const SCENES = new Map<string, Scene>();
-mock.module('../src/lib/audio', () => ({ audio: silent, VOICE_STYLE: {} }));
+const blips: { voice: string; whisper?: boolean }[] = [];
+mock.module('../src/lib/audio', () => ({ audio: new Proxy(silent, {
+  get: (target, key) => key === 'blip'
+    ? (voice: string, options: { whisper?: boolean } = {}) => blips.push({ voice, whisper: options.whisper })
+    : Reflect.get(target, key),
+}), VOICE_STYLE: {} }));
 const stageSpeakers: (string | null)[] = [];
 mock.module('../src/lib/engine/stage', () => ({ stage: new Proxy(silent, {
   get: (target, key) => key === 'setSpeaker' ? (pig: string | null) => stageSpeakers.push(pig) : Reflect.get(target, key),
@@ -371,5 +376,42 @@ describe('the dialogue speaker stays in front after the typewriter stops', () =>
       dialogue[clear]();
       expect(currentSpeaker()).toBeNull();
     }
+  });
+});
+
+describe('scripted phone mumble delivery', () => {
+  test('each page stays whispered in the mumble pose, then the next normal line restores ordinary delivery', async () => {
+    const mumble = '...vision language action models, imitation learning, diffusion policies, sim-to-real transfer, tactile feedback... '
+      + '...closed-loop control, action chunks, policy rollouts, world models, contact-rich manipulation, generalization... '
+      + '...but what happens when the gripper meets a sock it has never seen before?';
+    const normal = 'Sorry. Phone away. Ceremony first.';
+    SCENES.set('t_scripted_mumble', parseKScript(`=== t_scripted_mumble\n---\npiggy-3 phone_mumble: ${mumble}\npiggy-3 flustered_blush: ${normal}\n`, 'mumble-flow.ks')[0]);
+    game.save.settings.textSpeed = 160;
+    blips.length = 0;
+    const logStart = dialogue.log.length;
+    const scene = play('t_scripted_mumble');
+    let pages = 0;
+    let previous = '';
+    while (true) {
+      expect(await until(() => dialogue.waiting && dialogue.text !== previous)).toBe(true);
+      if (dialogue.text === normal) break;
+      expect(dialogue.expression).toBe('phone_mumble');
+      expect(dialogue.speaker).toBe('piggy-3');
+      expect(dialogue.mode).toBe('scene');
+      expect(blips.length).toBeGreaterThan(0);
+      expect(blips.every((blip) => blip.voice === 'piggy-3' && blip.whisper === true)).toBe(true);
+      previous = dialogue.text;
+      pages++;
+      blips.length = 0;
+      dialogue.advance();
+    }
+    expect(pages).toBeGreaterThan(1);
+    expect(dialogue.expression).toBe('flustered_blush');
+    expect(blips.length).toBeGreaterThan(0);
+    expect(blips.every((blip) => blip.voice === 'piggy-3' && blip.whisper === false)).toBe(true);
+    expect(dialogue.log.slice(logStart).filter((line) => line.speaker === 'piggy-3').map((line) => line.text)).toEqual([mumble, normal]);
+    dialogue.advance();
+    await scene.run;
+    expect(dialogue.expression).toBeNull();
   });
 });
