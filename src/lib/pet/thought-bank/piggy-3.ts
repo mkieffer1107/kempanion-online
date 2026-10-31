@@ -134,7 +134,7 @@ const thoughts: readonly ThoughtDef[] = [
     line: "While my simulation runs on HiPerGator, I check X, and while X loads, I check the simulation. It's a very stable loop.",
   },
   {
-    id: 'p3.swamp-chomp', topic: 'x', label: 'Swamp timeline', icon: 'pennant', face: 'excited', when: ['place:stadium', 'day:gameday'],
+    id: 'p3.swamp-chomp', topic: 'x', label: 'Swamp timeline', icon: 'pennant', face: 'excited', when: ['day:gameday'],
     line: "Everyone in the Swamp is posting the same chomp from eighty thousand angles. That's basically a 3D scan of one chomp.",
   },
   {
