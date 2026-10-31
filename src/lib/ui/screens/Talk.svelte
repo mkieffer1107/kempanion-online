@@ -4,8 +4,8 @@
   // face/name/hearts, the always-available brain chip and his memories of you.
   // Piggy 3's X mumble (chat.ts playMumble): the stream shows small and dim in the box, and its buzzwords pop around
   // his portrait in lilac clouds (MumbleBubbles, on the stage), clear of his face, the phone, the top bar and the box.
-  //   W / S  he stands on the LEFT, the box sits at the bottom in its normal size, and the options float on the
-  //          right half between the top bar and the box, clear of his face. S has no height to spare under the
+  //   W / S  he stands on the LEFT and the options float on the right half, clear of his face. W docks the box
+  //          below the picture; S overlays it at the bottom. S has no height to spare under the
   //          options, so its Goodbye joins LOG · AUTO · SKIP · HIDE · MENU in the right rail.
   //   T      he stands in the middle of the stage, the box is docked under it and the options stack under the box
   //          (thumb zone); box and options rise together above the on-screen keyboard while typing.
@@ -54,7 +54,7 @@
   const slot = $derived<PortraitPos>(wide ? 'left' : 'center');
   /** S with the on-screen keyboard up: the dialogue window steps aside so the reply field gets the visible height. */
   const typingS = $derived(viewport.mode === 's' && viewport.keyboard);
-  /** Rendered heights (W/S): the options live between the top bar and the dialogue window. */
+  /** Rendered heights: options clear the top bar, and S also clears the overlaid dialogue window. */
   let boxH = $state(0);
   let barH = $state(0);
   let choices = $state<ReturnType<typeof ChatChoices>>();
@@ -222,7 +222,7 @@
   <button type="button" class="px-btn ghost" title="Goodbye (leave the chat)" aria-label="Goodbye" onclick={(e) => { e.stopPropagation(); bye(); }}>BYE</button>
 {/snippet}
 
-<GameLayout chrome="vn">
+<GameLayout chrome="vn" dockedDialogue>
   {#snippet status()}
     <div class="topbar" bind:offsetHeight={barH}>
       <button type="button" class="px-btn ghost small back" onclick={backBtn} aria-label="Back">
@@ -251,20 +251,22 @@
         <div
           class="side"
           class:short={viewport.mode === 's'}
-          style:--box-h="{typingS ? 0 : boxH}px"
+          style:--box-h="{viewport.mode === 'w' || typingS ? 0 : boxH}px"
           style:--bar-h="{barH}px"
           use:liftAboveKeyboard
         >
           <ChatChoices bind:this={choices} lift={false} goodbye={viewport.mode === 'w'} />
         </div>
-        <DialogueBox
-          layout="overlay"
-          class={typingS ? 'stepped-aside' : ''}
-          controls={viewport.mode === 'w'}
-          menu={menuBtn}
-          input={false}
-          bind:height={boxH}
-        />
+        {#if viewport.mode === 's'}
+          <DialogueBox
+            layout="overlay"
+            class={typingS ? 'stepped-aside' : ''}
+            controls={false}
+            menu={menuBtn}
+            input={false}
+            bind:height={boxH}
+          />
+        {/if}
       {/if}
     </div>
   {/snippet}
@@ -274,7 +276,11 @@
   {/snippet}
 
   {#snippet text()}
-    {#if viewport.mode === 't'}
+    {#if viewport.mode === 'w'}
+      <div class="w-chat" class:mumbling={mumbleStage.stream}>
+        <DialogueBox layout="docked" lines={3} menu={menuBtn} input={false} />
+      </div>
+    {:else if viewport.mode === 't'}
       <div class="t-chat" class:mumbling={mumbleStage.stream} use:liftAboveKeyboard>
         <!-- keyboard up: the stage is a sliver, so LOG · AUTO · SKIP · HIDE · MENU would float over the top bar -->
         <DialogueBox layout="docked" controls={!viewport.keyboard} menu={menuBtn} input={false} />
@@ -330,6 +336,7 @@
   .sp { flex: 1; }
   .back, .mem { min-height: 44px; }
   .stage-wrap { position: absolute; inset: 0; }
+  .w-chat { width: 100%; min-width: 0; }
   /* Piggy 3's mumble stream (chat.ts playMumble): smaller and quieter in the same window, which keeps its height, so
      more fits (5 rows docked instead of 4). 0.8em stays at 11 px or more at Text Size S. */
   .mumbling :global(.vn .box .text) {
@@ -360,6 +367,9 @@
   }
   .side::-webkit-scrollbar { display: none; }
   .side > :global(.cc) { margin-block: auto; }
+  /* W docks the text below the picture, but its controls still float over the bottom edge.
+     Keep scrollable replies above that strip, including XL text and coarse-pointer 44px buttons. */
+  .side:not(.short) { bottom: max(64px, calc(max(3%, var(--safe-bottom)) + var(--px) * 2)); }
   /* S: the top bar keeps to the left of the options (below), so they can use the full height beside it. */
   .side.short { top: calc(var(--u) * 2); }
   /* S while typing: the window is hidden (its line is back when the keyboard closes) and --box-h is 0 */

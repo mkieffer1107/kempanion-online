@@ -227,7 +227,7 @@ describe('a skipped prologue leaves no half-made save behind the intake form', (
 describe('HIDE', () => {
   test('Scene passes the hidden state to GameLayout, so the S right rail hides with the box', () => {
     const scene = read('src/lib/ui/screens/Scene.svelte');
-    expect(scene).toMatch(/<GameLayout chrome="vn" centered \{topClearance\} hideUi=\{dialogue\.uiHidden\} onreveal=\{\(\) => \(dialogue\.uiHidden = false\)\}>/);
+    expect(scene).toMatch(/<GameLayout chrome="vn" centered dockedDialogue \{topClearance\} hideUi=\{dialogue\.uiHidden\} onreveal=\{\(\) => \(dialogue\.uiHidden = false\)\}>/);
     // the rail's controls are in GameLayout's `bottom` region, which hide-ui hides
     expect(scene).toMatch(/\{#snippet bottom\(\)\}\s*\{#if viewport\.mode === 's'\}<DialogueControls vertical/);
     expect(read('src/lib/ui/layout/GameLayout.svelte')).toMatch(/\.hide-ui \.bottom[^{]*\{[^}]*visibility: hidden/);

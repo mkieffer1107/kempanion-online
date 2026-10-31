@@ -38,6 +38,8 @@
     chrome?: Chrome;
     /** Center the picture and its UI together on portrait phones (story scenes). */
     centered?: boolean;
+    /** Desktop dialogue screens: a 16:9 picture with its dialogue docked underneath. */
+    dockedDialogue?: boolean;
     /** Minimum space above a centered picture for tutorial overlays, excluding safe-area padding. */
     topClearance?: number;
     /** Hide text/info/menu/top/bottom (the H key, or while a CG is showing). */
@@ -46,7 +48,7 @@
     onreveal?: () => void;
   }
 
-  let { stage, status, dock, top, info, menu, bottom, text, overlay, chrome = 'vn', centered = false, topClearance = 0, hideUi = false, onreveal }: Props = $props();
+  let { stage, status, dock, top, info, menu, bottom, text, overlay, chrome = 'vn', centered = false, dockedDialogue = false, topClearance = 0, hideUi = false, onreveal }: Props = $props();
 
   let stageH = $state(270);
   const mode = $derived(viewport.mode);
@@ -60,6 +62,7 @@
   class:no-left={!top}
   class:no-right={!bottom && !dock}
   class:centered
+  class:docked-dialogue={dockedDialogue}
   style:--center-top="{topClearance}px"
 >
   <div class="frame" style:--u="{u}px">
@@ -142,6 +145,32 @@
   .mode-w .menu { grid-area: menu; --dir: column; justify-content: flex-end; align-items: center; }
   .mode-w .bottom { grid-area: bottom; --dir: row; align-items: flex-end; }
   .mode-w .text { grid-area: text; --dir: column; flex-direction: column; justify-content: flex-end; }
+
+  /* Desktop dialogue keeps the whole portrait above the window, like the portrait-phone composition.
+     Fit picture + three text rows as one block. The 72px caption allowance (at a 480px picture width)
+     includes the text-size preference and a little room for borders/minimum font sizes. Pure CSS sizing
+     avoids a measure → resize loop; HIDE preserves the docked box's reserved height. */
+  .mode-w.docked-dialogue .frame {
+    width: min(100cqw, 100cqh * 480 / (270 + 72 * var(--fs-k)));
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: 'stage' 'bottom' 'text';
+    gap: 0;
+    padding: 0;
+    background: var(--night);
+  }
+  .mode-w.docked-dialogue .stage {
+    grid-area: stage;
+    margin: 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .mode-w.docked-dialogue .status {
+    grid-area: stage;
+    align-self: start;
+    margin: calc(var(--u) * 4) calc(var(--u) * 6);
+  }
 
   /* ───────────── T: phone portrait — KempaPager device shell ───────────── */
   .mode-t { display: grid; justify-items: center; }

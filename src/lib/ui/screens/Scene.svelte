@@ -95,7 +95,7 @@
 {/snippet}
 
 <!-- HIDE hides the layout's regions too: in S the controls sit in the right rail, outside the text box. -->
-<GameLayout chrome="vn" centered {topClearance} hideUi={dialogue.uiHidden} onreveal={() => (dialogue.uiHidden = false)}>
+<GameLayout chrome="vn" centered dockedDialogue {topClearance} hideUi={dialogue.uiHidden} onreveal={() => (dialogue.uiHidden = false)}>
   {#snippet stage()}
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" bind:this={stageEl} onclick={stageTap}>
@@ -110,7 +110,7 @@
       {#if viewport.mode !== 't'}
         <PagerInset place="stage" />
         <BrainInset place="stage" />
-        <DialogueBox layout="overlay" controls={viewport.mode === 'w'} menu={menuBtn} />
+        {#if viewport.mode === 's'}<DialogueBox layout="overlay" controls={false} menu={menuBtn} />{/if}
       {/if}
     </div>
   {/snippet}
@@ -125,7 +125,7 @@
   {/snippet}
 
   {#snippet text()}
-    {#if viewport.mode === 't'}<DialogueBox layout="docked" menu={menuBtn} />{/if}
+    {#if viewport.mode !== 's'}<DialogueBox layout="docked" lines={viewport.mode === 'w' ? 3 : undefined} menu={menuBtn} />{/if}
   {/snippet}
 </GameLayout>
 
