@@ -279,7 +279,7 @@ narrator: He holds his phone out at arm's length. On the screen, a robot hand fo
 piggy-1 excited: Whoa! Can it set a volleyball?
 piggy-3 phone_mumble mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
 piggy-2 neutral: Is it autonomous, or is someone off-camera holding a controller?
-piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? Where's the 1x label? Is that a controller in the corner of the—
+piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? What the heck— this is 20x speed! And is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
 piggy-3 thinking: Did you read the Kempa brochure? There's a legend about the big sakura by the tower.
 piggy-1 excited: The promise thing!
