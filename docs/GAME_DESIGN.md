@@ -76,7 +76,7 @@ Bedtimes: Piggy 1 02:30–10:30 · Piggy 2 22:00–05:00 · Piggy 3 00:30–08:3
 | night | Sakura House | Marston → home 22:00 | Marston |
 | owl | Sakura House, asleep from 02:30 | asleep | Marston until 00:30 |
 
-Overrides: P1 stays at Malachowsky throughout the day, including weekends; he plays volleyball at dusk and visits Midtown Fri/Sat nights. P2/P3 meet at the Plaza Friday midday, visit the stadium Saturday afternoon/dusk, and have their own Sunday stops. P1’s Dawn Patrol heart event is an unusual early club booking, reached through its existing scene time skip.
+Overrides: P1 stays at Malachowsky throughout the day, including weekends; he plays volleyball at dusk and visits Midtown Fri/Sat nights. P2/P3 meet at the Plaza Friday midday and have their own Sunday stops. On Saturdays, P2 spends the afternoon at Shands and dusk at Communicore; P3 spends the afternoon at Physics and dusk at Lake Alice. No pig has a stadium stop in their pet schedule. P1’s Dawn Patrol heart event is an unusual early club booking, reached through its existing scene time skip.
 
 ## 6. Pet simulation (companion only; the other two take care of themselves)
 

@@ -17,3 +17,18 @@ describe('Piggy 2 medical-campus schedule', () => {
     }
   });
 });
+
+// The pet room uses this schedule too, so check every pig across a full week.
+test('no pig has a stadium stop on any day or hour', () => {
+  for (let day = 25; day <= 31; day++) {
+    for (let hour = 0; hour < 24; hour++) {
+      const date = new Date(2026, 9, day, hour);
+      for (const pig of ['piggy-1', 'piggy-2', 'piggy-3'] as const) {
+        expect(whereIs(pig, date)).not.toBe('stadium');
+      }
+      expect(pigsAt('stadium', date)).toEqual([]);
+    }
+  }
+  expect(whereIs('piggy-3', new Date(2026, 9, 31, 15))).toBe('physics');
+  expect(whereIs('piggy-3', new Date(2026, 9, 31, 18))).toBe('lake_alice');
+});
