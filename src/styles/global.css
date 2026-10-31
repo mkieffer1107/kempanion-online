@@ -1,6 +1,18 @@
 /* Kempanion Online — shared pixel UI design system.
    Every screen/component should build from these tokens and classes. */
 
+/* After Fontsource's faces: override only the raised Japanese ellipsis with the same glyph at the period baseline.
+   Its width and line metrics are unchanged, including in canvas text and CSS text-overflow. Other characters,
+   literal "...", and Pixelify Sans keep their original font. See scripts/build-ellipsis-font.py. */
+@font-face {
+  font-family: 'DotGothic16';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/kempanion-ellipsis.woff2?inline') format('woff2');
+  unicode-range: U+2026;
+}
+
 :root {
   /* palette */
   --ink: #1b1229;
