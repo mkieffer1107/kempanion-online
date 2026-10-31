@@ -33,7 +33,7 @@ export function installNativeHaptics(doc: Document, enabled: () => boolean) {
       if (desiredFocus?.isConnected && desiredFocus !== doc.body) desiredFocus.focus({ preventScroll: true });
     }
     restoreFocus();
-    if (!area && !blocked(target)) target.dispatchEvent(new MouseEvent('click', {
+    if ((!area || target.hasAttribute('data-haptic-advance')) && !blocked(target)) target.dispatchEvent(new MouseEvent('click', {
       bubbles: true, cancelable: true, composed: true, detail: event.detail || 1,
       clientX: event.clientX, clientY: event.clientY, screenX: event.screenX, screenY: event.screenY,
       button: event.button, buttons: event.buttons,
@@ -203,7 +203,7 @@ export function installNativeHaptics(doc: Document, enabled: () => boolean) {
       label.style.top = `${(top - origin.top) / sy}px`;
       label.style.width = `${(right - left) / sx}px`;
       label.style.height = `${(bottom - top) / sy}px`;
-      label.dataset.hapticFor = target.getAttribute('aria-label') ?? target.textContent?.trim().slice(0, 60) ?? '';
+      label.dataset.hapticFor = (target.getAttribute('data-haptic-advance') || target.getAttribute('aria-label')) ?? target.textContent?.trim().slice(0, 60) ?? '';
       label.style.pointerEvents = 'auto';
     }
     // Disabled, occluded and clipped controls must never leave a stale touch surface.

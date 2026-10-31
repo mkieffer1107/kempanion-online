@@ -11,10 +11,11 @@ function fixture(apple = false) {
     removeEventListener: (name: string) => handlers.delete(name),
   };
   let enabled = true;
-  const nav = { userAgent: apple ? 'iPhone' : 'Android', platform: '', maxTouchPoints: 1, vibrate: (n: number) => pulses.push(n) };
-  const h = createHaptics(doc as unknown as Document, nav as unknown as Navigator, () => enabled);
+  let time = 0;
+  const nav = { userAgent: apple ? 'iPhone' : 'Android', platform: '', maxTouchPoints: 1, userActivation: { hasBeenActive: false }, vibrate: (n: number) => pulses.push(n) };
+  const h = createHaptics(doc as unknown as Document, nav as unknown as Navigator, () => enabled, () => time);
   const gesture = (overrides = {}) => ({ isTrusted: true, pointerType: 'touch', isPrimary: true, button: 0, ...overrides }) as unknown as Event;
-  return { h, doc, handlers, pulses, gesture, disable() { enabled = false; } };
+  return { h, doc, nav, handlers, pulses, gesture, advance(ms: number) { time += ms; }, activate() { nav.userActivation.hasBeenActive = true; }, disable() { enabled = false; } };
 }
 
 test('only a visible, enabled, trusted primary touch gesture pulses; duplicate taps are bounded', () => {
@@ -24,9 +25,9 @@ test('only a visible, enabled, trusted primary touch gesture pulses; duplicate t
   f.doc.visibilityState = 'hidden'; f.h.tap(f.gesture());
   expect(f.pulses).toEqual([]);
   f.doc.visibilityState = 'visible'; f.h.tap(f.gesture()); f.h.tap(f.gesture());
-  expect(f.pulses).toEqual([12]);
+  expect(f.pulses).toEqual([20]);
   f.h.destroy();
-  expect(f.pulses).toEqual([12, 0]);
+  expect(f.pulses).toEqual([20, 0]);
   expect(f.handlers.size).toBe(0);
 });
 
@@ -55,11 +56,38 @@ test('legacy mobile MouseEvent click requires recent same-target trusted touch',
   f.h.tap(f.gesture({ type: 'click', pointerType: undefined, target: {} }));
   expect(f.pulses).toEqual([]);
   f.h.tap(f.gesture({ type: 'click', pointerType: undefined, target }));
-  expect(f.pulses).toEqual([12]); f.h.destroy();
+  expect(f.pulses).toEqual([20]); f.h.destroy();
 });
 
 // Chromium click PointerEvents do not carry the preceding pointer's primary status.
 test('trusted touch click may report isPrimary false', () => {
   const f = fixture(); f.h.tap(f.gesture({ type: 'click', isPrimary: false }));
-  expect(f.pulses).toEqual([12]); f.h.destroy();
+  expect(f.pulses).toEqual([20]); f.h.destroy();
+});
+
+test('typewriter pulses wait for activation, stay brief, throttle, and yield to a recent tap', () => {
+  const f = fixture(); f.h.text(); expect(f.pulses).toEqual([]);
+  f.activate(); f.h.tap(f.gesture()); f.h.text();
+  expect(f.pulses).toEqual([20]);
+  f.advance(90); f.h.text();
+  f.advance(119); f.h.text();
+  expect(f.pulses).toEqual([20, 7]);
+  f.advance(1); f.h.text();
+  expect(f.pulses).toEqual([20, 7, 7]); f.h.destroy();
+});
+
+test('typewriter respects master opt-out and background visibility', () => {
+  const f = fixture(); f.activate(); f.h.text();
+  expect(f.pulses).toEqual([7]);
+  f.advance(120); f.doc.visibilityState = 'hidden'; f.h.text();
+  expect(f.pulses).toEqual([7]);
+  f.doc.visibilityState = 'visible'; f.disable(); f.h.text();
+  expect(f.pulses).toEqual([7]); f.h.destroy();
+});
+
+test('typewriter is unavailable on Apple and devices without a touch screen', () => {
+  const apple = fixture(true); apple.activate(); apple.h.text();
+  expect(apple.pulses).toEqual([]); apple.h.destroy();
+  const desktop = fixture(); desktop.activate(); desktop.nav.maxTouchPoints = 0; desktop.h.text();
+  expect(desktop.pulses).toEqual([]); desktop.h.destroy();
 });

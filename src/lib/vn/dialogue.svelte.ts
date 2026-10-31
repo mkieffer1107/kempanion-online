@@ -1,3 +1,4 @@
+import { hapticText } from '../haptics';
 // Reactive dialogue controller shared by scripted scenes and free chat: typewriter with per-voice speed,
 // punctuation pauses and blips, streaming lines, choices, free-text asks, auto/skip, backlog, announcements.
 import { PIG_IDS, type Expression, type PigId, type SpeakerId, type VoiceId } from '../types';
@@ -167,7 +168,7 @@ class DialogueController {
   #talking: PigId | null = null;
   #choice: ((i: number) => void) | null = null;
   #ask: ((v: string | null) => void) | null = null;
-  #pause: (() => void) | null = null;
+  #pause = $state.raw<(() => void) | null>(null);
   #flip = false;
   #gen = 0;
 
@@ -387,6 +388,11 @@ class DialogueController {
     });
   }
 
+  /** Whether a tap can reveal text, continue a line, dismiss HIDE, or finish a scripted pause. */
+  get canAdvance(): boolean {
+    return this.uiHidden || (!this.backlogOpen && !this.choices && !this.input && (this.typing || this.waiting || this.#pause !== null));
+  }
+
   /** Player pressed advance (click/tap/Space/Enter): finish typing, or continue. */
   advance(): void {
     if (this.uiHidden) { this.uiHidden = false; return; }
@@ -573,6 +579,7 @@ class DialogueController {
         // Last blip of the line: fewer letters remain than the blip spacing.
         const last = L.streamDone && (text.slice(blipAt + ch.length).match(BLIP_LETTERS)?.length ?? 0) < L.every;
         audio.blip(L.voice, { char: ch, index: blipAt, last, ending: lineEnding(text), whisper: L.whisper });
+        if (this.visible && !this.uiHidden && !this.backlogOpen && !this.skipping) hapticText();
       }
       this.shown = i;
     }

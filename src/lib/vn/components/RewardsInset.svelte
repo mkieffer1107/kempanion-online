@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hapticTap } from '../../haptics';
   import Icon from '../../ui/components/Icon.svelte';
   import { dialogue } from '../dialogue.svelte';
 
@@ -16,7 +17,8 @@
 
 <!-- A visual glossary: individual icons do not claim rewards or launch activities. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-<figure class="rewards {place}" aria-label="Acorns and ways to earn them" onclick={() => dialogue.advance()}>
+<figure class="rewards {place}" aria-label="Acorns and ways to earn them" data-haptic-area data-haptic-advance="Advance story" data-haptics={place === 'top' && dialogue.canAdvance ? undefined : 'off'}
+    onclick={(event) => { event.stopPropagation(); if (dialogue.canAdvance) hapticTap(event); dialogue.advance(); }}>
   {#each rewards as reward (reward.icon)}
     <div class={['reward', { currency: reward.icon === 'acorn' }]}>
       <Icon id={reward.icon} size={24} />

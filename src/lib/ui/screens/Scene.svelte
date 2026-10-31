@@ -2,6 +2,7 @@
   // Plays one KScript scene (params.id) with the stage, the VN dialogue box and its choice menu, then
   // returns to params.back (with params.backParams). params.replay = album replay (no rewards).
   import { onMount } from 'svelte';
+  import { hapticTap } from '../../haptics';
   import { game, type ScreenId } from '../../state/game.svelte';
   import { audio } from '../../audio';
   import { DialogueBox, DialogueControls, dialogue, getScene, runScene, stopScene } from '../../vn';
@@ -73,6 +74,7 @@
 
   function stageTap(e: MouseEvent) {
     if ((e.target as HTMLElement).closest('button, input, textarea, a')) return;
+    if (dialogue.canAdvance) hapticTap(e);
     dialogue.advance();
   }
 
@@ -102,7 +104,7 @@
   {#snippet stage()}
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" bind:this={stageEl} onclick={stageTap}>
-      <StageHost label={info?.title ?? 'Story scene'}>
+      <StageHost advanceHaptics={dialogue.canAdvance && !menuOpen} label={info?.title ?? 'Story scene'}>
         {#if robotMumble}
           <MumbleBubbles mode={viewport.mode} pos="right" outfit="everyday" stream page={robotPage} lineup={['left', 'center', 'right']} />
         {/if}

@@ -11,6 +11,7 @@
   //          (thumb zone); box and options rise together above the on-screen keyboard while typing.
   // Keys: 1–4 · ↑↓ · Enter pick · T or / type your own · Esc closes the field, else leaves (App) · L/A/S/H as in scenes.
   import { onMount } from 'svelte';
+  import { hapticTap } from '../../haptics';
   import type { LocationId, PigId, SongId } from '../../types';
   import { game, type ScreenId } from '../../state/game.svelte';
   import { gameClock } from '../../state/ticker.svelte';
@@ -182,6 +183,7 @@
 
   function stageTap(e: MouseEvent) {
     if ((e.target as HTMLElement).closest('button, input, textarea, a')) return;
+    if (dialogue.canAdvance) hapticTap(e);
     dialogue.advance();
   }
 
@@ -244,7 +246,7 @@
   {#snippet stage()}
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" class:mumbling={mumbleStage.stream} onclick={stageTap} bind:clientHeight={stageH}>
-      <StageHost label="{ch.name} at {placeName}.">
+      <StageHost advanceHaptics={dialogue.canAdvance && !ui.menu && !showMemories} label="{ch.name} at {placeName}.">
         <MumbleBubbles mode={viewport.mode} pos={slot} outfit={p.outfit} avoid=".topbar" />
       </StageHost>
       {#if wide}

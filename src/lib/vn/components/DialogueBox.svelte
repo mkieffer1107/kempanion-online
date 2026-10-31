@@ -18,6 +18,7 @@
   import { MediaQuery } from 'svelte/reactivity';
   import IntakeKeyboard from '../../ui/components/IntakeKeyboard.svelte';
   import { audio } from '../../audio';
+  import { hapticTap } from '../../haptics';
   import { game } from '../../state/game.svelte';
   import { dialogue } from '../dialogue.svelte';
   import Backlog from './Backlog.svelte';
@@ -120,6 +121,7 @@
   function onclick(e: MouseEvent) {
     e.stopPropagation();
     if (swallowClick) { swallowClick = false; return; }
+    if (dialogue.canAdvance) hapticTap(e);
     dialogue.advance();
   }
   function onwheel(e: WheelEvent) {
@@ -182,6 +184,7 @@
         class:narration={dialogue.speaker === 'narrator'}
         class:mumbling={dialogue.mode === 'scene' && dialogue.mumbling}
         role="button"
+        data-haptics={dialogue.canAdvance ? undefined : 'off'}
         tabindex="-1"
         aria-label="Dialogue. Tap or press Enter to continue."
         {onclick}

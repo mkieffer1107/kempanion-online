@@ -2,6 +2,7 @@
   // Recovery intake uses the same stage, answers and dialogue frame as the prologue.
   // No companion is introduced here: their first appearance belongs to the story.
   import { onMount } from 'svelte';
+  import { hapticTap } from '../../haptics';
   import { game } from '../../state/game.svelte';
   import { stage } from '../../engine/stage';
   import { dialogue, DialogueBox, DialogueControls } from '../../vn';
@@ -47,6 +48,7 @@
 
   function stageTap(event: MouseEvent) {
     if ((event.target as HTMLElement).closest('button, input, textarea, a')) return;
+    if (dialogue.canAdvance) hapticTap(event);
     dialogue.advance();
   }
 </script>
@@ -59,7 +61,7 @@
   {#snippet stage()}
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" onclick={stageTap}>
-      <StageHost label="Kempa AI intake under the Century Tower sakura" />
+      <StageHost advanceHaptics={dialogue.canAdvance} label="Kempa AI intake under the Century Tower sakura" />
       {#if viewport.mode === 's'}<DialogueBox layout="overlay" controls={false} />{/if}
     </div>
   {/snippet}

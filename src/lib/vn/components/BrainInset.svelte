@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hapticTap } from '../../haptics';
   // The hub's Big Brain chip, shown over a scene by [brain] (tutorial_big_brain) where the hub keeps it: the real
   // BrainChip, so it reads live (HEUR, the % while Big Brain installs, BIG), ringed like the pager tutorial's lit keys,
   // with an arrow pointing at it from the inner side. A picture, not a button: the chip is inert (no Big Brain panel
@@ -20,7 +21,8 @@
 {#if shown}
   <!-- the band above a T stage isn't the stage, so this tap advances itself (W and S: pointer-events: none) -->
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-  <figure class="brain-inset {place}" aria-label="The Big Brain chip" onclick={() => dialogue.advance()}>
+  <figure class="brain-inset {place}" aria-label="The Big Brain chip" data-haptic-area data-haptic-advance="Advance story" data-haptics={place === 'top' && dialogue.canAdvance ? undefined : 'off'}
+    onclick={(event) => { event.stopPropagation(); if (dialogue.canAdvance) hapticTap(event); dialogue.advance(); }}>
     <span class="ring" inert><BrainChip small /></span>
     <span class="arrow" aria-hidden="true"></span>
   </figure>

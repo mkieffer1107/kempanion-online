@@ -9,13 +9,18 @@
     /** Scene summary for screen readers ("Malachowsky Hall, afternoon. Piggy 1 looks hungry."). */
     label?: string;
     children?: Snippet;
+    /** Native touch feedback only while tapping the picture can advance dialogue. */
+    advanceHaptics?: boolean;
   }
 
-  let { label = '', children }: Props = $props();
+  let { label = '', children, advanceHaptics = false }: Props = $props();
 </script>
 
 <div class="stage-host">
   <Stage {label}>
+    <!-- Below stage controls, inside the stage's existing pointer/capture path. -->
+    <span class="advance-touch" data-haptic-area data-haptic-advance="Advance story"
+      data-haptics={advanceHaptics ? undefined : 'off'} aria-hidden="true"></span>
     {@render children?.()}
     <!-- Inside the Stage so the scanlines line up with stage pixels (--u). -->
     <div class="crt" aria-hidden="true"></div>
@@ -23,6 +28,7 @@
 </div>
 
 <style>
+  .advance-touch { position: absolute; inset: 0; pointer-events: none; }
   .stage-host { position: absolute; inset: 0; overflow: hidden; background: #000; }
   .crt { display: none; }
   :global(html.crt) .crt {

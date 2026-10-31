@@ -4,7 +4,7 @@
 // The real controller and scene runner run here on real timers; sound, the canvas stage, the scene registry and
 // free chat are stubbed (no other test file loads those four modules).
 import { plugin } from 'bun';
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compileModule } from 'svelte/compiler';
@@ -49,6 +49,10 @@ mock.module('../src/lib/engine/stage', () => ({ stage: new Proxy(silent, {
 }) }));
 mock.module('../src/lib/vn/registry', () => ({ getCompiled: (id: string) => SCENES.get(id) }));
 mock.module('../src/lib/vn/chat', () => ({ runFreeChat: async () => {} }));
+
+const haptics = await import('../src/lib/haptics');
+let textPulses = 0;
+const textHapticSpy = spyOn(haptics, 'hapticText').mockImplementation(() => { textPulses++; });
 
 const { dialogue } = await import('../src/lib/vn/dialogue.svelte');
 const { game } = await import('../src/lib/state/game.svelte');
@@ -105,12 +109,14 @@ beforeEach(async () => {
   portraitLoads.length = 0;
   portraitShows.length = 0;
   dialogue.reset();
+  textPulses = 0;
   dialogue.auto = false;
   game.save.settings.textSpeed = 0; // lines show at once
   game.save.settings.autoDelay = 0.05; // AUTO: 50 ms after the text finishes
 });
 
 afterAll(async () => {
+  textHapticSpy.mockRestore();
   stopScene();
   await lastRun;
   dialogue.reset();
@@ -538,5 +544,60 @@ describe('AUTO waits only after the typewriter finishes', () => {
     expect(line.continued).toBe(false);
     expect(await until(() => line.continued, 500)).toBe(true);
     await line.done;
+  });
+});
+
+
+describe('typewriter haptic dispatch', () => {
+  test('natural letters pulse even when voice audio is muted', async () => {
+    game.save.settings.textSpeed = 200; game.save.settings.voiceVolume = 0;
+    const line = say('A little rhythm in the words.');
+    expect(await waitingOn('A little rhythm in the words.')).toBe(true);
+    expect(textPulses).toBeGreaterThan(0); dialogue.advance(); await line.done;
+  });
+
+  test('instant and skipped text never dispatch typewriter haptics', async () => {
+    for (const skip of [false, true]) {
+      game.save.settings.textSpeed = skip ? 200 : 0;
+      dialogue.skip = skip;
+      const stream = dialogue.beginLine('narrator', undefined, { read: true });
+      stream.append('A line revealed all at once.'); void stream.finish();
+      expect(await until(() => dialogue.shown === dialogue.text.length)).toBe(true);
+      expect(textPulses).toBe(0); dialogue.reset();
+    }
+  });
+
+  test('hidden text and backlog reading do not dispatch pulses', async () => {
+    game.save.settings.textSpeed = 200;
+    for (const hidden of ['uiHidden', 'backlogOpen'] as const) {
+      const stream = dialogue.beginLine('narrator'); dialogue[hidden] = true;
+      stream.append('The text carries on quietly.'); void stream.finish();
+      expect(await until(() => !dialogue.typing)).toBe(true);
+      expect(textPulses).toBe(0); dialogue.reset();
+    }
+  });
+});
+
+describe('advance haptic availability', () => {
+  test('tracks natural typing/waiting and blocks choices, input and backlog', async () => {
+    expect(dialogue.canAdvance).toBe(false);
+    game.save.settings.textSpeed = 200;
+    const line = say('A tappable line.');
+    expect(dialogue.canAdvance).toBe(true);
+    dialogue.backlogOpen = true; expect(dialogue.canAdvance).toBe(false);
+    dialogue.backlogOpen = false; dialogue.choices = ['One']; expect(dialogue.canAdvance).toBe(false);
+    dialogue.choices = null; dialogue.input = { kind: 'name' }; expect(dialogue.canAdvance).toBe(false);
+    dialogue.uiHidden = true; expect(dialogue.canAdvance).toBe(true);
+    dialogue.advance(); expect(dialogue.uiHidden).toBe(false); expect(dialogue.canAdvance).toBe(false);
+    dialogue.input = null;
+    expect(await waitingOn('A tappable line.')).toBe(true);
+    expect(dialogue.canAdvance).toBe(true); dialogue.advance(); await line.done;
+    expect(dialogue.canAdvance).toBe(false);
+  });
+
+  test('a scripted pause accepts one advance and then becomes unavailable', async () => {
+    const paused = dialogue.pause(10_000);
+    expect(dialogue.canAdvance).toBe(true); dialogue.advance(); await paused;
+    expect(dialogue.canAdvance).toBe(false);
   });
 });
