@@ -12,7 +12,7 @@ import { backgroundCanvas, cgCanvas, describeCG, locationForBackground, preloadB
 import { ditherStep } from './dither';
 import { Bursts, GoldenPetals, Rain, type Golden } from './fx';
 import {
-  bgCropX, clamp, clientToLogical, clientToStage, DEFAULT_GROUND_Y, featuredPortrait, LOGICAL_H, MAX_LOGICAL_W, NARROW_W,
+  backgroundFloorPan, bgCropX, clamp, clientToLogical, clientToStage, DEFAULT_GROUND_Y, featuredPortrait, LOGICAL_H, MAX_LOGICAL_W, NARROW_W,
   lineupScale, PORTRAIT_TOP, portraitCenterX, portraitEnterDir, portraitY, stepped, type StageFit,
 } from './layout';
 import { PetalSystem } from './petals';
@@ -421,6 +421,9 @@ export class StageWorld implements StageApi {
   private actorList: Actor[] = [];
   private actorSeq = 0;
   private groundY = DEFAULT_GROUND_Y;
+  private backgroundGroundY: number | null = null;
+  private backgroundSourceGroundY = DEFAULT_GROUND_Y;
+  private groundBand: { min: number; max: number } | null = null;
   /** Pick up & toss: the held actor, plus scratch objects reused every frame / pointer event. */
   private heldId: string | null = null;
   private readonly bounds: FlightBounds = { left: 0, right: MAX_LOGICAL_W, top: 0, floor: DEFAULT_GROUND_Y };
@@ -838,7 +841,7 @@ export class StageWorld implements StageApi {
     const ref = resolveClip(pig, outfit, 'idle');
     const actor: Actor = {
       id, pig, outfit,
-      x: opts.x ?? Math.round(this.lw / 2),
+      x: this.groundBand ? clamp(opts.x ?? Math.round(this.lw / 2), this.groundBand.min, this.groundBand.max) : opts.x ?? Math.round(this.lw / 2),
       y: opts.y ?? null,
       anim: 'idle', ref, total: clipLength(ref.clip.durations), t: 0, rate: 1, loop: true, times: 1,
       done: null, move: null,
@@ -924,6 +927,7 @@ export class StageWorld implements StageApi {
   }
 
   private walk(a: Actor, x: number, speed: number): Promise<void> {
+    if (this.groundBand) x = clamp(x, this.groundBand.min, this.groundBand.max);
     this.stopMove(a, false);
     this.settle(a);
     const dx = x - a.x;
@@ -1002,6 +1006,19 @@ export class StageWorld implements StageApi {
     this.groundY = y;
     this.petals.configure({ groundY: y });
     this.sortActors();
+  }
+
+  setGroundBand(band: { min: number; max: number } | null): void {
+    this.groundBand = band;
+    if (band) for (const a of this.actorList) {
+      if (!this.inAir(a)) a.x = clamp(a.x, band.min, band.max);
+      if (a.move) a.move.to = clamp(a.move.to, band.min, band.max);
+    }
+  }
+
+  setBackgroundGroundY(y: number | null, sourceGroundY = DEFAULT_GROUND_Y): void {
+    this.backgroundGroundY = y;
+    this.backgroundSourceGroundY = sourceGroundY;
   }
 
   /** Piggy 3 reaches for his phone quickly; the other pigs keep their usual idle rhythm. */
@@ -1097,8 +1114,8 @@ export class StageWorld implements StageApi {
     } else if (r < 0.65 && has('look_around')) {
       await this.play(a, 'look_around', { loop: false });
     } else if (r < 0.8) {
-      const lo = Math.max(28, s.minX ?? this.lw * 0.2);
-      const hi = Math.min(this.lw - 28, s.maxX ?? this.lw * 0.8);
+      const lo = Math.max(28, this.groundBand?.min ?? 0, s.minX ?? this.lw * 0.2);
+      const hi = Math.min(this.lw - 28, this.groundBand?.max ?? this.lw, s.maxX ?? this.lw * 0.8);
       if (hi - lo > 30) {
         let x = rand(lo, hi);
         if (Math.abs(x - a.x) < 24) x = a.x < (lo + hi) / 2 ? Math.min(hi, a.x + 40) : Math.max(lo, a.x - 40);
@@ -1622,8 +1639,10 @@ export class StageWorld implements StageApi {
 
   private updateFlight(a: Actor, air: AirState, dt: number) {
     const b = this.bounds;
-    b.left = 0;
-    b.right = this.lw;
+    // Furniture/planters border the mobile scene's clear floor. Held movement remains unrestricted;
+    // released bodies use these edges so they cannot settle inside those obstacles.
+    b.left = this.groundBand ? Math.max(0, this.groundBand.min - FLIGHT.halfW) : 0;
+    b.right = this.groundBand ? Math.min(this.lw, this.groundBand.max + FLIGHT.halfW) : this.lw;
     b.top = 0;
     b.floor = this.floorOf(a);
     const reduce = this.reduceMotion;
@@ -2057,6 +2076,8 @@ export class StageWorld implements StageApi {
     this.petals.clearPuffs();
     this.petals.configure({ level: 'normal' });
     this.groundY = DEFAULT_GROUND_Y;
+    this.backgroundGroundY = null;
+    this.groundBand = null;
     this.petals.configure({ groundY: this.groundY });
     this.description = null;
     if (this.todMode !== 'auto') this.setTimeOfDay('auto');
@@ -2259,7 +2280,13 @@ export class StageWorld implements StageApi {
   }
 
   private drawBgLayer(ctx: CanvasRenderingContext2D, b: BgState) {
-    ctx.drawImage(b.canvas, bgCropX(this.lw, b.focusX), 0, this.lw, LOGICAL_H, 0, 0, this.lw, LOGICAL_H);
+    const x = bgCropX(this.lw, b.focusX);
+    const pan = backgroundFloorPan(this.backgroundGroundY, this.backgroundSourceGroundY);
+    const h = LOGICAL_H - pan;
+    ctx.drawImage(b.canvas, x, pan, this.lw, h, 0, 0, this.lw, h);
+    // Continue the bottom edge under the ticker and its narrow side margins. Only this hidden
+    // overflow is extended: the visible architecture and floor retain their original proportions.
+    if (pan > 0) ctx.drawImage(b.canvas, x, LOGICAL_H - 1, this.lw, 1, 0, h, this.lw, pan);
   }
 
   private drawBackground(ctx: CanvasRenderingContext2D, scratch: CanvasRenderingContext2D, z: number, ox: number, oy: number) {

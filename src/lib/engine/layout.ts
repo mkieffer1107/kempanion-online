@@ -83,6 +83,13 @@ export function bgCropX(viewW: number, focusX: number, bgW = BG_W): number {
   return clamp(Math.round(focusX - viewW / 2), 0, bgW - viewW);
 }
 
+/** Pan the painted floor up with a hub's raised feet line; keep background pixels square.
+ * null leaves scene/portrait framing untouched. The exposed bottom is behind the hub ticker. */
+export function backgroundFloorPan(groundY: number | null, sourceGroundY = DEFAULT_GROUND_Y): number {
+  if (groundY === null || !Number.isFinite(groundY)) return 0;
+  return Math.round(clamp(sourceGroundY - groundY, 0, DEFAULT_GROUND_Y));
+}
+
 const SLOT_FRACTION: Record<PortraitPos, number> = {
   'far-left': 0.1,
   left: 100 / 480,

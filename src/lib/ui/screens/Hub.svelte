@@ -42,6 +42,7 @@
   import LcdIcon from '../components/LcdIcon.svelte';
   import IconButton from '../components/IconButton.svelte';
   import NeedMeter, { NEED_LABEL } from '../components/NeedMeter.svelte';
+  import { bgCropX } from '../../engine/layout';
   import Hearts from '../components/Hearts.svelte';
   import AcornChip from '../components/AcornChip.svelte';
   import ClockChip from '../components/ClockChip.svelte';
@@ -755,12 +756,22 @@
   }
 
   // ── ground line: in W/S the VN box overlays the stage bottom, so he stands on its top edge ──
+  // Painted feet lines and clear floor intervals in the original 480×270 artwork.
+  // Insets include room for both feet/shadow at furniture and planter edges.
+  const MOBILE_FLOORS: Record<string, { y: number; focus: number; min: number; max: number }> = {
+    home_p2: { y: 252, focus: 350, min: 325, max: 375 },
+    anatomy_lab: { y: 252, focus: 240, min: 215, max: 340 },
+    physics: { y: 252, focus: 240, min: 180, max: 390 },
+    marston: { y: 264, focus: 240, min: 180, max: 410 },
+    shands: { y: 264, focus: 240, min: 170, max: 390 },
+  };
+  const mobileFloor = $derived(MOBILE_FLOORS[bgId]);
   let tickerEl = $state<HTMLElement | null>(null);
   let groundY = $state(viewport.mode === 't' ? GROUND_T : GROUND_WS);
   let groundRaf = 0;
 
   function measureGround(): number {
-    if (viewport.mode === 't') return GROUND_T;
+    if (viewport.mode === 't') return mobileFloor?.y ?? GROUND_T;
     const el = tickerEl;
     if (!el) return GROUND_WS;
     const r = el.getBoundingClientRect();
@@ -774,6 +785,10 @@
   function applyGround() {
     groundY = measureGround();
     stage.setGroundY(groundY);
+    stage.setBackgroundGroundY(viewport.mode === 'w' ? null : groundY, mobileFloor?.y ?? GROUND_T);
+    const crop = bgCropX(lw, mobileFloor?.focus ?? 240);
+    stage.setGroundBand(viewport.mode !== 'w' && mobileFloor
+      ? { min: Math.max(28, mobileFloor.min - crop), max: Math.min(lw - 28, mobileFloor.max - crop) } : null);
   }
 
   function scheduleGround() {
@@ -848,7 +863,7 @@
     if (firstSetup) stage.reset(); // leftovers from Talk / scenes (portraits, camera, CG, fades)
     firstSetup = false;
     applyGround(); // reset() put the ground back at the stage default
-    if (l === 'dorm') await stage.setBackground(id, tr);
+    if (l === 'dorm') await stage.setBackground(id, tr, { focusX: viewport.mode !== 'w' && id === 'home_p2' ? 350 : 240 });
     else await stage.setLocation(l, tr);
     if (!alive) return; // left while the background loaded: the next screen owns the stage now
     stage.clearPortraits();
@@ -872,7 +887,7 @@
   }
 
   $effect(() => {
-    const id = bgId, l = loc, outfit = p.outfit, sleeping = asleep;
+    const id = bgId, l = loc, outfit = p.outfit, sleeping = asleep, mode = viewport.mode;
     if (!ready) return;
     untrack(() => void setupStage(id, l, outfit, sleeping));
   });
@@ -1001,6 +1016,8 @@
       setPageHold(false);
       petal?.handle.cancel();
       stage.removeActor('pig');
+      stage.setBackgroundGroundY(null);
+      stage.setGroundBand(null);
       stage.clearBubbles();
       stage.clearBursts();
       stage.setTimeOfDay('auto');
