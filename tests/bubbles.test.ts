@@ -144,14 +144,14 @@ describe('placeBubble: the ladder on the measured stages', () => {
 });
 
 describe('portrait heads, capacity, thinkers, line time', () => {
-  test('heads follow the lineup scale: 34 at full size, 72 for the 355-wide trio, 122 for the 270-wide one', () => {
-    expect(portraitHead('center', TRIO, 480)).toEqual({ x: 240, y: 34, halfW: 72, k: 1 });
+  test('heads follow the lineup scale: 42 at full size, 80 for the 355-wide trio, 130 for the 270-wide one', () => {
+    expect(portraitHead('center', TRIO, 480)).toEqual({ x: 240, y: 42, halfW: 72, k: 1 });
     expect(lineupScale(TRIO, 355)).toBe(54 / 64);
-    expect(portraitHead('left', TRIO, 355).y).toBe(72);
+    expect(portraitHead('left', TRIO, 355).y).toBe(80);
     expect(lineupScale(TRIO, 270)).toBe(41 / 64);
-    expect(portraitHead('right', TRIO, 270)).toMatchObject({ y: 122, k: 41 / 64, halfW: 72 * 41 / 64 });
+    expect(portraitHead('right', TRIO, 270)).toMatchObject({ y: 130, k: 41 / 64, halfW: 72 * 41 / 64 });
     // narrow stages draw only the featured portrait, centered, full size
-    expect(portraitHead('left', TRIO, 259)).toEqual({ x: 130, y: 34, halfW: 72, k: 1 });
+    expect(portraitHead('left', TRIO, 259)).toEqual({ x: 130, y: 42, halfW: 72, k: 1 });
   });
 
   test('one cloud below 900 px of stage (phones, tablets), two on the wide stage', () => {

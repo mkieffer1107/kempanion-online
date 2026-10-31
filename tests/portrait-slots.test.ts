@@ -1,4 +1,7 @@
 import { describe, expect, test } from 'bun:test';
+import { join } from 'node:path';
+import sharp from 'sharp';
+import sprites from '../src/generated/sprites.json';
 import { loadImage } from '../src/lib/engine/assets';
 import {
   fitStage, LINEUP_OVERLAP, lineupScale, LOGICAL_H, MAX_LOGICAL_W, NARROW_W, PORTRAIT_FACE_HALF, PORTRAIT_H, PORTRAIT_SINK,
@@ -135,6 +138,29 @@ describe('portrait lineup layout', () => {
       head = y;
     }
   });
+
+  test('real portrait torsos cover the stage bottom throughout their bob and expression pop', async () => {
+    for (const [key, set] of Object.entries(sprites.sets)) {
+      const { data, info } = await sharp(join(import.meta.dir, '../public/assets', set.portraitAtlas))
+        .ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const rise = key.startsWith('piggy-1/') ? 2 : 1;
+      for (const [expression, [cx, cy]] of Object.entries(set.portraits)) {
+        // Check the actual alpha along the waist, not the cell's bottom: that includes transparent padding.
+        for (let x = 88; x <= 104; x++) {
+          let y = PORTRAIT_H - 1;
+          while (y >= 0 && data[((cy + y) * info.width + cx + x) * 4 + 3] < 120) y--;
+          for (const scale of [1, 50 / 64, 41 / 64]) {
+            for (const pop of [1, 1.02, 1.04]) {
+              const height = Math.round(PORTRAIT_H * scale * pop);
+              const top = PORTRAIT_TOP + PORTRAIT_H - height - rise;
+              const opaqueBottom = top + (y + 1) * height / PORTRAIT_H;
+              expect(opaqueBottom, `${key}/${expression}, waist column ${x}, scale ${scale * pop}`).toBeGreaterThanOrEqual(LOGICAL_H);
+            }
+          }
+        }
+      }
+    }
+  });
 });
 
 // The engine itself, headless: world.ts sizes, places and draws the lineup by the rules above.
@@ -222,13 +248,13 @@ describe('the stage draws a lineup at its scale (world.ts, headless)', () => {
         // waist on the bottom edge as at full size (the art's foot margin under it); an idle bob lifts it 1 px
         expect(reduce ? [0] : [0, 1]).toContain(LOGICAL_H + PORTRAIT_SINK - (d.dy + d.dh));
       }
-      expect(LOGICAL_H + PORTRAIT_SINK).toBe(278);
+      expect(LOGICAL_H + PORTRAIT_SINK).toBe(286);
       expect(pigs.map((d) => d.dx + (d.dw >> 1))).toEqual([56, 135, 214]);
       expect(state.imageSmoothingEnabled).toBe(false); // nearest-neighbour again for everything after
       w.bubble('piggy-1', 'Please choose your Kempanion!');
       w.update(16);
       expect(w.bubbles.map((b) => [b.x, b.y])).toEqual([[56, portraitY(12, 41 / 64)]]);
-      expect(portraitY(12, 41 / 64)).toBe(122);
+      expect(portraitY(12, 41 / 64)).toBe(130);
     }
   });
 

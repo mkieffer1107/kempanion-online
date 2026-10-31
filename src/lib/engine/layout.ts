@@ -11,8 +11,8 @@ export const DEFAULT_GROUND_Y = 252;
 export const NARROW_W = 260;
 export const PORTRAIT_W = 192;
 export const PORTRAIT_H = 256;
-/** Portraits sit this far below the stage bottom: the art's 10 px foot margin disappears, the waist meets the edge. */
-export const PORTRAIT_SINK = 8;
+/** Hide the art's transparent footer (up to 14 px), including the upward bob and expression pop, below the stage. */
+export const PORTRAIT_SINK = 16;
 export const PORTRAIT_TOP = LOGICAL_H - PORTRAIT_H + PORTRAIT_SINK;
 /** Stage CSS height from which the roomy "W" layout petal counts apply. */
 export const LARGE_STAGE_CSS_H = 420;

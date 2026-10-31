@@ -283,7 +283,7 @@ describe('mumble bubbles on the Talk stage', () => {
     const d = geoOf(desktop).keep;
     expect(d[0].x).toBeCloseTo((4 + 26 - 3) * desktop.u, 3);
     expect(d[1].x + d[1].w).toBeCloseTo((4 + 188 + 3) * desktop.u, 3);
-    expect(d[0].y).toBeCloseTo((22 + 84 - 3) * desktop.u, 3);
+    expect(d[0].y).toBeCloseTo((30 + 84 - 3) * desktop.u, 3);
     expect(geoOf(landscape).keep.length).toBe(3);
     // the hoodie's phone pose sits higher
     expect(mumbleKeepOut('hoodie', 'left', 480, 1)[0].y).toBeLessThan(mumbleKeepOut('everyday', 'left', 480, 1)[0].y);
