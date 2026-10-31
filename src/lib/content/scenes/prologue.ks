@@ -309,8 +309,8 @@ piggy-2 thinking: Is it autonomous, or is someone off-camera holding a controlle
 [expr piggy-2 neutral]
 piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? What the heck— this is 20x speed! And is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
-piggy-3 thinking: Did you read the Kempa brochure? There's a legend about the big sakura by the tower.
-piggy-1 excited: The promise thing!
+piggy-1 excited: Hey, did you read the Kempa brochure? There's a legend about the big sakura by the tower.
+piggy-3 thinking: Is that the promise thingie?
 piggy-3 happy: If two people make a promise under the sakura by Century Tower while the carillon plays at dusk...
 piggy-3 bashful_smile: ...the promise blooms forever. Also, the brochure's UI is really bad.
 piggy-2 neutral: Unverified. Based, but unverified.
