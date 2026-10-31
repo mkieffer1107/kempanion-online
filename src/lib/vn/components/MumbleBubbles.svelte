@@ -54,6 +54,7 @@
   }
 
   let layer = $state<HTMLDivElement>();
+  let artReady = $state(false);
   const live: Item[] = [];
   const fading: Item[] = [];
   let slotIx = 0;
@@ -204,13 +205,30 @@
       item.el.remove();
       return;
     }
-    item.el.classList.add('out');
+    fade(item.el, MUMBLE_TIMING.fadeMs);
     fading.push(item);
     setTimeout(() => {
       item.el.remove();
       const j = fading.indexOf(item);
       if (j >= 0) fading.splice(j, 1);
     }, MUMBLE_TIMING.fadeMs);
+  }
+
+  /** Pause the entrance/drift at their current frame before fading the entire cloud together.
+   * A second CSS opacity animation starting at 1 would flash a half-entered cloud back to full opacity. */
+  function fade(el: HTMLDivElement, duration: number, snap = false): void {
+    const frame = getComputedStyle(el);
+    // Capture every animated property before replacing the entrance animations. CSS retains the
+    // reduced-motion safety net, including when the setting changes during a fade.
+    const { opacity, scale, translate, top } = frame;
+    el.style.setProperty('--fade-from', opacity);
+    el.style.setProperty('--scale-from', scale);
+    el.style.setProperty('--fade-ms', `${duration}ms`);
+    el.style.scale = scale;
+    el.style.translate = translate;
+    el.style.top = top;
+    el.classList.remove('live');
+    el.classList.add(snap ? 'snap' : 'out');
   }
 
   /** A page of the stream starts typing. */
@@ -281,7 +299,7 @@
         item.el.remove();
         continue;
       }
-      item.el.classList.add('snap');
+      fade(item.el, MUMBLE_TIMING.snapMs, true);
       setTimeout(() => item.el.remove(), MUMBLE_TIMING.snapMs);
     }
   }
@@ -306,7 +324,7 @@
     const shown = dialogue.shown;
     const typing = dialogue.typing;
     const geometry = `${mode}:${pos}:${outfit}:${lineup.join(',')}:${layoutRevision}`;
-    if (!layer) return;
+    if (!layer || !artReady) return;
     untrack(() => {
       if (!on) {
         if (seenPage !== -1 || live.length) snapAll();
@@ -328,9 +346,14 @@
     });
   });
 
-  // the art is tiny: have it in the cache before his first mumble
+  // Wait for the slice AND both tails to decode before creating any visible text. If loading finishes
+  // mid-page, the stream effect catches up to the current typewriter position instead of replaying old pages.
   $effect(() => {
-    for (const f of Object.values(ART)) void loadImage(f);
+    let active = true;
+    void Promise.all(Object.values(ART).map(loadImage)).then((images) => {
+      if (active) artReady = images.every((image) => image !== null);
+    });
+    return () => { active = false; };
   });
 
   // A rotate or resize moves the lineup: re-place this page's words, including a fully typed page waiting for a tap.
@@ -356,6 +379,7 @@
   class="mumbles"
   bind:this={layer}
   aria-hidden="true"
+  style:--mb-enter-ms={`${MUMBLE_TIMING.popMs}ms`}
   style:--mb-slice={cssArt(ART.slice)}
   style:--mb-tail-dl={cssArt(ART.dl)}
   style:--mb-tail-dr={cssArt(ART.dr)}
@@ -408,22 +432,13 @@
   }
   .mumbles :global(.mb.l::after) { left: auto; right: var(--px); background-image: var(--mb-tail-dr); }
   /* motion: pop from the tail's root, drift up one art px per step, fade. held = the page has typed (the drift
-     pauses), out = retired, snap = he snaps out of it, still = Reduce motion */
+     pauses), still = Reduce motion. Retirement freezes this motion and fades from its current opacity */
   .mumbles :global(.mb.r) { transform-origin: calc(6.5 * var(--px)) 100%; }
   .mumbles :global(.mb.l) { transform-origin: calc(100% - 6.5 * var(--px)) 100%; }
   .mumbles :global(.mb.live) {
-    animation: vnmb-pop 150ms steps(3, jump-start) var(--pop-delay, 0ms) both, vnmb-drift 3200ms steps(4, jump-end) var(--pop-delay, 0ms) both;
+    animation: vnmb-pop var(--mb-enter-ms) ease-out var(--pop-delay, 0ms) both, vnmb-drift 3200ms steps(4, jump-end) var(--pop-delay, 0ms) both;
   }
   .mumbles :global(.mb.live.held) { animation-play-state: running, paused; }
-  .mumbles :global(.mb.live.out) {
-    animation: vnmb-pop 150ms steps(3, jump-start) var(--pop-delay, 0ms) both, vnmb-drift 3200ms steps(4, jump-end) var(--pop-delay, 0ms) both,
-      vnmb-out 300ms steps(3, jump-end) both;
-  }
-  .mumbles :global(.mb.live.snap) {
-    animation: vnmb-pop 150ms steps(3, jump-start) var(--pop-delay, 0ms) both, vnmb-drift 3200ms steps(4, jump-end) var(--pop-delay, 0ms) both,
-      vnmb-snap 140ms steps(2, jump-end) both;
-    animation-play-state: paused, paused, running;
-  }
   /* Each cloud leaves the shared entrance before the next emerges, then rests in its final readable row. */
   .mumbles :global(.mb.live.stack) {
     animation: vnmb-emerge 520ms ease-out var(--rise-delay) both,
@@ -431,18 +446,15 @@
   }
   /* Finishing/skipping the text must not freeze a delayed entrance or a rise already underway. */
   .mumbles :global(.mb.live.stack.held) { animation-play-state: running, running; }
-  .mumbles :global(.mb.live.stack.snap) {
-    animation: vnmb-emerge 520ms ease-out var(--rise-delay) both,
-      vnmb-rise var(--rise-ms) linear var(--rise-delay) both, vnmb-snap 140ms steps(2, jump-end) both;
-    animation-play-state: paused, paused, running;
-  }
+  .mumbles :global(.mb.out) { animation: vnmb-out var(--fade-ms) ease-out both; }
+  .mumbles :global(.mb.snap) { animation: vnmb-snap var(--fade-ms) ease-out both; }
   .mumbles :global(.mb.still) { animation: none; transition: none; }
   /* safety net: the Stage marks itself .reduce when Reduce motion is on */
   :global(.stage-root.reduce) .mumbles :global(.mb) { animation: none; transition: none; }
   @keyframes -global-vnmb-emerge { from { scale: 0.86; opacity: 0; } to { scale: 1; opacity: 1; } }
   @keyframes -global-vnmb-rise { from { top: var(--rise-from); } to { top: var(--rise-to); } }
-  @keyframes -global-vnmb-pop { from { scale: 0.4; opacity: 0; } to { scale: 1; opacity: 1; } }
+  @keyframes -global-vnmb-pop { from { scale: 0.9; opacity: 0; } to { scale: 1; opacity: 1; } }
   @keyframes -global-vnmb-drift { from { translate: 0 0; } to { translate: 0 calc(-4 * var(--px)); } }
-  @keyframes -global-vnmb-out { from { opacity: 1; } to { opacity: 0; } }
-  @keyframes -global-vnmb-snap { from { scale: 1; opacity: 1; } to { scale: 1.25; opacity: 0; } }
+  @keyframes -global-vnmb-out { from { opacity: var(--fade-from); } to { opacity: 0; } }
+  @keyframes -global-vnmb-snap { from { scale: var(--scale-from); opacity: var(--fade-from); } to { scale: 1.25; opacity: 0; } }
 </style>

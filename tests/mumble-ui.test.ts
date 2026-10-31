@@ -372,8 +372,8 @@ describe('mumble bubbles on the Talk stage', () => {
     }
   });
 
-  test('timing: pop, a 3.2 s drift of 4 art px, fade; the snap is quick', () => {
-    expect(MUMBLE_TIMING).toMatchObject({ popMs: 150, lifeMs: 3200, fadeMs: 300, snapMs: 140, driftArt: 4 });
+  test('timing: gentle entrance, a 3.2 s drift of 4 art px, slow fade; the snap is quick', () => {
+    expect(MUMBLE_TIMING).toMatchObject({ popMs: 450, lifeMs: 3200, fadeMs: 700, snapMs: 140, driftArt: 4 });
   });
 });
 

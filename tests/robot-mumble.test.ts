@@ -170,7 +170,7 @@ describe('the prologue robot mumble', () => {
           return { ...p.r, y: p.fromY + (p.y - p.fromY) * progress };
         };
         expect(at(0, 300).y).toBeLessThan(at(0, 0).y);
-        expect(at(0, 0).y - at(0, 300).y).toBeLessThan(8);
+        expect(at(0, 0).y - at(0, 300).y).toBeCloseTo(9.6);
         for (let i = 1; i < starts.length; i++) {
           const older = at(i - 1, starts[i]);
           expect(older.y + older.h + 6).toBeLessThanOrEqual(plan[i].fromY + 0.001);

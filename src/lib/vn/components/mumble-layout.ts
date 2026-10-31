@@ -36,18 +36,18 @@ export const MUMBLE_KEEP: Readonly<Record<'everyday' | 'hoodie', { face: CellBox
 /** Stage px kept around every box: the portrait bobs 1–2 px while he talks and pops 4% on a new face. */
 export const KEEP_PAD = 3;
 
-/** Motion (ms) and drift (art px), the stage speech bubble's own steps. */
+/** Motion (ms) and drift (art px) for the whole cloud, including its text and tail. */
 export const MUMBLE_TIMING = {
-  /** Pop-in from the tail, steps(3). */
-  popMs: 150,
+  /** Gentle entrance from the tail. */
+  popMs: 450,
   /** Drift time and the longest a bubble stays while he types (the cap usually retires it sooner). */
   lifeMs: 3200,
-  /** Fade-out, steps(3). */
-  fadeMs: 300,
+  /** Slow, continuous fade from the current entrance opacity. */
+  fadeMs: 700,
   /** Every bubble pops when he snaps out of it. */
   snapMs: 140,
   /** A bubble popping where an older one is still fading waits this long. */
-  swapDelayMs: 200,
+  swapDelayMs: 400,
   /** Art px a bubble rises over lifeMs, one per step. */
   driftArt: 4,
 } as const;
@@ -225,13 +225,13 @@ export function planRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): Robot
   if (!targets) return null;
   const zone = g.wide ?? g.zone;
   const drift = Math.min(6 * g.px, targets[0].y - zone.y);
-  const speed = 24 / 1000; // CSS px per millisecond: a gentle rise, independent of the typewriter rate.
+  const speed = 32 / 1000; // CSS px per millisecond: a gentle rise, independent of the typewriter rate.
   return targets.map((p, i) => {
     const entrance = placeRobotStack([boxes[i]], g)![0];
     const y = p.y - drift;
     return {
       ...p, y, r: { ...p.r, y }, fromY: entrance.y,
-      riseMs: Math.max(900, (entrance.y - y) / speed),
+      riseMs: Math.max(675, (entrance.y - y) / speed),
       clearanceMs: i ? (boxes[i].h + boxes[i].tail + 3 * g.px) / speed : 0,
     };
   });
