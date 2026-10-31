@@ -147,6 +147,34 @@ narrator: All set.
     await scene.run;
   });
 
+  test('question draft survives field handoffs and resets only for a new question or completion', async () => {
+    const answer = dialogue.ask({ kind: 'name', initial: 'Avery', maxLength: 12 });
+    expect(dialogue.inputDraft).toBe('Avery');
+    dialogue.inputDraft = 'Mara';
+    // A second UI instance reads the same controller draft rather than reinitializing from opts.initial.
+    expect(dialogue.input?.initial).toBe('Avery');
+    expect(dialogue.inputDraft).toBe('Mara');
+    expect(dialogue.submit(dialogue.inputDraft)).toBe(true);
+    dialogue.editAnswer();
+    expect(dialogue.inputDraft).toBe('Mara');
+    dialogue.inputDraft = 'Nova';
+    expect(dialogue.submit(dialogue.inputDraft)).toBe(true);
+    expect(dialogue.confirmAnswer()).toBe(true);
+    expect(await answer).toBe('Nova');
+    expect(dialogue.inputDraft).toBe('');
+    const food = dialogue.ask({ kind: 'food', placeholder: 'muffin', allowEmpty: true });
+    expect(dialogue.inputDraft).toBe('');
+    dialogue.inputDraft = 'ramen';
+    dialogue.leave();
+    expect(await food).toBeNull();
+    expect(dialogue.inputDraft).toBe('');
+    const cancelled = dialogue.ask({ kind: 'name', initial: 'Before' });
+    dialogue.inputDraft = 'Unfinished';
+    dialogue.cancel();
+    expect(await cancelled).toBeNull();
+    expect(dialogue.inputDraft).toBe('');
+  });
+
   test('stopping during name confirmation releases the scene and never writes the staged name', async () => {
     game.save.player.name = 'Before';
     const scene = play('t_inline_intake');

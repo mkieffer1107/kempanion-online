@@ -133,6 +133,8 @@ class DialogueController {
   thinking = $state(false);
   choices = $state<string[] | null>(null);
   input = $state<AskOptions | null>(null);
+  /** A question owns its draft across portrait/landscape UI remounts. */
+  inputDraft = $state('');
   /** Intake answers only return to the story after the player confirms the normalized draft. */
   pendingAnswer = $state<string | null>(null);
   log = $state<LogLine[]>([]);
@@ -297,6 +299,7 @@ class DialogueController {
     this.visible = true;
     this.stopSkip();
     this.input = { ...opts };
+    this.inputDraft = opts.initial ?? '';
     return new Promise((resolve) => { this.#ask = resolve; });
   }
 
@@ -314,6 +317,7 @@ class DialogueController {
     }
     this.#ask = null;
     this.input = null;
+    this.inputDraft = '';
     resolve(t);
     return true;
   }
@@ -325,6 +329,7 @@ class DialogueController {
     const resolve = this.#ask;
     this.#ask = null;
     this.input = null;
+    this.inputDraft = '';
     this.pendingAnswer = null;
     resolve(answer);
     return true;
@@ -334,6 +339,7 @@ class DialogueController {
   editAnswer(): void {
     if (!this.input?.kind || this.pendingAnswer === null) return;
     this.input = { ...this.input, initial: this.pendingAnswer };
+    this.inputDraft = this.pendingAnswer;
     this.pendingAnswer = null;
   }
 
@@ -344,6 +350,7 @@ class DialogueController {
       const r = this.#ask;
       this.#ask = null;
       this.input = null;
+      this.inputDraft = '';
       r(null);
       return;
     }
@@ -417,6 +424,7 @@ class DialogueController {
   /** Resolve every pending wait (stopping a scene or chat): lines continue, choices pick 0, asks return null. */
   cancel(): void {
     this.pendingAnswer = null;
+    this.inputDraft = '';
     this.mumbling = false;
     this.#gen++;
     this.onLeave?.();

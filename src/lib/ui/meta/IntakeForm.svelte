@@ -12,6 +12,7 @@
   import { faceUrl } from './assets';
   import NameEntry from './NameEntry.svelte';
   import IntakeConfirmation from '../components/IntakeConfirmation.svelte';
+  import IntakeTextInput from '../components/IntakeTextInput.svelte';
   import PixelGlyph from './PixelGlyph.svelte';
   import { Typewriter } from './typewriter.svelte';
   import { ui } from './sfx';
@@ -45,7 +46,7 @@
   function goto(s: Step) {
     step = s;
     if (s === 'why' || s === 'sleep') queueMicrotask(() => options[0]?.focus());
-    if (s === 'food') queueMicrotask(() => foodInput?.focus({ preventScroll: true }));
+    if (s === 'food' && matchMedia('(pointer: fine)').matches) queueMicrotask(() => foodInput?.focus({ preventScroll: true }));
   }
 
   function setName(n: string) {
@@ -181,17 +182,12 @@
             {:else}
               <form class="foodform" onsubmit={setFood}>
                 <label class="q km-title" for="intake-food">Comfort food?</label>
-                <input
-                  bind:this={foodInput}
-                  bind:value={food}
-                  id="intake-food"
-                  type="text"
-                  maxlength="24"
-                  placeholder="muffin"
-                  autocomplete="off"
-                  enterkeyhint="next"
-                />
-                <button type="submit" class="px-btn primary">NEXT</button>
+                <IntakeTextInput bind:field={foodInput} bind:value={food} kind="food" maxLength={24}
+                  id="intake-food" label="Comfort food?" placeholder="muffin">
+                  {#snippet actions()}
+                    <button type="submit" class="px-btn primary">NEXT</button>
+                  {/snippet}
+                </IntakeTextInput>
               </form>
             {/if}
           {:else}
@@ -304,18 +300,6 @@
     background: var(--ink);
   }
   .foodform { display: grid; gap: 12px; }
-  .foodform input {
-    min-height: 52px;
-    padding: 8px 14px;
-    font-size: 22px;
-    color: var(--ink);
-    background: #fffdf8;
-    border: var(--px) solid var(--ink);
-    border-radius: 0;
-    user-select: text;
-    -webkit-user-select: text;
-  }
-  .foodform input:focus { outline: var(--px) dashed var(--sakura-4); outline-offset: 2px; }
   .foodform .px-btn, .submit { min-height: 48px; font-size: 18px; }
   .review { margin: 0; display: grid; gap: 6px; }
   .review div { display: grid; grid-template-columns: 12em 1fr; gap: 8px; border-bottom: 1px dotted rgba(27, 18, 41, 0.3); padding: 4px 0; }

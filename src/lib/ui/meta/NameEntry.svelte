@@ -1,8 +1,9 @@
 <script lang="ts">
-  // "What should the piggies call you?" — native text field (12 chars, ticks as you type) and OK.
+  // "What should the piggies call you?" — shared mobile game keyboard / desktop field and OK.
   import { NAME_MAX, cleanText } from './content';
   import { blip, ui } from './sfx';
   import IntakeConfirmation from '../components/IntakeConfirmation.svelte';
+  import IntakeTextInput from '../components/IntakeTextInput.svelte';
 
   let {
     initial = '',
@@ -19,7 +20,7 @@
 
   $effect(() => {
     const el = input;
-    if (el) queueMicrotask(() => el.focus({ preventScroll: true }));
+    if (el && matchMedia('(pointer: fine)').matches) queueMicrotask(() => el.focus({ preventScroll: true }));
   });
 
   function submit(e: SubmitEvent) {
@@ -52,25 +53,12 @@
     <IntakeConfirmation kind="name" value={pendingName} onConfirm={confirm} onEdit={edit} />
   {:else}
     <label class="q km-title" for="name-{uid}">{question}</label>
-    <div class="field">
-      <input
-        bind:this={input}
-        bind:value={name}
-        id="name-{uid}"
-        type="text"
-        maxlength={NAME_MAX}
-        autocomplete="nickname"
-        autocapitalize="words"
-        spellcheck="false"
-        enterkeyhint="done"
-        placeholder="Your name"
-        oninput={() => blip('system')}
-      />
-      <span class="len" aria-hidden="true">{Array.from(name).length}/{NAME_MAX}</span>
-    </div>
-    <div class="buttons">
-      <button type="submit" class="px-btn primary" disabled={!clean}>OK</button>
-    </div>
+    <IntakeTextInput bind:field={input} bind:value={name} kind="name" maxLength={NAME_MAX}
+      id="name-{uid}" label={question} placeholder="Your name" onInput={() => blip('system')}>
+      {#snippet actions()}
+        <button type="submit" class="px-btn primary" disabled={!clean}>OK</button>
+      {/snippet}
+    </IntakeTextInput>
   {/if}
 </form>
 
@@ -84,35 +72,5 @@
     font-size: 20px;
     line-height: 1.3;
   }
-  .field {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  input {
-    width: 100%;
-    min-height: 52px;
-    padding: 8px 64px 8px 14px;
-    font-size: 22px;
-    color: var(--ink);
-    background: #fffdf8;
-    border: var(--px) solid var(--ink);
-    box-shadow: inset var(--px) var(--px) 0 rgba(27, 18, 41, 0.18);
-    border-radius: 0;
-    user-select: text;
-    -webkit-user-select: text;
-  }
-  input:focus { outline: var(--px) dashed var(--sakura-4); outline-offset: 2px; }
-  .len {
-    position: absolute;
-    right: 12px;
-    font-size: 13px;
-    color: #8a7898;
-  }
-  .buttons {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .buttons .px-btn { min-height: 48px; font-size: 18px; }
+  .px-btn { min-height: 48px; font-size: 18px; }
 </style>

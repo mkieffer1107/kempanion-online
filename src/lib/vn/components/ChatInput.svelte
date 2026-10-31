@@ -4,6 +4,7 @@
   import { audio } from '../../audio';
   import { tick } from 'svelte';
   import IntakeConfirmation from '../../ui/components/IntakeConfirmation.svelte';
+  import IntakeTextInput from '../../ui/components/IntakeTextInput.svelte';
   import { dialogue } from '../dialogue.svelte';
   import { liftAboveKeyboard } from './keyboard';
 
@@ -12,6 +13,7 @@
     lift = true,
     autofocus = true,
     class: klass = '',
+    value = $bindable(''), field = $bindable(), nativeKeyboard = $bindable(false), externalKeyboard = false,
   }: {
     /** Show the ask() prompt as a hint line (DialogueBox shows it in the box instead when the box is empty). */
     showPrompt?: boolean;
@@ -20,13 +22,10 @@
     /** Focus the field when a question opens (only with a mouse/keyboard, so phones don't pop the keyboard). */
     autofocus?: boolean;
     class?: string;
+    value?: string; field?: HTMLInputElement; nativeKeyboard?: boolean; externalKeyboard?: boolean;
   } = $props();
 
-  let field: HTMLInputElement | undefined = $state();
-
   const opts = $derived(dialogue.input);
-  // A new question owns its draft (including a saved name); edits last until the next question.
-  let value = $derived(opts?.initial ?? '');
   const ready = $derived(!!opts && !dialogue.thinking && !dialogue.typing);
   const max = $derived(opts?.maxLength ?? 140);
   const isName = $derived(opts?.kind === 'name');
@@ -98,6 +97,15 @@
         {/each}
       </div>
     {/if}
+    {#if opts?.kind}
+      <IntakeTextInput bind:field bind:value bind:native={nativeKeyboard} {externalKeyboard} kind={opts.kind} maxLength={max}
+        placeholder={opts.placeholder ?? ''} label={opts.prompt ?? 'Your answer'} disabled={!ready}
+        onInput={() => { if (isName) audio.sfx('ui_move'); }} onKeydown={onkeydown}>
+        {#snippet actions()}
+          <button type="submit" class="px-btn primary send" disabled={!canSend}>SEND</button>
+        {/snippet}
+      </IntakeTextInput>
+    {:else}
     <div class="row">
       <input
         bind:this={field}
@@ -122,6 +130,7 @@
         <button type="button" class="px-btn ghost leave" onclick={() => dialogue.leave()}>Leave</button>
       {/if}
     </div>
+    {/if}
   {/if}
 </form>
 

@@ -14,7 +14,10 @@
   //
   // Click/tap on the box advances; parents may forward stage taps with dialogue.advance().
   // Keys (when `keyboard`): Enter/Space/Z/X advance · Ctrl hold skip · A auto · S skip · L/PageUp/wheel-up log · H hide.
-  import type { Snippet } from 'svelte';
+  import { flushSync, type Snippet } from 'svelte';
+  import { MediaQuery } from 'svelte/reactivity';
+  import IntakeKeyboard from '../../ui/components/IntakeKeyboard.svelte';
+  import { audio } from '../../audio';
   import { game } from '../../state/game.svelte';
   import { dialogue } from '../dialogue.svelte';
   import Backlog from './Backlog.svelte';
@@ -66,6 +69,17 @@
   const cursor = $derived(
     dialogue.thinking || dialogue.choices || !dialogue.waiting ? '' : dialogue.auto ? '▶▶' : '▼',
   );
+
+  const mobileKeyboard = new MediaQuery('(pointer: coarse) and (max-width: 960px)');
+  // The floating answer field and the keys in the existing dialogue frame share one draft.
+  let inputField = $state<HTMLInputElement>();
+  let nativeKeyboard = $state(false);
+  const keyboardInBox = $derived(mobileKeyboard.current && showInput && !!dialogue.input?.kind && dialogue.pendingAnswer === null);
+  function toggleNativeKeyboard() {
+    inputField?.blur();
+    flushSync(() => { nativeKeyboard = !nativeKeyboard; });
+    inputField?.focus({ preventScroll: true });
+  }
 
   let textEl: HTMLParagraphElement | undefined = $state();
   let markEl: HTMLSpanElement | undefined = $state();
@@ -131,7 +145,7 @@
       {:else if input && dialogue.chatOpen}
         <div class="choices-slot"><ChatChoices /></div>
       {:else if showInput}
-        <div class="choices-slot ask"><ChatInput showPrompt={!promptInBox} /></div>
+        <div class="choices-slot ask"><ChatInput showPrompt={!promptInBox || keyboardInBox} bind:value={dialogue.inputDraft} bind:field={inputField} bind:nativeKeyboard externalKeyboard /></div>
       {/if}
 
       {#if dialogue.visible}
@@ -149,6 +163,20 @@
     </div>
 
     {#if dialogue.visible}
+      {#if keyboardInBox}
+        <div class="box vn-box intake-keys" aria-label="Intake keyboard panel">
+          {#if nativeKeyboard}
+            <div class="native-note">
+              <span>Phone keyboard is on</span>
+              <button type="button" class="px-btn ghost" onclick={toggleNativeKeyboard}>Game keyboard</button>
+            </div>
+          {:else}
+            <IntakeKeyboard bind:value={dialogue.inputDraft} field={inputField} maxLength={dialogue.input?.maxLength ?? 140}
+              disabled={dialogue.thinking || dialogue.typing} compact onToggleNative={toggleNativeKeyboard}
+              onInput={() => { if (dialogue.input?.kind === 'name') audio.sfx('ui_move'); }} />
+          {/if}
+        </div>
+      {:else}
       <div
         class="box vn-box"
         class:narration={dialogue.speaker === 'narrator'}
@@ -172,6 +200,7 @@
           <span class="cursor" class:auto={dialogue.auto} style:color={dialogue.color || 'var(--sakura-2)'} aria-hidden="true">{cursor}</span>
         {/if}
       </div>
+      {/if}
     {/if}
   </div>
 
@@ -369,4 +398,13 @@
   @media (prefers-reduced-motion: reduce) {
     .box, .plate, .cursor, .dots i { animation: none; }
   }
+  /* Keep the same frame, answer overlay, controls and stage geometry during intake. */
+  .intake-keys {
+    height: calc(var(--rows) * 1.45em + 1.05em + var(--px) * 2);
+    cursor: default;
+    animation: none;
+    padding: 7px 8px 8px;
+  }
+  .native-note { height: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+  .native-note .px-btn { font-size: 13px; min-height: 36px; }
 </style>
