@@ -8,6 +8,8 @@
   import PagerInset from '../../vn/components/PagerInset.svelte';
   import BrainInset from '../../vn/components/BrainInset.svelte';
   import CgOverlay from '../../vn/components/CgOverlay.svelte';
+  import MumbleBubbles from '../../vn/components/MumbleBubbles.svelte';
+  import { robotMumbleWords } from '../../vn/components/robot-mumble';
   import { pagerInset } from '../../vn/pager.svelte';
   import { brainInset } from '../../vn/brain.svelte';
   import { factOf } from '../../vn/effects';
@@ -27,6 +29,11 @@
   let stageEl = $state<HTMLDivElement>();
   // Keep this space during HIDE too, so hiding the controls never moves the picture.
   const topClearance = $derived(pagerInset.keys !== null || brainInset.on ? 64 : 0);
+  // Only the focused robot rant gets clouds. Advancing to Piggy 2 removes them at once; the later nervous reply
+  // stays as scripted. Each page follows the existing dialogue controller, including instant text and AUTO.
+  const robotMumble = $derived(id === 'prologue' && dialogue.visible && dialogue.speaker === 'piggy-3'
+    && dialogue.mumbling && dialogue.expression === 'phone_mumble');
+  const robotPage = $derived({ id: dialogue.text, words: robotMumbleWords(dialogue.text) });
   let leaving = false;
   let skipped = false;
 
@@ -93,6 +100,9 @@
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" bind:this={stageEl} onclick={stageTap}>
       <StageHost label={info?.title ?? 'Story scene'}>
+        {#if robotMumble}
+          <MumbleBubbles mode={viewport.mode} pos="right" outfit="everyday" stream page={robotPage} lineup={['left', 'center', 'right']} />
+        {/if}
         <!-- T and S stages can be narrower than a CG (the canvas crops it): show the whole picture over them.
              W is always 16:9. -->
         {#if viewport.mode !== 'w'}<CgOverlay />{/if}

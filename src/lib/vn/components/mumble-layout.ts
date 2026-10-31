@@ -4,7 +4,7 @@
 // screen's chrome. Here: the keep-out boxes of his phone portraits, where his portrait cell sits on the stage, the slot
 // search, how many bubbles a screen shows, and which bubble pops on which page of the stream.
 // Geometry is CSS px in the stage view's box (the layer StageHost's children live in) unless it says otherwise.
-import { lineupScale, portraitCenterX, portraitY, PORTRAIT_W } from '../../engine/layout';
+import { lineupScale, portraitCenterX, portraitY, NARROW_W, PORTRAIT_W } from '../../engine/layout';
 import type { PortraitPos } from '../../engine/stage';
 import type { ChatMumble, OutfitId } from '../../types';
 import { pageLine, type TextGrid } from '../chat-pages';
@@ -73,6 +73,8 @@ export interface MumbleGeo {
   wide?: Rect;
   /** Chrome over the stage (the top bar, the name plate and LOG strip, the window): never under a bubble. */
   obstacles: Rect[];
+  /** A group scene has room above the lineup, rather than beside the other pigs' faces. */
+  group?: boolean;
 }
 
 /** Bubbles up at once: 3 on an upright phone (2 when the picture above the window is short), 4 landscape, 5 wide. */
@@ -83,11 +85,11 @@ export function mumbleCap(g: Pick<MumbleGeo, 'mode' | 'zone'>): number {
 
 /**
  * His keep-out boxes in the stage view, CSS px (`u` = CSS px per stage px, `lw` = the stage's logical width): the cell
- * sits where world.ts draws a lone portrait in `pos` (lineup scale, slot centre, waist on the stage's bottom edge).
+ * sits where world.ts draws the portrait in `pos` (lineup scale, slot centre, waist on the stage's bottom edge).
  */
-export function mumbleKeepOut(outfit: OutfitId, pos: PortraitPos, lw: number, u: number): Rect[] {
+export function mumbleKeepOut(outfit: OutfitId, pos: PortraitPos, lw: number, u: number, lineup: readonly PortraitPos[] = [pos]): Rect[] {
   const boxes = MUMBLE_KEEP[outfit === 'hoodie' ? 'hoodie' : 'everyday'];
-  const k = lineupScale([pos], lw);
+  const k = lineupScale(lineup, lw);
   const left = portraitCenterX(pos, lw, k) - (Math.round(PORTRAIT_W * k) >> 1);
   const top = portraitY(0, k);
   return [boxes.face, boxes.phone, boxes.fist].map(([x0, y0, x1, y1]) => ({
@@ -95,6 +97,18 @@ export function mumbleKeepOut(outfit: OutfitId, pos: PortraitPos, lw: number, u:
     y: (top + y0 * k - KEEP_PAD) * u,
     w: ((x1 - x0) * k + 2 * KEEP_PAD) * u,
     h: ((y1 - y0) * k + 2 * KEEP_PAD) * u,
+  }));
+}
+
+/** The other pigs' faces in a group shot; a narrow stage draws only the speaker. */
+export function mumbleNeighbours(pos: PortraitPos, lineup: readonly PortraitPos[], lw: number, u: number): Rect[] {
+  if (lw < NARROW_W) return [];
+  const k = lineupScale(lineup, lw);
+  return lineup.filter((p) => p !== pos).map((p) => ({
+    x: (portraitCenterX(p, lw, k) - 76 * k - KEEP_PAD) * u,
+    y: (portraitY(0, k) + 64 * k - KEEP_PAD) * u,
+    w: (152 * k + 2 * KEEP_PAD) * u,
+    h: (136 * k + 2 * KEEP_PAD) * u,
   }));
 }
 
@@ -125,6 +139,14 @@ export const MUMBLE_SLOTS: Readonly<Record<MumbleMode, readonly { side: 'left' |
     { side: 'right', col: 3, level: 0.62 }, { side: 'right', col: 0, level: -0.62 },
   ],
 };
+
+// A loose cluster above the speaker: anchor is a fraction across his face. Unlike Talk's side slots, these stay
+// close to him even when his neighbours fill the screen, with enough height to keep their faces clear.
+const GROUP_SLOTS = [
+  { side: 'left', col: 0, level: -0.65, anchor: 0.25 }, { side: 'right', col: 0, level: -0.65, anchor: 1 },
+  { side: 'left', col: 0, level: -1.3, anchor: 0.05 }, { side: 'right', col: 0, level: -1.3, anchor: 0.8 },
+  { side: 'left', col: 0, level: -1.95, anchor: 0.2 }, { side: 'right', col: 0, level: -1.95, anchor: 1 },
+] as const;
 
 /** a and b overlap, with `pad` px between them counting as overlap. */
 export const hit = (a: Rect, b: Rect, pad = 0): boolean =>
@@ -164,7 +186,7 @@ export function placeMumble(
   start: number,
   { avoidFading = true, zone = g.zone }: { avoidFading?: boolean; zone?: Rect } = {},
 ): Placement | null {
-  const slots = MUMBLE_SLOTS[g.mode];
+  const slots = g.group ? [...GROUP_SLOTS, ...MUMBLE_SLOTS[g.mode]] : MUMBLE_SLOTS[g.mode];
   const face = g.keep[0];
   if (!face || !slots.length) return null;
   const px = g.px;
@@ -179,7 +201,7 @@ export function placeMumble(
     // hug the keep-outs that share the bubble's rows (over its whole drift), else his face
     const near = g.keep.filter((r) => r.y < y + b.h + b.tail && r.y + r.h > y - drift);
     const edge = near.length ? near : [face];
-    const x0 = s.side === 'right'
+    const x0 = 'anchor' in s ? face.x + s.anchor * face.w - b.w / 2 : s.side === 'right'
       ? Math.max(...edge.map((r) => r.x + r.w)) + gap + s.col * colW
       : Math.min(...edge.map((r) => r.x)) - gap - b.w - s.col * colW;
     const x = snap(clamp(x0, zone.x, zone.x + zone.w - b.w));

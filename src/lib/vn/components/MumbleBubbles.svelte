@@ -17,7 +17,7 @@
   import { dialogue } from '../dialogue.svelte';
   import { mumbleStage, type MumbleWord } from './mumble.svelte';
   import {
-    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, placeMumble,
+    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble,
     type MumbleGeo, type MumbleMode, type Placement, type Rect,
   } from './mumble-layout';
 
@@ -30,9 +30,14 @@
     outfit: OutfitId;
     /** Chrome over the stage to keep clear of besides the dialogue window (a selector; what overlaps the stage counts). */
     avoid?: string;
+    /** Scene dialogue can supply its own page; free chat uses mumbleStage. */
+    stream?: boolean;
+    page?: { id: number | string; words: readonly MumbleWord[] } | null;
+    /** All portrait slots in a group scene, so clouds clear the whole lineup. */
+    lineup?: readonly PortraitPos[];
   }
 
-  let { mode, pos, outfit, avoid = '' }: Props = $props();
+  let { mode, pos, outfit, avoid = '', stream = mumbleStage.stream, page = mumbleStage.page, lineup = [pos] }: Props = $props();
 
   const ART = { slice: 'mumble/mumble-lilac.png', dl: 'mumble/mumble-tail-lilac-dl.png', dr: 'mumble/mumble-tail-lilac-dr.png' };
   // CSS variables are consumed by the built stylesheet under assets/, so resolve art against the page first.
@@ -54,7 +59,9 @@
   let pending: MumbleWord[] = [];
   /** The page has typed (or Reduce motion placed its words): nothing more pops until the next page. */
   let frozen = true;
-  let seenPage = -1;
+  let seenPage: number | string = -1;
+  let layoutRevision = $state(0);
+  let seenGeometry = '';
 
   const reduceQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
   const reduce = () => game.save.settings.reduceMotion || !!reduceQuery?.matches;
@@ -88,7 +95,11 @@
     const h = Math.min(floor, rv.bottom) - rv.top - 4 - y;
     const zone = { x: left - rv.left + 4, y, w: right - left - 8, h };
     const wide = { x: rr.left - rv.left + 4, y, w: rr.width - 8, h };
-    return { mode, px, keep: mumbleKeepOut(outfit, pos, lw, u), zone, wide: wide.w > zone.w + 2 ? wide : undefined, obstacles };
+    obstacles.push(...mumbleNeighbours(pos, lineup, lw, u));
+    return {
+      mode, px, keep: mumbleKeepOut(outfit, pos, lw, u, lineup), zone,
+      wide: wide.w > zone.w + 2 ? wide : undefined, obstacles, group: lineup.length > 1,
+    };
   }
 
   /** A cloud on the art grid: width 16 + 8m art px (the puff tile repeats m times), one line (16) or two (24). */
@@ -252,20 +263,27 @@
 
   // the stream's pages, and the typewriter on each
   $effect(() => {
-    const on = mumbleStage.stream;
-    const page = mumbleStage.page;
+    const on = stream;
+    const current = page;
     const shown = dialogue.shown;
     const typing = dialogue.typing;
+    const geometry = `${mode}:${pos}:${outfit}:${lineup.join(',')}:${layoutRevision}`;
+    if (!layer) return;
     untrack(() => {
       if (!on) {
         if (seenPage !== -1 || live.length) snapAll();
         seenPage = -1;
         return;
       }
-      if (!page) return;
-      if (page.id !== seenPage) {
-        seenPage = page.id;
-        start(page.words);
+      if (!current || !geo()) return;
+      if (geometry !== seenGeometry) {
+        clear();
+        seenPage = -1;
+        seenGeometry = geometry;
+      }
+      if (current.id !== seenPage) {
+        seenPage = current.id;
+        start(current.words);
       }
       if (typing) progress(shown);
       else complete();
@@ -277,7 +295,7 @@
     for (const f of Object.values(ART)) void loadImage(f);
   });
 
-  // a rotate or a resized window moves him and the window: the bubbles up go (the next words find new places)
+  // A rotate or resize moves the lineup: re-place this page's words, including a fully typed page waiting for a tap.
   $effect(() => {
     const el = layer;
     if (!el || typeof ResizeObserver === 'undefined') return;
@@ -287,16 +305,10 @@
       if (el.clientWidth === w && el.clientHeight === h) return;
       w = el.clientWidth;
       h = el.clientHeight;
-      for (const item of [...live]) retire(item, true);
+      layoutRevision++;
     });
     ro.observe(el);
     return () => ro.disconnect();
-  });
-  $effect(() => {
-    void [mode, pos];
-    untrack(() => {
-      for (const item of [...live]) retire(item, true);
-    });
   });
 
   $effect(() => () => clear());
