@@ -100,11 +100,11 @@ export function mumbleKeepOut(outfit: OutfitId, pos: PortraitPos, lw: number, u:
   }));
 }
 
-/** The other pigs' faces in a group shot; a narrow stage draws only the speaker. */
-export function mumbleNeighbours(pos: PortraitPos, lineup: readonly PortraitPos[], lw: number, u: number): Rect[] {
+/** The other pigs' faces in a group shot; a narrow stage draws only the speaker. Mobile clouds may cover the center pig. */
+export function mumbleNeighbours(pos: PortraitPos, lineup: readonly PortraitPos[], lw: number, u: number, allowCenter = false): Rect[] {
   if (lw < NARROW_W) return [];
   const k = lineupScale(lineup, lw);
-  return lineup.filter((p) => p !== pos).map((p) => ({
+  return lineup.filter((p) => p !== pos && !(allowCenter && p === 'center')).map((p) => ({
     x: (portraitCenterX(p, lw, k) - 76 * k - KEEP_PAD) * u,
     y: (portraitY(0, k) + 64 * k - KEEP_PAD) * u,
     w: (152 * k + 2 * KEEP_PAD) * u,
@@ -148,6 +148,13 @@ const GROUP_SLOTS = [
   { side: 'left', col: 0, level: -1.95, anchor: 0.2 }, { side: 'right', col: 0, level: -1.95, anchor: 1 },
 ] as const;
 
+// On a phone, fill the row nearest his hair first, spreading toward the center pig before starting a second row.
+// Row spacing follows the clouds' size, rather than the portrait's height; cycling must not send clouds skyward.
+const MOBILE_GROUP_SLOTS = [
+  { side: 'right', col: 0, row: 0 }, { side: 'left', col: 1, row: 0 }, { side: 'left', col: 2, row: 0 },
+  { side: 'right', col: 0, row: 1 }, { side: 'left', col: 1, row: 1 }, { side: 'left', col: 2, row: 1 },
+] as const;
+
 /** a and b overlap, with `pad` px between them counting as overlap. */
 export const hit = (a: Rect, b: Rect, pad = 0): boolean =>
   a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
@@ -186,7 +193,8 @@ export function placeMumble(
   start: number,
   { avoidFading = true, zone = g.zone }: { avoidFading?: boolean; zone?: Rect } = {},
 ): Placement | null {
-  const slots = g.group ? [...GROUP_SLOTS, ...MUMBLE_SLOTS[g.mode]] : MUMBLE_SLOTS[g.mode];
+  const compact = g.group && g.mode === 't';
+  const slots = compact ? MOBILE_GROUP_SLOTS : g.group ? [...GROUP_SLOTS, ...MUMBLE_SLOTS[g.mode]] : MUMBLE_SLOTS[g.mode];
   const face = g.keep[0];
   if (!face || !slots.length) return null;
   const px = g.px;
@@ -194,17 +202,26 @@ export function placeMumble(
   const gap = 2 * px;
   const colW = Math.max(b.w * 0.8, 44 * px);
   const drift = MUMBLE_TIMING.driftArt * px;
+  const rowH = compact ? Math.max(b.h, ...live.map((r) => r.h - b.tail - drift)) + b.tail + drift + gap : 0;
   for (let k = 0; k < slots.length; k++) {
-    const slot = (((start + k) % slots.length) + slots.length) % slots.length;
+    const slot = compact ? k : (((start + k) % slots.length) + slots.length) % slots.length;
     const s = slots[slot];
-    const y = snap(clamp(face.y + s.level * face.h - b.h / 2, zone.y + drift, zone.y + zone.h - b.h - b.tail));
+    const y0 = 'row' in s
+      ? face.y - 0.2 * face.h - s.row * rowH - b.h - b.tail - gap
+      : face.y + s.level * face.h - b.h / 2;
+    const y = snap(clamp(y0, zone.y + drift, zone.y + zone.h - b.h - b.tail));
     // hug the keep-outs that share the bubble's rows (over its whole drift), else his face
     const near = g.keep.filter((r) => r.y < y + b.h + b.tail && r.y + r.h > y - drift);
     const edge = near.length ? near : [face];
-    const x0 = 'anchor' in s ? face.x + s.anchor * face.w - b.w / 2 : s.side === 'right'
+    const rowLive = compact ? live.filter((r) => r.y < y + b.h + b.tail + px && r.y + r.h + px > y - drift).sort((a, b) => b.x - a.x) : [];
+    const x0 = 'row' in s
+      ? s.col > 0 && rowLive[s.col - 1]
+        ? rowLive[s.col - 1].x - gap - b.w
+        : Math.min(face.x + 0.65 * face.w - b.w / 2, zone.x + zone.w - b.w) - s.col * (b.w + gap)
+      : 'anchor' in s ? face.x + s.anchor * face.w - b.w / 2 : s.side === 'right'
       ? Math.max(...edge.map((r) => r.x + r.w)) + gap + s.col * colW
       : Math.min(...edge.map((r) => r.x)) - gap - b.w - s.col * colW;
-    const x = snap(clamp(x0, zone.x, zone.x + zone.w - b.w));
+    const x = snap(clamp(x0, compact ? Math.max(zone.x, face.x - 0.5 * face.w) : zone.x, zone.x + zone.w - b.w));
     const r = { x, y: y - drift, w: b.w, h: b.h + b.tail + drift };
     if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y - 0.5 || r.y + r.h > zone.y + zone.h + 0.5) continue;
     if (g.keep.some((o) => hit(r, o, px))) continue;

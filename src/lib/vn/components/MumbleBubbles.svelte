@@ -33,7 +33,7 @@
     /** Scene dialogue can supply its own page; free chat uses mumbleStage. */
     stream?: boolean;
     page?: { id: number | string; words: readonly MumbleWord[] } | null;
-    /** All portrait slots in a group scene, so clouds clear the whole lineup. */
+    /** All portrait slots in a group scene; mobile clouds may overlap the center pig to stay near the speaker. */
     lineup?: readonly PortraitPos[];
   }
 
@@ -95,7 +95,7 @@
     const h = Math.min(floor, rv.bottom) - rv.top - 4 - y;
     const zone = { x: left - rv.left + 4, y, w: right - left - 8, h };
     const wide = { x: rr.left - rv.left + 4, y, w: rr.width - 8, h };
-    obstacles.push(...mumbleNeighbours(pos, lineup, lw, u));
+    obstacles.push(...mumbleNeighbours(pos, lineup, lw, u, mode === 't' && lineup.length > 1));
     return {
       mode, px, keep: mumbleKeepOut(outfit, pos, lw, u, lineup), zone,
       wide: wide.w > zone.w + 2 ? wide : undefined, obstacles, group: lineup.length > 1,
@@ -147,7 +147,8 @@
       }
       return null;
     };
-    let p = tryPlace(true) ?? tryPlace(false);
+    // Compact story clouds reuse the near-head slots; a fading cloud already gives its replacement a pop delay.
+    let p = g.group && g.mode === 't' ? tryPlace(false) : tryPlace(true) ?? tryPlace(false);
     while (!p && !still && live.length) {
       retire(live[0]);
       p = tryPlace(false);

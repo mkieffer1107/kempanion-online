@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { parseKScript } from '../src/lib/vn/kscript';
 import { paginate } from '../src/lib/vn/typewriter';
 import { robotMumbleWords } from '../src/lib/vn/components/robot-mumble';
-import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, type MumbleGeo } from '../src/lib/vn/components/mumble-layout';
+import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
 
 const scene = parseKScript(readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8'), 'prologue.ks')[0];
 const rant = scene.ops.find((o) => o.op === 'say' && o.speaker === 'piggy-3' && o.expression === 'phone_mumble');
@@ -53,5 +53,41 @@ describe('the prologue robot mumble', () => {
     const solo = mumbleKeepOut('everyday', 'right', 270, 1)[0];
     expect(group.w).toBeLessThan(solo.w);
     expect(group.y).toBeGreaterThan(solo.y);
+  });
+
+  test('mobile group clouds refill near the head, staying in two compact rows through a long stream', () => {
+    for (const width of [320, 393, 430, 768]) {
+      const u = width / 270;
+      const keep = mumbleKeepOut('everyday', 'right', 270, u, lineup);
+      const g: MumbleGeo = {
+        mode: 't', px: 2, group: true, keep, zone: { x: 4, y: 4, w: width - 8, h: width - 8 },
+        obstacles: [...mumbleNeighbours('right', lineup, 270, u, true), { x: 0, y: width - 44, w: width, h: 44 }],
+      };
+      const live: Rect[] = [];
+      let start = 0;
+      for (let i = 0; i < 24; i++) {
+        if (live.length === 3) live.shift();
+        const b = { w: [48, 96, 128, 112][i % 4], h: i % 4 === 3 ? 48 : 32, tail: 6 };
+        let p = placeMumble(b, g, live, [], start);
+        while (!p && live.length) { live.shift(); p = placeMumble(b, g, live, [], start); }
+        expect(p).not.toBeNull();
+        if (!p) throw new Error('No room for mobile cloud');
+        expect(p.r.y).toBeGreaterThanOrEqual(keep[0].y - 0.2 * keep[0].h - 134);
+        expect(p.r.x).toBeGreaterThanOrEqual(keep[0].x - 0.5 * keep[0].w - 1);
+        for (const r of [...keep, ...g.obstacles, ...live]) expect(hit(p.r, r)).toBe(false);
+        live.push(p.r);
+        start = p.slot + 1;
+      }
+      const first = placeMumble({ w: 96, h: 32, tail: 6 }, g, [], [], 0);
+      expect(placeMumble({ w: 96, h: 32, tail: 6 }, g, [], [], start)).toEqual(first);
+    }
+  });
+
+  test('relaxing the center pig does not move the other face bounds or relax Piggy 3', () => {
+    const all = mumbleNeighbours('right', lineup, 270, 393 / 270);
+    const mobile = mumbleNeighbours('right', lineup, 270, 393 / 270, true);
+    expect(mobile).toEqual([all[0]]);
+    expect(all).toHaveLength(2);
+    expect(mumbleKeepOut('everyday', 'right', 270, 393 / 270, lineup)).toHaveLength(3);
   });
 });
