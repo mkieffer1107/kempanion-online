@@ -142,9 +142,10 @@ const OWN_CHIPS: Record<PigId, Record<string, string>> = {
   [P3]: {
     'Teach me a math trick!': 'passion_p3:mathtrick', 'Were you a math tutor?': 'ask_about_self:job', 'What even is an LLM?': 'passion_p3:llm',
     'What does an EEG show?': 'passion_p3:eeg', "What's medical AI?": 'passion_p3:medai', 'Would you build a robot?': 'passion_p3:robots',
-    'Why sugar-free Red Bull?': 'ask_favorite_food:red_bull_sf', "When's your birthday?": 'ask_about_self:birthday',
+    'Why sugar-free Red Bull?': 'ask_favorite_food:red_bull_sf',
     'Favorite physics fact?': 'passion_p3:physics', "What's HiPerGator?": 'passion_p3:hipergator',
-    // typed, not offered as chips: the decoders for his mumble, and X or Twitter inside a longer message
+    // typed, not offered as chips: his birthday, the decoders for his mumble, and X or Twitter inside a longer message
+    "When's your birthday?": 'ask_about_self:birthday',
     "what's RLHF?": 'passion_p3:rlhf', "what's RLVR?": 'passion_p3:rlvr', "what's Jev?": 'passion_p3:jev', "what's a foundation model?": 'passion_p3:foundation',
     'i saw it on x': 'passion_p3:x', 'i saw it on twitter': 'passion_p3:twitter',
   },
@@ -408,7 +409,8 @@ describe('canon in the new lines', () => {
     expect(texts(P1, 'passion_p1:haikyu').join(' ')).toMatch(/128 centimeters/);
     // birthdays: June 21 (his), July 4 (Piggy 2's), November 7 (Piggy 3's)
     expect(texts(P1, 'ask_about_self:july4').join(' ')).toMatch(/June 21/);
-    expect(texts(P3, 'ask_about_self:july4').join(' ')).toMatch(/November 7[\s\S]*July 4/);
+    expect(texts(P3, 'ask_about_self:july4').join(' ')).toMatch(/July 4/);
+    expect([...texts(P3, 'study:teach'), ...texts(P3, 'ask_about_self:july4')].join(' ')).not.toMatch(/November 7|hint|my birthday/i);
     expect(texts(P3, 'ask_about_self:birthday').filter((t) => /Marie Curie/.test(t)).length).toBeGreaterThanOrEqual(4);
   });
 

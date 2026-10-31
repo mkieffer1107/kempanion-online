@@ -1,5 +1,5 @@
 // Talk quick replies and where they go. Piggy 3's chips are about him (X, math, AI words, coding agents, EEG, medical AI,
-// robots, One Piece, his drink, his birthday, physics, HiPerGator), Piggy 1 and Piggy 2 have eight new ones each, and
+// robots, One Piece, his drink, physics, HiPerGator), Piggy 1 and Piggy 2 have eight new ones each, and
 // six are shared. The chat box shows only 3 rows, so the rotation's order is the design. Each chip routes to its own
 // answer topic for every pig (never a generic question or an unknown), and the plain talk around the new words keeps
 // its old answer. The answer pools themselves live in the line banks (lines/piggy*.ts); this file pins the routing.
@@ -47,7 +47,7 @@ const P3_CHIPS: Record<string, string> = {
   'Were you a math tutor?': 'ask_about_self:job', 'What even is an LLM?': 'passion_p3:llm', 'Have you used Codex?': 'passion_p3:codex',
   'What does an EEG show?': 'passion_p3:eeg', "What's medical AI?": 'passion_p3:medai', 'Would you build a robot?': 'passion_p3:robots',
   'One Piece or JoJo?': 'passion_p3:opvsjojo', 'Why sugar-free Red Bull?': 'ask_favorite_food:red_bull_sf',
-  "When's your birthday?": 'ask_about_self:birthday', 'Favorite physics fact?': 'passion_p3:physics', "What's HiPerGator?": 'passion_p3:hipergator',
+  'Favorite physics fact?': 'passion_p3:physics', "What's HiPerGator?": 'passion_p3:hipergator',
 };
 /** chip → topic, for the pig that offers it */
 const OWN: Record<'piggy-1' | 'piggy-2', Record<string, string>> = {
@@ -205,6 +205,7 @@ describe('the chat box (3 rows)', () => {
     // once he has been asked (here: "what's on your timeline?"), X is one chip among the others
     expect(after.get(X_CHIP) ?? 0).toBeLessThan(x / 3);
     for (const chip of Object.keys(P3_CHIPS)) expect([chip, (after.get(chip) ?? 0) > 0]).toEqual([chip, true]);
+    expect([...before.keys(), ...after.keys()].some((chip) => /birthday/i.test(chip))).toBe(false);
   });
 
   test('right after the "Twitter" correction, "Are you on X?" is the first chip (Piggy 3 only)', () => {
@@ -317,7 +318,7 @@ describe('answers, memory and the bond bonus', () => {
     ];
     for (const [pig, t, label] of labels) expect([pig, t, topicLabel(classifyIntent(t, pig))]).toEqual([pig, t, label]);
     // every new chip topic has a label (none falls back to a placeholder-looking "X")
-    const fresh = Object.keys(P3_CHIPS).filter((c) => !/Codex|JoJo|tutor|birthday|HiPerGator|physics|Red Bull/.test(c));
+    const fresh = Object.keys(P3_CHIPS).filter((c) => !/Codex|JoJo|tutor|HiPerGator|physics|Red Bull/.test(c));
     for (const pig of PIG_IDS) {
       for (const chip of [...Object.keys(OWN['piggy-1']), ...Object.keys(OWN['piggy-2']), ...SHARED_CHIPS, ...fresh]) {
         const l = topicLabel(classifyIntent(chip, pig));

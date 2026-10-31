@@ -27,13 +27,13 @@ const PASSION_CHIPS: Record<PigId, readonly string[]> = {
     'Favorite cranial nerve?', "Who's Professor Snout?", 'Fireworks fan?', 'Am I based?',
   ],
   // Centered on the owner: X, math (he used to tutor it), AI words, coding agents, EEG/ECG, medical AI, robots,
-  // One Piece, his drink, his birthday, physics, HiPerGator. 3D printing is a now-and-then hobby: he answers about it
+  // One Piece, his drink, physics, HiPerGator. 3D printing is a now-and-then hobby: he answers about it
   // when asked, he doesn't lead with it ("What are you building?" and "What's the best AI model?" stay typed questions
   // and fallback chips).
   'piggy-3': [
     'Are you on X?', 'Are you on Twitter?', 'Teach me a math trick!', 'Were you a math tutor?', 'What even is an LLM?',
     'Have you used Codex?', 'What does an EEG show?', "What's medical AI?", 'Would you build a robot?', 'One Piece or JoJo?',
-    'Why sugar-free Red Bull?', "When's your birthday?", 'Favorite physics fact?', "What's HiPerGator?",
+    'Why sugar-free Red Bull?', 'Favorite physics fact?', "What's HiPerGator?",
   ],
 };
 

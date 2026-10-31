@@ -865,7 +865,7 @@ export const P3: PigLines = {
     ],
     "study:teach": [
       ["excited", "Okay, so, fold a sheet of paper in half 42 times and, on paper, it reaches the Moon. Doubling gets out of hand fast. That's exponents, basically.", { a: "explain_code" }],
-      ["happy", "In a room of just 23 people, it's more likely than not that two share a birthday. Mine's November 7, by the way. Not a hint, okay, a little bit a hint."],
+      ["happy", "In a room of just 23 people, it's more likely than not that two share a birthday. That's 253 pairs to compare. The pairs add up way faster than you'd think."],
       ["thinking", "Language models read tokens, not letters. So counting the letters in a word can be weirdly hard for them. Like, the r's in “strawberry.”"],
       ["happy", "There are more ways to shuffle a deck of cards than atoms on Earth. So every good shuffle is probably brand new. Like, in all of history."],
       ["laughing", "A pizza with radius z and thickness a has volume pi times z times z times a. Pi, z, z, a. I told this to every kid I tutored.", { a: "laugh" }],
@@ -929,7 +929,7 @@ export const P3: PigLines = {
       ["happy", "Piggy 2 calls Professor Snout “lead pig.” I call him “the reason Piggy 2 smiles at spreadsheets.”"],
     ],
     "ask_about_self:july4": [
-      ["thinking", "Fireworks are basically a particle simulation with better PR. Mine is November 7, Piggy 2's is July 4, so he gets a free show."],
+      ["thinking", "Fireworks are basically a particle simulation with better PR. Piggy 2's birthday is July 4, so he gets a free show."],
     ],
     "based:rate": [
       ["thinking", "Based? Okay, I'm not the judge, Piggy 2 is. I only rate things against a baseline."],
