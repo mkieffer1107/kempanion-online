@@ -48,7 +48,8 @@ describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () =>
       expect(set.portraits.phone).toBeUndefined();
       expect(set.portraits.phone_mumble).toBeUndefined();
       expect(set.portraits.phone_mumble_nervous).toBeUndefined();
-      expect(Object.keys(set.portraits).filter((p) => p !== 'wink').length).toBe(key.endsWith('everyday') ? 20 : 12);
+      const extras = key === 'piggy-2/scrubs' ? ['proud', 'thinking'] : key === 'piggy-2/everyday' ? ['wink'] : [];
+      expect(Object.keys(set.portraits).filter((p) => !extras.includes(p)).length).toBe(key.endsWith('everyday') ? 20 : 12);
     }
   });
 

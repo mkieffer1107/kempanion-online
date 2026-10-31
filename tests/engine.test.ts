@@ -213,10 +213,22 @@ describe('sprites', () => {
     const r = resolvePortrait('piggy-1', 'volleyball', 'loving');
     expect(r.outfit).toBe('volleyball');
     expect(r.expression).toBe(ALT_EXPRESSION_FALLBACK.loving!);
-    expect(resolvePortrait('piggy-2', 'scrubs', 'thinking').expression).toBe('confused');
+    expect(resolvePortrait('piggy-2', 'scrubs', 'sleepy').expression).toBe(ALT_EXPRESSION_FALLBACK.sleepy!);
     expect(resolvePortrait('piggy-3', 'everyday', 'thinking').expression).toBe('thinking');
     // an outfit a pig does not own falls back to everyday
     expect(resolvePortrait('piggy-1', 'scrubs', 'happy').outfit).toBe('everyday');
+  });
+
+  test('Piggy 2 has distinct thinking and proud portraits in scrubs', () => {
+    const thinking = resolvePortrait('piggy-2', 'scrubs', 'thinking');
+    const proud = resolvePortrait('piggy-2', 'scrubs', 'proud');
+    const confused = resolvePortrait('piggy-2', 'scrubs', 'confused');
+    const happy = resolvePortrait('piggy-2', 'scrubs', 'happy');
+    expect(thinking).toMatchObject({ outfit: 'scrubs', expression: 'thinking' });
+    expect(proud).toMatchObject({ outfit: 'scrubs', expression: 'proud' });
+    expect([thinking.x, thinking.y]).not.toEqual([proud.x, proud.y]);
+    expect([thinking.x, thinking.y]).not.toEqual([confused.x, confused.y]);
+    expect([proud.x, proud.y]).not.toEqual([happy.x, happy.y]);
   });
 
   test('clips fall back from the alt outfit to everyday, then to idle', () => {

@@ -1749,6 +1749,14 @@
     "bashful_smile": [
      576,
      512
+    ],
+    "proud": [
+     0,
+     768
+    ],
+    "thinking": [
+     192,
+     768
     ]
    },
    "face": "sprites/piggy-2/scrubs/face.png",

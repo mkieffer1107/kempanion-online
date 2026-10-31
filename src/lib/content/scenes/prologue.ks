@@ -196,16 +196,16 @@ narrator: Behind the table, a pig in scrubs is giving every new student a wellne
 piggy-2 neutral: Next.
 piggy-2 neutral: Name.
 player: {player}.
-piggy-2 neutral: {player}. Kempa intake form, page one, reviewing now.
+piggy-2 thinking: {player}. Kempa intake form, page one, reviewing now.
 [if flag(intake.sleep) = nosleep]
-  piggy-2 angry: Sleep schedule: "What's sleep?"
+  piggy-2 surprised: Sleep schedule: "What's sleep?"
   piggy-2 neutral: Sit down.
-  piggy-2 neutral: Sleep is when your brain takes out the trash. The glymphatic system does most of its work at night.
-  piggy-2 neutral: Seven hours, minimum. I'm not your doctor, but I'm right.
+  piggy-2 thinking: Sleep is when your brain takes out the trash. The glymphatic system does most of its work at night.
+  piggy-2 proud: Seven hours, minimum. I'm not your doctor, but I'm right.
   piggy-2 neutral: ...You can stand up now.
 [endif]
 [if flag(fact.comfort_food) = bacon, ham, pork, sausage, sausages, pepperoni, prosciutto, chorizo, salami, carnitas, ribs, "pork chops", "pulled pork", "hot dog", "hot dogs", "bacon and eggs", "cuban sandwich", tonkatsu]
-  piggy-2 neutral: Comfort food...
+  piggy-2 thinking: Comfort food...
   [wait 700]
   piggy-2 angry: ...Not based.
   [set fact.comfort_food = soup]
@@ -213,14 +213,14 @@ piggy-2 neutral: {player}. Kempa intake form, page one, reviewing now.
 [else]
   piggy-2 neutral: Comfort food: {fact:comfort_food|soup}. Noted.
 [endif]
-piggy-2 neutral: There's a volleyball scuff on your shoe. You met Piggy 1 at the Plaza.
-piggy-2 neutral: Then you walked here, in this heat, without water.
-piggy-2 neutral: Mild dehydration. Probable.
+piggy-2 thinking: There's a volleyball scuff on your shoe. You met Piggy 1 at the Plaza.
+piggy-2 thinking: Then you walked here, in this heat, without water.
+piggy-2 thinking: Mild dehydration. Probable.
 [if item(water_bottle) = 0]
   [give water_bottle 1]
 [endif]
 narrator: He slides a water bottle across the table. It has a label that says WATER, in his handwriting.
-piggy-2 neutral: Drink this. Doctor's orders— resident's orders. An attending would co-sign.
+piggy-2 proud: Drink this. Doctor's orders— resident's orders. An attending would co-sign.
 ? Drink it right now.
   [if !flag(prologue.p2_bond) && !flag(met_p2)]
     [bond piggy-2 +5]
@@ -233,12 +233,12 @@ piggy-2 neutral: Drink this. Doctor's orders— resident's orders. An attending 
     [bond piggy-2 +5]
     [set prologue.p2_bond]
   [endif]
-  piggy-2 neutral: Delayed compliance. Acceptable if finished by 1600.
+  piggy-2 thinking: Delayed compliance. Acceptable if finished by 1600.
   piggy-2 neutral: That's four o'clock. I'll know.
-piggy-2 neutral: I'm Piggy 2. MD, fourth-year neurosurgery resident.
+piggy-2 proud: I'm Piggy 2. MD, fourth-year neurosurgery resident.
 [nameplate piggy-2]
-piggy-2 neutral: Research year: fewer surgeries, more lab pigs. So I volunteer here.
-piggy-2 happy: The scrubs are for authority.
+piggy-2 proud: Research year: fewer surgeries, more lab pigs. So I volunteer here.
+piggy-2 proud: The scrubs are for authority.
 piggy-2 neutral: Your KempaPager is on its way. A friend is bringing them.
 piggy-2 neutral: He's nine minutes late. That's within his normal range.
 [sfx step]
@@ -305,7 +305,8 @@ piggy-3 phone: Oh— hey, did you see this on X today?
 narrator: He holds his phone out at arm's length. On the screen, a robot hand folds one sock, very slowly.
 piggy-1 excited: Whoa! Can it set a volleyball?
 piggy-3 phone_mumble mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
-piggy-2 neutral: Is it autonomous, or is someone off-camera holding a controller?
+piggy-2 thinking: Is it autonomous, or is someone off-camera holding a controller?
+[expr piggy-2 neutral]
 piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? What the heck— this is 20x speed! And is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
 piggy-3 thinking: Did you read the Kempa brochure? There's a legend about the big sakura by the tower.
@@ -325,7 +326,7 @@ piggy-3 excited: SI in Biomedical and Health Sciences! Superintelligence, obviou
 piggy-1 thinking: Sure. Right after it learns to return a serve.
 piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, sunrises and hype!
 [expr piggy-1 neutral]
-piggy-2 neutral: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
+piggy-2 proud: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
 piggy-2 wink: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
 [expr piggy-2 neutral]
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
