@@ -142,7 +142,7 @@
     /* one pixel unit: 2 CSS px on phones, 3 elsewhere */
     --s: var(--px);
     --edge: #6b5a8e;
-    --fill: rgba(246, 240, 255, 0.94);
+    --fill: #f6f0ff;
     --outline: drop-shadow(var(--s) 0 0 var(--edge)) drop-shadow(calc(var(--s) * -1) 0 0 var(--edge))
       drop-shadow(0 var(--s) 0 var(--edge)) drop-shadow(0 calc(var(--s) * -1) 0 var(--edge));
     position: absolute;
