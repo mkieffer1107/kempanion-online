@@ -151,7 +151,7 @@ const GROUP_SLOTS = [
 // On a phone, fill the row nearest his hair first, spreading toward the center pig before starting a second row.
 // Row spacing follows the clouds' size, rather than the portrait's height; cycling must not send clouds skyward.
 const MOBILE_GROUP_SLOTS = [
-  { side: 'right', col: 0, row: 0 }, { side: 'left', col: 1, row: 0 }, { side: 'left', col: 2, row: 0 },
+  { side: 'right', col: 0, row: 0 }, { side: 'left', col: 1, row: 0, ear: true }, { side: 'left', col: 2, row: 0 },
   { side: 'right', col: 0, row: 1 }, { side: 'left', col: 1, row: 1 }, { side: 'left', col: 2, row: 1 },
 ] as const;
 
@@ -206,7 +206,10 @@ export function placeMumble(
   for (let k = 0; k < slots.length; k++) {
     const slot = compact ? k : (((start + k) % slots.length) + slots.length) % slots.length;
     const s = slots[slot];
-    const y0 = 'row' in s
+    // The left cloud sits beside his ear, over the middle pig, with its right-hand tail aimed at the speaker.
+    const ear = 'ear' in s;
+    const y0 = ear ? face.y + 0.12 * face.h - b.h - b.tail
+      : 'row' in s
       ? face.y - 0.2 * face.h - s.row * rowH - b.h - b.tail - gap
       : face.y + s.level * face.h - b.h / 2;
     const y = snap(clamp(y0, zone.y + drift, zone.y + zone.h - b.h - b.tail));
@@ -214,14 +217,15 @@ export function placeMumble(
     const near = g.keep.filter((r) => r.y < y + b.h + b.tail && r.y + r.h > y - drift);
     const edge = near.length ? near : [face];
     const rowLive = compact ? live.filter((r) => r.y < y + b.h + b.tail + px && r.y + r.h + px > y - drift).sort((a, b) => b.x - a.x) : [];
-    const x0 = 'row' in s
+    const x0 = ear ? face.x - gap - b.w
+      : 'row' in s
       ? s.col > 0 && rowLive[s.col - 1]
         ? rowLive[s.col - 1].x - gap - b.w
         : Math.min(face.x + 0.65 * face.w - b.w / 2, zone.x + zone.w - b.w) - s.col * (b.w + gap)
       : 'anchor' in s ? face.x + s.anchor * face.w - b.w / 2 : s.side === 'right'
       ? Math.max(...edge.map((r) => r.x + r.w)) + gap + s.col * colW
       : Math.min(...edge.map((r) => r.x)) - gap - b.w - s.col * colW;
-    const x = snap(clamp(x0, compact ? Math.max(zone.x, face.x - 0.5 * face.w) : zone.x, zone.x + zone.w - b.w));
+    const x = snap(clamp(x0, compact && !ear ? Math.max(zone.x, face.x - 0.5 * face.w) : zone.x, zone.x + zone.w - b.w));
     const r = { x, y: y - drift, w: b.w, h: b.h + b.tail + drift };
     if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y - 0.5 || r.y + r.h > zone.y + zone.h + 0.5) continue;
     if (g.keep.some((o) => hit(r, o, px))) continue;
