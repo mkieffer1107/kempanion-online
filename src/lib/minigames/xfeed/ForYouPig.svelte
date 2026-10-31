@@ -24,7 +24,7 @@
   import { medalFor } from '../../pet';
   import { DURATION, FeedEngine, REVEAL, comboMult, type Call, type FeedFx, type FeedPost } from './engine';
   import { AUTHORS, MUMBLE_CHAINS, type Author, type ChainKey } from './posts';
-  import { cardTops, maxFeedH, pxPerUnit, readLineY } from './layout';
+  import { cardTops, pxPerUnit, readLineY, smoothLayout } from './layout';
   import {
     LinePicker, ambientMumble, basePose, callNote, clockAt, countsFor, lineFor, liveText, pickChain, plainText, segments,
     shortCount, statsLine, topLikedTopic, type Counts, type Pose, type Said, type Seg,
@@ -70,11 +70,10 @@
   let feedEl = $state<HTMLDivElement>();
   let bustCv = $state<HTMLCanvasElement>();
   let introCv = $state<HTMLCanvasElement>();
+  let resultCv = $state<HTMLCanvasElement>();
   let grassCv = $state<HTMLCanvasElement>();
   let lineEl = $state<HTMLDivElement>();
   let histEl = $state<HTMLDivElement>();
-  let pillEl = $state<HTMLSpanElement>();
-  let caseEl = $state<HTMLDivElement>();
 
   let view = $state({
     score: 0, combo: 0, time: DURATION as number | null, battery: 80, clock: clockAt(0), tab: 0, late: false, loading: false,
@@ -156,7 +155,8 @@
   let lineY = 100;
   let feedW = 0;
   let feedH = 0;
-  let feedMax = 0;
+  let loadingSince = -1;
+  let loadingUntil = 0;
   let selected: number | null = null;
   let swipe: { n: number; dx: number } | null = null;
   let lastCursor = -1;
@@ -211,6 +211,7 @@
     sayPrio = s.prio;
     sayUntil = clock + Math.min(3.6, 1.7 + s.text.length * 0.035);
     sayText = s.text;
+    announce(s.text, Math.max(1, s.prio));
     mumbles?.retireAll();
     return true;
   }
@@ -329,6 +330,7 @@
     switch (f.kind) {
       case 'say': {
         const post = f.post !== undefined ? e.posts[f.post] : null;
+        if (post?.state === 'missed') announce(callNote(post, e.combo), 1);
         if (f.key === 'gem') gemSaves += 1;
         onSay(lineFor(f, post, picker, f.key === 'gem' && gemSaves === 1));
         if (f.key === 'rot') announce(`Brain battery ${f.n === 75 ? 25 : 50} percent.`, 2);
@@ -359,6 +361,7 @@
         break;
       case 'seen': {
         const p = e.posts[f.post];
+        if (firstRun && p?.n === 0 && p.cls === 'friend') onSay({ key: 'friendHint', text: 'That pig face is Piggy 1. Friends always get a LIKE: +150.', prio: 2 });
         if (!p?.oldName) break;
         // mid-mumble he can't answer yet: the correction waits until he snaps out of it
         if (mumbleOn) oldNameLater = { n: p.n, until: clock + 9 };
@@ -580,6 +583,8 @@
     sShown = 0;
     selected = null;
     lastCursor = -1;
+    loadingSince = -1;
+    loadingUntil = 0;
     gemSaves = 0;
     idleSaid = 0;
     idleAt = clock;
@@ -709,18 +714,14 @@
       hShown.set(p.n, rm ? m : cur + (m - cur) * (1 - Math.exp(-dt * 18)));
     }
     const boxes = vis.map((p) => ({ start: p.start, w: p.w, h: hShown.get(p.n) ?? 100 }));
-    ppu = pxPerUnit(vis.filter((p) => p.state !== 'muted' && (e.readable(p) || p.consumed)).map((p) => ({ start: p.start, w: p.w, h: hShown.get(p.n) ?? 100 })), ppu);
-    const fm = maxFeedH(ppu);
-    if (Math.abs(fm - feedMax) >= 2 && caseEl) {
-      feedMax = fm;
-      caseEl.style.setProperty('--feed-max', `${fm}px`);
-    }
-    lineY = readLineY(feedH || feedEl.clientHeight, ppu);
+    const measuredPpu = pxPerUnit(vis.filter((p) => p.state !== 'muted' && (e.readable(p) || p.consumed)).map((p) => ({ start: p.start, w: p.w, h: hShown.get(p.n) ?? 100 })), ppu);
+    ppu = smoothLayout(ppu, measuredPpu, dt);
+    // Phone height belongs to the viewport. Card measurements only gently move the read line.
+    lineY = smoothLayout(lineY, readLineY(feedH || feedEl.clientHeight, ppu), dt);
     if (lineEl) lineEl.style.transform = `translateY(${lineY}px)`;
     if (histEl) histEl.style.height = `${lineY}px`;
     sShown = rm ? stepS(e) : sShown + (e.s - sShown) * (1 - Math.exp(-dt * 30));
     const tops = cardTops(boxes, sShown, lineY);
-    let firstSkel: number | null = null;
     const cur = cursorN();
     vis.forEach((p, i) => {
       const el = els.get(p.n);
@@ -728,14 +729,16 @@
       const dx = swipe && swipe.n === p.n ? swipe.dx : 0;
       el.style.transform = `translate3d(${dx}px, ${tops[i]}px, 0)`;
       el.style.height = `${Math.round(boxes[i].h)}px`;
-      if (firstSkel === null && !e.readable(p) && !p.consumed && p.state === 'live' && tops[i] < (feedH || 9999)) firstSkel = tops[i];
+      // Clip each placeholder to the bottom fifth without changing the stack's measured geometry.
+      const skeleton = !e.readable(p) && !p.consumed && p.state === 'live';
+      const clip = skeleton ? Math.max(0, feedH * 0.8 - tops[i]) : 0;
+      el.style.clipPath = clip ? `inset(${clip}px 0 0)` : '';
       if (rm && p.n === cur) {
         // Reduce motion: a slim time-left bar on the cursor card replaces the motion cue
         const bar = el.querySelector<HTMLElement>('.tl');
         if (bar) bar.style.width = `${Math.max(0, Math.min(1, (e.center(p) - e.s) / REVEAL)) * 100}%`;
       }
     });
-    if (pillEl) pillEl.style.top = `${Math.min((feedH || 300) - 26, Math.max(lineY + 8, (firstSkel ?? feedH) + 6))}px`;
   }
 
   function syncView(e: FeedEngine): void {
@@ -750,9 +753,14 @@
     const tab = Math.min(2, e.phaseIdx);
     if (view.tab !== tab) view.tab = tab;
     if (view.late !== (e.phaseIdx === 3)) view.late = e.phaseIdx === 3;
-    if (view.loading !== e.loading) {
-      view.loading = e.loading;
-      if (e.loading) sfx('ui_move');
+    if (e.loading) {
+      if (loadingSince < 0) loadingSince = clock;
+      if (clock - loadingSince >= 0.3) loadingUntil = clock + 0.5;
+    } else loadingSince = -1;
+    const loading = clock < loadingUntil;
+    if (view.loading !== loading) {
+      view.loading = loading;
+      if (loading) sfx('ui_move');
     }
     if (view.grass !== e.grass) view.grass = e.grass;
     if (view.mumble !== mumbleOn) view.mumble = mumbleOn;
@@ -777,7 +785,7 @@
   }
 
   function drawIntro(wall: number): void {
-    const ctx = introCv?.getContext('2d');
+    const ctx = (phase === 'results' ? resultCv : introCv)?.getContext('2d');
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, 128, 128);
@@ -854,8 +862,10 @@
         const w = root.clientWidth;
         const h = root.clientHeight;
         mode = w >= h ? (w >= 1000 ? 'd' : 'l') : 't';
+        const resized = feedW !== feed.clientWidth || feedH !== feed.clientHeight;
         feedW = feed.clientWidth;
         feedH = feed.clientHeight;
+        if (resized) lineY = readLineY(feedH, ppu);
       });
       ro.observe(root);
       ro.observe(feed);
@@ -942,13 +952,13 @@
   {pig}
   outfit="everyday"
   rules={[
-    'His X feed scrolls up by itself, faster each tab: Following → For You → Trending → 3 AM.',
-    'LIKE posts that show their work: a baseline, real numbers, an outside test, open code, a worked example. MUTE hype, bait, and anyone who still says “Twitter”.',
-    'SAVE gold posts for +300. Leave filler alone. A wrong call is −100.',
-    'Flick up for the next post. Posts that cross the dotted line are missed; hype that slips by drains his brain battery.',
-    '6 right in a row: Mumble Mode, points ×2. 75 seconds. Every run pays.',
+    'LIKE evidence and worked examples. MUTE hype, bait and “Twitter”. Wrong calls: −100.',
+    'Pig faces are your friends: always LIKE them for +150.',
+    'SAVE gold posts: +300. Other bookmarks and filler: 0.',
+    'Flick for the next post. The dotted line marks misses; missed hype drains the battery.',
+    '6 right calls: Mumble Mode ×2. 75 seconds, faster each tab. Every run pays.',
   ]}
-  keysHint="Swipe right to like, left to mute · flick up for the next post · → like ← mute ↑ save ↓ next (L U B J K too) · Esc pauses"
+  keysHint="Swipe → like, ← mute · flick up: next · keys → like ← mute ↑ save ↓ next · Esc: pause"
   timeLeft={view.time}
   timeTotal={DURATION}
   oncountdown={onCountdown}
@@ -972,7 +982,7 @@
         </section>
 
         <div class="phonewrap">
-          <div class="case" bind:this={caseEl}>
+          <div class="case">
             <img class="ear l" src={earUrl(false)} alt="" />
             <img class="ear r" src={earUrl(true)} alt="" />
             <div class="rim">
@@ -1054,7 +1064,7 @@
                       {/if}
                     </article>
                   {/each}
-                  {#if view.loading}<span class="loading" bind:this={pillEl}>Loading…</span>{/if}
+                  {#if view.loading}<span class="loading">Loading…</span>{/if}
                   {#if view.grass}
                     <div class="grass"><canvas bind:this={grassCv} aria-hidden="true"></canvas><p>Touching grass…</p></div>
                   {/if}
@@ -1077,7 +1087,7 @@
         </nav>
       </div>
 
-      {#if !live}
+      {#if !live && phase !== 'results'}
         <!-- how-to, 3-2-1 and results: him on the dimmed backdrop, phone out (his intro line above him in the 3-2-1) -->
         <div class="intro" aria-hidden="true">
           {#if phase === 'countdown' && sayText}<p class="say isay">{sayText}</p>{/if}
@@ -1091,7 +1101,7 @@
     <span class="stat hot" class:on={view.combo >= 5}><small>COMBO</small>×{comboText}</span>
   {/snippet}
   {#snippet stats(r)}
-    <p>{statsLine(r.stats ?? {})}</p>
+    <div class="result-summary"><canvas bind:this={resultCv} width="128" height="128" aria-label="Piggy 3 holds out his phone"></canvas><p>{statsLine(r.stats ?? {})}</p></div>
     {#if mumbled.length}<p class="mumbled">He mumbled: {mumbled.join(' ')}</p>{/if}
   {/snippet}
 </MinigameShell>
@@ -1112,6 +1122,7 @@
     overflow: hidden;
     -webkit-touch-callout: none;
   }
+  .xf.paused .feed { visibility: hidden; }
   .xf.paused :global(.mb) { animation-play-state: paused !important; }
 
   .grid {
@@ -1180,8 +1191,8 @@
     z-index: 3;
     box-shadow: 0 var(--px) 0 rgba(27, 18, 41, 0.35);
   }
-  /* long lines are clamped inside the bubble (its tail sits outside it) */
-  .say span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5; overflow: hidden; }
+  /* The complete teaching reason stays in the bubble. */
+  .say span { display: block; }
   /* tail: left, toward him */
   .say::before {
     content: '';
@@ -1225,7 +1236,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    max-height: calc(var(--feed-max, 560px) + 64px);
+    max-height: 624px;
     display: flex;
   }
   /* the case: lavender, ink outline, stepped pixel corners (the ears sit outside the clip) */
@@ -1372,7 +1383,7 @@
   .loading {
     position: absolute;
     left: 50%;
-    top: 0;
+    bottom: 6px;
     transform: translateX(-50%);
     font: 12px var(--font-display);
     color: var(--paper);
@@ -1442,7 +1453,16 @@
   .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-size: 1.1rem; }
   .stat small { font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.08em; }
   .stat.hot.on { color: var(--gold); }
+  .result-summary { display: flex; align-items: center; gap: 8px; }
+  .result-summary canvas { width: 96px; height: 96px; flex: none; image-rendering: pixelated; }
   .mumbled { margin-top: 4px; font-size: 0.8rem; opacity: 0.8; }
+
+  /* Match the app's crisp body-text treatment on 1× displays. */
+  @media (max-resolution: 1.99dppx) {
+    .nm, .hd, .ago, .ct, .stamp, .mt, .status, .tabs { font-size: 16px; }
+    .card header { line-height: 20px; }
+    .ago { display: none; }
+  }
 
   /* ── landscape phones and desktop: band | phone | rail, the bubble zone above his bust ── */
   @container xf (min-aspect-ratio: 1 / 1) {

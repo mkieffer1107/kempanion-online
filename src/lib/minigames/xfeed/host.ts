@@ -95,8 +95,10 @@ export function lineFor(f: Extract<FeedFx, { kind: 'say' }>, post: FeedPost | nu
     }
     case 'snapOut':
       return { key, text: pick.pick('snapOut', SNAP_OUTS), prio: 3, pose: 'flustered_blush', poseMs: 1600 };
+    case 'missFriend':
+      return { key, text: `…that was ${author?.name ?? 'a friend'}. Like friends’ posts for +150.`, prio: f.prio };
     case 'friend':
-      key = pig === 'piggy-2' ? 'friend2' : 'friend1';
+      key = post && LINES[`friend:${post.id}`] ? `friend:${post.id}` : pig === 'piggy-2' ? 'friend2' : 'friend1';
       pose = 'laughing';
       break;
     case 'friendMuted':
@@ -280,7 +282,11 @@ export function signalOnly(s: Record<string, number>): boolean {
 
 /** What the screen reader hears after a call. */
 export function callNote(p: FeedPost, combo: number): string {
-  if (p.state === 'wrong') return p.cls === 'hype' ? 'Wrong, that was hype.' : 'Wrong, that one was good.';
+  if (p.state === 'wrong' || p.state === 'missed') {
+    const reason = p.cls === 'friend' ? `Like ${AUTHORS[p.by].name}'s posts for +150.` : (p.tell ?? '');
+    return `${p.state === 'missed' ? 'Missed.' : p.cls === 'hype' ? 'Wrong, that was hype.' : 'Wrong, that one was good.'} ${reason}`.trim();
+  }
+  if (p.state === 'neutral' && p.call === 'save') return 'Bookmarked. Only gold posts earn SAVE points. Combo kept.';
   if (p.cls === 'filler') return 'Filler. No points.';
   if (p.state === 'saved') return `Saved, plus ${p.pts}.`;
   if (p.state === 'muted') return `Muted, combo ${combo}.`;

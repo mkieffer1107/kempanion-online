@@ -49,6 +49,9 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Check Svelte and TypeScript
+        run: bun run check
+
       # After the build, so the tests run against the synth wasm this deploy actually ships.
       - name: Test
         run: bun test

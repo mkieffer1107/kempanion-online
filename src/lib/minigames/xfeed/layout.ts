@@ -7,7 +7,7 @@ import { REVEAL } from './engine';
 /** The read line sits between 12% and 45% of the feed's height… */
 export const LINE_MIN = 0.12;
 export const LINE_MAX = 0.45;
-/** …so that exactly REVEAL (+ this much) units of posts fit under it: no skeleton rows on a tall screen. */
+/** Extra reading room when the viewport allows it. Skeletons are separately clipped to the bottom fifth. */
 export const LINE_PAD = 0.25;
 
 export interface CardBox {
@@ -18,7 +18,7 @@ export interface CardBox {
   h: number;
 }
 
-/** Median pixels per unit over the cards on screen (stable while a single tall card scrolls by). */
+/** Median pixels per unit over measured cards. The caller smooths it before updating layout. */
 export function pxPerUnit(cards: readonly CardBox[], fallback = 96): number {
   const r = cards.filter((c) => c.w > 0.5 && c.h > 0).map((c) => c.h / c.w).sort((a, b) => a - b);
   return r.length ? r[Math.floor(r.length / 2)] : fallback;
@@ -54,7 +54,8 @@ export function cardTops(cards: readonly CardBox[], s: number, lineY: number): n
   return out;
 }
 
-/** Feed-height cap: never more than this many px per unit of reading room (desktop gets a phone, not a wall). */
-export function maxFeedH(ppu: number): number {
-  return Math.round(((REVEAL + LINE_PAD) / (1 - LINE_MAX)) * ppu);
+/** Low-pass card measurements, with a hard per-frame bound even after a long browser frame. */
+export function smoothLayout(current: number, target: number, dt: number): number {
+  const delta = (target - current) * (1 - Math.exp(-Math.max(0, dt) / 1.5));
+  return current + clamp(delta, -Math.min(3, dt * 120), Math.min(3, dt * 120));
 }

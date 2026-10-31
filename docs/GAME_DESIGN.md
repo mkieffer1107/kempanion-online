@@ -185,7 +185,7 @@ gifts — `knee_pad_tape` `signed_volleyball` `brain_model` `big_water_bottle` `
   (relative, 0.3 tray units per px), mouse/pen (absolute) or ←↑↓→/WASD (Shift = fine). Medals by score 900 / 1600 / 2300.
 - **For You Pig** (Piggy 3, Marston Science Library button, 75 s; id `xfeed`): Piggy 3 holds out his phone and his X feed scrolls itself, faster each
   tab (Following → For You → Trending → 3 AM). Swipe right to LIKE posts that show their work, left to MUTE hype (and anyone who still says "Twitter"),
-  SAVE the rare gold posts, let filler pass; a wrong call costs 100. Six right calls in a row start Mumble Mode (points ×2; the same bit as Talk's
+  LIKE friend posts (pig faces) for 150, SAVE the rare gold posts for 300, let filler pass; a wrong call costs 100. Other bookmarks score 0 and keep the combo. Six right calls in a row start Mumble Mode (points ×2; the same bit as Talk's
   "Are you on X?": he mutters buzzwords to himself, then snaps out, embarrassed). Hype that gets through drains his brain battery (80% to start);
   at 0% he puts the phone down and touches grass for 3 s. Medals by score 2000 / 3800 / 7500.
 Rewards: bond +10 + 5 per medal tier (bronze/silver/gold), fun +20…25, energy −8…−12. Needs energy ≥ 20 to play.

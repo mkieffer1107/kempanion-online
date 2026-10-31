@@ -35,6 +35,15 @@ bun run build     # characters → Rust synth (wasm) → vite build into dist/
 bun run preview   # serve dist/
 ```
 
+## Deploy
+
+In the repository's **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**.
+The `Deploy to GitHub Pages` workflow builds the game, checks Svelte/TypeScript, runs the tests against the built
+assets, and publishes `dist/` on a push to `main` (or a manual workflow run).
+
+Do not select **Deploy from a branch** for this source tree: that runs Jekyll over the research Markdown instead
+of building the game. The custom domain remains `kempanion.online`.
+
 ## How it's built
 
 | Piece | Tech |

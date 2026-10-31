@@ -378,6 +378,7 @@
   .assist input:focus-visible + .box { outline: var(--px) dashed var(--gold); outline-offset: 2px; }
   .warn { color: #b02f08; font-size: 0.9rem; }
   .row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; }
+  .howto .row { position: sticky; bottom: 0; padding: 8px 0 0; background: var(--paper); flex: none; z-index: 1; }
   .small-card .row { justify-content: center; }
   .count {
     position: absolute;

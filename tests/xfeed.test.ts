@@ -4,7 +4,7 @@
 import { describe, expect, test } from 'bun:test';
 import { AUTHORS, CHAIN_FOR, LINES, MUMBLES, MUMBLE_CHAINS, SEED_POSTS, SNAP_OUTS, type ChainKey } from '../src/lib/minigames/xfeed/posts';
 import { CAP, DURATION, FOCUS, FeedEngine, MUTED_W, OPENING, PHASES, REVEAL, comboMult, type Call, type FeedFx, type FeedPost } from '../src/lib/minigames/xfeed/engine';
-import { LINE_MAX, LINE_MIN, LINE_PAD, cardTops, maxFeedH, pxPerUnit, readLineY } from '../src/lib/minigames/xfeed/layout';
+import { LINE_MAX, LINE_MIN, LINE_PAD, cardTops, pxPerUnit, readLineY, smoothLayout } from '../src/lib/minigames/xfeed/layout';
 import {
   CHAIN_FALLBACK, LinePicker, TOPIC_LABEL, ambientMumble, basePose, callNote, clockAt, clockMinutes, countsFor, lineFor, liveText,
   pickChain, plainText, segments, shortCount, signalOnly, statsLine, topLikedTopic,
@@ -180,13 +180,13 @@ describe('For You Pig: engine', () => {
     expect(e.call(signal.n, 'like')).toBeNull();
     expect(e.call(friend.n, 'like')?.pts).toBe(150);
     expect(e.call(friend.n, 'like')).toBeNull(); // already judged
-    for (let t = 0.02; t < 0.6; t += 1 / 60) e.update(t);
+    while (!e.readable(signal)) e.update(e.t + 1 / 60);
     expect(e.call(hype.n, 'like')).toBeNull();
     expect(e.call(signal.n, 'mute')?.pts).toBe(-100);
     expect(signal.tellShown).toBe(true);
     expect(e.combo).toBe(0);
     expect(e.score).toBe(50);
-    for (let t = 0.6; t < 4; t += 1 / 60) e.update(t);
+    while (!e.readable(hype)) e.update(e.t + 1 / 60);
     expect(e.call(hype.n, 'mute')?.pts).toBe(100);
     expect(hype.w).toBe(MUTED_W);
     const fill = e.posts.find((p) => p.cls === 'filler' && e.readable(p) && p.state === 'live');
@@ -300,7 +300,6 @@ describe('For You Pig: layout (units → px)', () => {
         if (y > H * LINE_MIN + 1 && y < H * LINE_MAX - 1) expect(H - y).toBeCloseTo((REVEAL + LINE_PAD) * ppu, 0);
       }
     }
-    expect(maxFeedH(100) * (1 - LINE_MAX)).toBeCloseTo((REVEAL + LINE_PAD) * 100, -1);
   });
 
   test('cards stack contiguously around the pinned one; s sits on the line', () => {
@@ -460,8 +459,8 @@ describe('For You Pig: Piggy 3 as host', () => {
     expect(lineFor(say('muteWrong'), post('s.calib'), pick)!.text.endsWith(post('s.calib').tell!)).toBe(true);
     expect(lineFor(say('missHype'), post('h.thread'), pick)!.text.endsWith('A 37-post hook with no claim.')).toBe(true);
     expect(lineFor(say('likeOk'), post('s.calib'), pick)!.text).not.toContain(post('s.calib').tell!);
-    expect(LINES.friend2).toContain(lineFor(say('friend'), post('p2.reflex'), pick)!.text);
-    expect(LINES.friend1).toContain(lineFor(say('friend'), post('p1.sunrise'), pick)!.text);
+    expect(LINES['friend:p2.reflex']).toContain(lineFor(say('friend'), post('p2.reflex'), pick)!.text);
+    expect(LINES['friend:p1.sunrise']).toContain(lineFor(say('friend'), post('p1.sunrise'), pick)!.text);
     expect(LINES.friendMuted2).toContain(lineFor(say('friendMuted'), post('p2.postcall'), pick)!.text);
     expect(lineFor(say('gem'), post('g.full'), pick, true)).toMatchObject({ key: 'gemFirst', pose: 'excited' });
     expect(lineFor(say('gem'), post('g.full'), pick, true)!.text).toContain('treasure map');
@@ -536,7 +535,7 @@ describe('For You Pig: Piggy 3 as host', () => {
     expect(median('hype') / median('signal')).toBeGreaterThan(0.4);
     expect(median('hype') / median('signal')).toBeLessThan(2.5);
     expect([shortCount(999), shortCount(1000), shortCount(1234), shortCount(12345)]).toEqual(['999', '1K', '1.2K', '12K']);
-    expect(callNote(post('h.n12', { state: 'wrong' }), 0)).toBe('Wrong, that was hype.');
+    expect(callNote(post('h.n12', { state: 'wrong' }), 0)).toBe(`Wrong, that was hype. ${post('h.n12').tell}`);
     expect(callNote(post('s.calib', { state: 'liked' }), 6)).toBe('Liked, combo 6.');
   });
 
@@ -617,5 +616,94 @@ describe('For You Pig: registry and rewards', () => {
     const zero = minigameReward(s, 'xfeed', 'piggy-3', { score: 0, stats: {} }, now + 120_000);
     expect(zero.money).toBeGreaterThanOrEqual(5);
     expect(zero.medal).toBe('none');
+  });
+});
+
+describe('For You Pig: playtest regressions', () => {
+  test('card measurements cannot teleport the read line, including a long browser frame', () => {
+    let value = 96;
+    for (let frame = 0; frame < 3600; frame++) {
+      const target = frame % 240 < 120 ? 52 : 130;
+      const next = smoothLayout(value, target, frame % 31 ? 1 / 60 : 0.1);
+      expect(Math.abs(next - value)).toBeLessThanOrEqual(3);
+      expect(next).toBeGreaterThanOrEqual(Math.min(value, target));
+      expect(next).toBeLessThanOrEqual(Math.max(value, target));
+      value = next;
+    }
+    for (let frame = 0; frame < 600; frame++) value = smoothLayout(value, 100, 1 / 60);
+    expect(Math.abs(value - 100)).toBeLessThan(0.1);
+    expect(smoothLayout(96, 150, 0)).toBe(96);
+  });
+
+  test('the opening friend has five seconds, and missing them teaches the friend rule', () => {
+    const e = new FeedEngine(11);
+    expect(e.center(e.posts[0]) / e.rate).toBeGreaterThanOrEqual(5);
+    expect(e.readable(e.posts[0])).toBe(true);
+    for (let t = 0; t < 5; t += 1 / 60) e.update(t);
+    expect(e.posts[0].state).toBe('live');
+    for (let t = 5; t < 5.5; t += 1 / 60) e.update(t);
+    const missed = e.takeFx().find((f) => f.kind === 'say' && f.key === 'missFriend');
+    expect(missed).toBeDefined();
+    if (missed?.kind === 'say') {
+      expect(lineFor(missed, e.posts[0], new LinePicker(rng(1)))?.text).toContain('Like friends’ posts');
+    }
+    expect(callNote(e.posts[0], 0)).toContain('Piggy 1');
+    expect(callNote(e.posts[0], 0)).not.toContain('baseline');
+  });
+
+  test('SAVE only earns points on gold posts; wasted bookmarks keep the combo', () => {
+    for (const cls of ['signal', 'hype', 'friend', 'filler', 'gem']) {
+      const seed = SEED_POSTS.find((p) => p.cls === cls)!;
+      const e = new FeedEngine(4, { bank: [seed], opening: [seed.id] });
+      e.score = 500;
+      e.combo = 4;
+      const call = e.call(0, 'save');
+      expect(call).not.toBeNull();
+      if (cls === 'gem') {
+        expect(call!.pts).toBeGreaterThanOrEqual(300);
+        expect(e.counts.saved).toBe(1);
+      } else {
+        expect(call!.pts).toBe(0);
+        expect(e.score).toBe(500);
+        expect(e.combo).toBe(4);
+        expect(e.counts.correct + e.counts.wrong).toBe(0);
+      }
+    }
+  });
+
+  test('an exhausted flick stops waiting rather than leaving Loading on forever', () => {
+    const e = new FeedEngine(11);
+    for (let t = 0; t < 3; t += 1 / 60) { e.next(); e.update(t); }
+    for (let t = 3; t < 4.5; t += 1 / 60) e.update(t);
+    expect(e.loading).toBe(false);
+  });
+
+  test('length, underline, author and media cannot substitute for reading', () => {
+    for (const withGems of [false, true]) {
+      const bank = SEED_POSTS.filter((p) => p.cls === 'signal' || p.cls === 'hype' || (withGems && p.cls === 'gem'));
+      const good = (p: (typeof bank)[number]) => p.cls !== 'hype';
+      for (const tier of [0, 1, 2, 3]) {
+        const rows = tier ? bank.filter((p) => p.tier === tier) : bank;
+        for (const feature of [(p: (typeof bank)[number]) => plainText(p.text).length, (p: (typeof bank)[number]) => segments(p.text).filter((s) => s.tell).reduce((n, s) => n + s.t.length, 0)]) {
+          let accuracy = 0;
+          for (let threshold = 0; threshold <= 120; threshold++) {
+            const hits = rows.filter((p) => (feature(p) >= threshold) === good(p)).length;
+            accuracy = Math.max(accuracy, hits / rows.length, 1 - hits / rows.length);
+          }
+          expect(accuracy, `tier ${tier}, gems ${withGems}`).toBeLessThanOrEqual(0.65);
+        }
+      }
+      // Leave one out: the post being predicted never trains its own author lookup.
+      let hits = 0;
+      for (const p of bank) {
+        const peers = bank.filter((q) => q.id !== p.id && q.by === p.by);
+        const training = peers.length ? peers : bank.filter((q) => q.id !== p.id);
+        const predictsGood = training.filter(good).length >= training.length / 2;
+        if (predictsGood === good(p)) hits++;
+      }
+      expect(hits / bank.length).toBeLessThanOrEqual(0.7);
+      const media = bank.filter((p) => p.media);
+      expect(media.filter(good).length / media.length).toBeLessThanOrEqual(0.65);
+    }
   });
 });

@@ -26,7 +26,7 @@ export const FOCUS = 0.95;
 export const BUFFER = 1.0;
 export const CAP = 1.6;
 export const MUTED_W = 0.25;
-export const FIRST_START = 0.6;
+export const FIRST_START = 1.2;
 /** A streak of 6, 12, 18… starts Mumble Mode (6, so a casual player sees the bit about twice a run). */
 export const MUMBLE_EVERY = 6;
 export const GRASS_SECONDS = 3;
@@ -74,7 +74,7 @@ export interface FeedPost extends SeedPost {
 
 export type SayKey =
   | 'intro' | 'phase' | 'likeOk' | 'muteOk' | 'likeWrong' | 'muteWrong' | 'missSignal' | 'missHype' | 'friend' | 'friendMuted'
-  | 'ownLiked' | 'ownMuted' | 'gem' | 'gemLiked' | 'oldName' | 'oldNameMuted' | 'oldNameLiked' | 'xray' | 'combo' | 'rot'
+  | 'missFriend' | 'ownLiked' | 'ownMuted' | 'gem' | 'gemLiked' | 'oldName' | 'oldNameMuted' | 'oldNameLiked' | 'xray' | 'combo' | 'rot'
   | 'grass' | 'grassBack' | 'loading' | 'snapOut' | 'tenLeft' | 'timeUp';
 
 export type FeedFx =
@@ -135,6 +135,7 @@ export class FeedEngine {
   /** Glide target for a flick (null = none). */
   private glide: number | null = null;
   private lastLoadingSay = -99;
+  private starvedAt = -1;
   private comboSaid = 0;
   private rotSaid = 0;
   private oldNameServed = false;
@@ -343,6 +344,12 @@ export class FeedEngine {
       this.fx.push({ kind: 'pop', post: n, text: '·', tone: 'meh' }, { kind: 'sfx', sfx: 'ui_move' });
       return { ok: true, pts: 0, state: p.state };
     }
+    if (c === 'save' && p.cls !== 'gem') {
+      // A wasted bookmark is harmless, but never substitutes for reading and liking.
+      p.state = 'neutral';
+      this.fx.push({ kind: 'pop', post: n, text: '0', tone: 'meh' }, { kind: 'sfx', sfx: 'ui_move' });
+      return { ok: true, pts: 0, state: p.state };
+    }
     this.counts.judged += 1;
     const good = p.cls !== 'hype';
     let pts = 0;
@@ -364,7 +371,7 @@ export class FeedEngine {
         this.counts.liked += 1;
         const friend = p.cls === 'friend';
         if (friend) this.counts.friends += 1;
-        pts = this.good(p, friend ? BASE.friend : BASE.signal, c === 'save' ? 'saved' : 'liked');
+        pts = this.good(p, friend ? BASE.friend : BASE.signal, 'liked');
         this.addRot(ROT.likeGood);
         this.fx.push({ kind: 'sfx', sfx: 'heart' });
         if (p.own) this.fx.push({ kind: 'say', key: 'ownLiked', post: n, prio: 3 });
@@ -489,13 +496,18 @@ export class FeedEngine {
     if (this.s + ds > max) {
       ds = Math.max(0, max - this.s);
       if (this.glide !== null) {
+        if (this.starvedAt < 0) this.starvedAt = t;
         this.loading = true;
-        if (t - this.lastLoadingSay > 12) {
+        if (t - this.starvedAt >= 0.3) this.glide = null;
+        if (t - this.starvedAt >= 0.3 && t - this.lastLoadingSay > 12) {
           this.lastLoadingSay = t;
           this.fx.push({ kind: 'say', key: 'loading', prio: 1 });
         }
       }
-    } else this.loading = false;
+    } else {
+      this.loading = false;
+      this.starvedAt = -1;
+    }
     this.s += ds;
     this.consume();
     this.fill();
@@ -525,7 +537,7 @@ export class FeedEngine {
       } else {
         if (p.cls === 'gem') this.counts.gems += 1;
         this.addRot(ROT.missedGood);
-        this.fx.push({ kind: 'say', key: 'missSignal', post: p.n, prio: 1 }, { kind: 'sfx', sfx: 'oink_sad' });
+        this.fx.push({ kind: 'say', key: p.cls === 'friend' ? 'missFriend' : 'missSignal', post: p.n, prio: 1 }, { kind: 'sfx', sfx: 'oink_sad' });
       }
     }
   }
