@@ -8,7 +8,7 @@ import { LINES } from '../src/lib/ai/heuristic/lines';
 import { extractSaid, fill, KNOWN_PLACEHOLDERS, placeholdersIn, parseFacts } from '../src/lib/ai/heuristic/template';
 import { extractFacts, rememberFacts, type MemoryStore } from '../src/lib/ai/memory';
 import { setClockOffset } from '../src/lib/state/clock';
-import { EXPRESSIONS, PIG_IDS, type ChatContext, type ChatReply, type ChatTurn, type PigId } from '../src/lib/types';
+import { PORTRAIT_FACES, PIG_IDS, type ChatContext, type ChatReply, type ChatTurn, type PigId } from '../src/lib/types';
 
 const ANIMS = new Set([
   'idle', 'blink', 'wave', 'look_around', 'walk_right', 'walk_front', 'walk_back', 'run_right', 'walk_left', 'run_left',
@@ -46,7 +46,7 @@ function expectWellFormed(r: ChatReply) {
   expect(r.text.trim().length).toBeGreaterThan(0);
   expect(r.text.length).toBeLessThanOrEqual(280);
   expect(sentenceCount(r.text)).toBeLessThanOrEqual(3);
-  expect(EXPRESSIONS).toContain(r.expression);
+  expect(PORTRAIT_FACES).toContain(r.expression);
   if (r.anim) expect(ANIMS.has(r.anim)).toBe(true);
   expect(r.text).not.toMatch(/[{}]/);
   expect(r.text).not.toMatch(BANNED);
@@ -793,7 +793,7 @@ describe('line banks', () => {
           expect(lines.length).toBeGreaterThan(0);
           for (const [e, text, opts] of lines) {
             const where = `${pig} ${key}: ${text}`;
-            expect([where, EXPRESSIONS.includes(e)]).toEqual([where, true]);
+            expect([where, PORTRAIT_FACES.includes(e)]).toEqual([where, true]);
             if (opts?.a) expect([where, ANIMS.has(opts.a)]).toEqual([where, true]);
             if (opts?.tier) expect(['N', 'F', 'W', 'NF', 'FW']).toContain(opts.tier);
             for (const p of placeholdersIn(text)) expect([where, KNOWN_PLACEHOLDERS.has(p.key)]).toEqual([where, true]);
@@ -825,7 +825,7 @@ describe('line banks', () => {
         expect([pig, kind, options.length >= 6]).toEqual([pig, kind, true]);
         for (const o of options) {
           expect(o.text.length).toBeLessThanOrEqual(IDLE_MAX_CHARS);
-          expect(EXPRESSIONS).toContain(o.expression);
+          expect(PORTRAIT_FACES).toContain(o.expression);
           expect(o.text).not.toMatch(BANNED);
         }
         let prev = '';

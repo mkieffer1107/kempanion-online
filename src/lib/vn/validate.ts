@@ -65,7 +65,7 @@ const ITEM_HINTS: Record<string, string> = {
 
 export const MINIGAME_IDS = ['volley', 'perfusion', 'debug', 'petals', 'surgery', 'xfeed'] as const;
 
-/** Portrait cells in each pig's everyday set (src/generated/sprites.json): the game-made poses are Piggy 3's only. */
+/** Portrait cells across each pig's outfits (src/generated/sprites.json). */
 const PORTRAIT_CELLS = (spriteData as unknown as { sets: Record<string, { portraits: Record<string, unknown> }> }).sets;
 
 /** Backgrounds being painted (ARCHITECTURE §11): allowed, but reported as warnings until they exist. */
@@ -212,7 +212,7 @@ export function validateKScript(files: readonly { file: string; src: string }[],
         return;
       }
       const standIn = POSE_FALLBACK[e as PortraitPose];
-      if (standIn && !PORTRAIT_CELLS[`${pig}/everyday`]?.portraits[e]) {
+      if (standIn && !Object.entries(PORTRAIT_CELLS).some(([key, set]) => key.startsWith(`${pig}/`) && set.portraits[e])) {
         warn(line, `${pig} has no "${e}" portrait, so it shows "${standIn}"`);
       }
     }

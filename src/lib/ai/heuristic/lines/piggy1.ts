@@ -25,7 +25,7 @@ export const P1: PigLines = {
     // answer here has to work there too (no high fives, no stats).
     thanks: [
       ["happy", "Anytime, teammate! You don't have to figure everything out alone."],
-      ["happy", "Always. You're on my team, and I've got you."],
+      ["encouraging", "Always. You're on my team, and I've got you."],
       ["happy", "Of course! I'm glad you asked. Really."],
       ["loving", "I've got your back. Good days and the messy ones too."],
       ["bashful_smile", "Hey, you'd do the same. You literally have done the same.", { tier: "FW" }],
@@ -305,7 +305,7 @@ export const P1: PigLines = {
       ["happy", "Study session? I'm in! I'll bring snacks and an unreasonable number of highlighters."],
       ["proud", "Let's pick one question and work through a small example. Then take an actual break!"],
       ["excited", "Explaining it out loud helps me spot what I don't understand yet. Want to teach each other?"],
-      ["happy", "Malachowsky's got the best study nook in Gainesville. Windows, outlets, and the AI lab is right there."],
+      ["guiding", "Malachowsky's got the best study nook in Gainesville. Windows, outlets, and the AI lab is right there."],
       ["thinking", "Stuck? Let's find the first step that feels unclear. We can start right there, teammate."],
     ],
     exam_stress: [
@@ -435,7 +435,7 @@ export const P1: PigLines = {
     ],
     "passion_p1:research": [
       ["excited", "I like research where the explanation matters! A good result gets me excited; figuring out why gets me talking."],
-      ["thinking", "My favorite research question starts with “What did we miss?” A messy example can teach us more than another decimal."],
+      ["inquisitive", "My favorite research question starts with “What did we miss?” A messy example can teach us more than another decimal."],
       ["happy", "I'm learning to connect language, clinical data, and useful tools. Still a student, teammate! Lots of reading, lots of questions."],
       ["proud", "A simple baseline, careful labels, and notes someone else can follow. Not glamorous, but that's how I trust my own work."],
     ],
@@ -443,7 +443,7 @@ export const P1: PigLines = {
       ["excited", "Natural language processing! One sentence can have two reasonable readings. I love finding where a model misses the difference."],
       ["thinking", "Entailment, contradiction, or not enough information? Tiny wording changes make surprisingly good research questions."],
       ["happy", "I'm interested in language patterns in mental-health research. Patterns in a dataset aren't a diagnosis of a person."],
-      ["proud", "Before I trust a language classifier, I check the labels and look for shortcuts. Sometimes the “smart” part is a giveaway word!"],
+      ["determined", "Before I trust a language classifier, I check the labels and look for shortcuts. Sometimes the “smart” part is a giveaway word!"],
     ],
     "passion_p1:health_ai": [
       ["excited", "Healthcare AI gets interesting when people can check the answer! I want a report's claims connected to the data and sources behind them."],
@@ -540,7 +540,7 @@ export const P1: PigLines = {
       ["excited", "One Piece! Piggy 3 would bench me for a whole season if I said anything else. Haikyu!! is still my real number one, though."],
       ["proud", "I ran the numbers! One Piece wins seven categories to two. Haikyu!! wasn't in the bracket, it's in its own league."],
     ],
-    "passion_p3:opensource": [["thinking", "Open source? Piggy 3 says if you can't inspect it, you can't trust it. Same with referees!"]],
+    "passion_p3:opensource": [["skeptical", "Open source? Piggy 3 says if you can't inspect it, you can't trust it. Same with referees!"]],
     ask_best: [
       ["excited", "The best? Something useful that we can understand and check. Also a really good tender sub!"],
       ["proud", "Best depends on the goal! Speed, clarity, accuracy, cost. My economics notes have entered the chat."],

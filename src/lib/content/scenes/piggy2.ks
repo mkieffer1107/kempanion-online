@@ -3,7 +3,7 @@
 # p2_rounds (no trigger: the hub calls it for Doctor's Rounds), p2_coach_medic (with Piggy 1),
 # p2_brains_builders (with Piggy 3).
 # Hard rule: when the player says "Based." he answers exactly "Patriot."
-# He wears scrubs in p2_h1, p2_h3 and the ending: those scenes stick to the 12 alt-outfit expressions.
+# He wears scrubs in p2_h1, p2_h3 and the ending: those scenes use only scrubs-supported poses.
 #
 # Flags written here:
 #   p2_based_h1 / p2_based_h6   picked "Based." (call and response) in that event
@@ -42,7 +42,7 @@ piggy-2 neutral: Sit. Last time, you got the express check.
 piggy-2 happy: Today you get the full neuro exam.
 [sfx step]
 narrator: You sit on a folding chair. He clicks a penlight on and off, on and off, like a very serious pen.
-piggy-2 neutral: Look at me. Keep your head still.
+piggy-2 clinical: Look at me. Keep your head still.
 [sfx sparkle]
 piggy-2 neutral: Follow my hoof.
 [cg cg_p2_follow_the_hoof]
@@ -69,7 +69,7 @@ narrator: Even the boba line goes quiet. Nobody wants to interrupt a neurologica
 narrator: The penlight clicks on. A tiny sun crosses one eye, then the other.
 piggy-2 neutral: Pupils equal, round, reactive to light.
 piggy-2 happy: PERRL. The most beautiful acronym in medicine.
-piggy-2 neutral: Vitals stable. Perfusion appears excellent.
+piggy-2 clinical: Vitals stable. Perfusion appears excellent.
 piggy-2 happy: You're cleared.
 narrator: He clicks the penlight off. Then he yawns, hides it behind his clipboard, and pretends it didn't happen.
 ? Your turn. Follow MY hand.
@@ -127,7 +127,7 @@ narrator: On the base of the model, in tiny careful letters, someone has written
 piggy-2 neutral: Named after the circle of Willis.
 player: Is that a real thing?
 piggy-2 excited: Extremely real. A ring of arteries under the brain.
-piggy-2 excited: Blood comes in from the front and the back, and the ring connects them. If one road closes, blood takes another.
+piggy-2 explaining: Blood comes in from the front and the back, and the ring connects them. If one road closes, blood takes another.
 piggy-2 proud: A roundabout for blood. Perfusion's entire personality.
 narrator: He sets Willis down on the lectern very gently, as if he might wake up.
 piggy-2 neutral: You came to the Communicore voluntarily. Based.
@@ -174,7 +174,7 @@ piggy-2 thinking: Final question. Cerebral perfusion pressure equals mean arteri
   piggy-2 loving: Perfusion is my love language.
 ? Peer pressure.
   [bond piggy-2 +4]
-  piggy-2 neutral: Peer pressure is real. Not in this equation.
+  piggy-2 deadpan: Peer pressure is real. Not in this equation.
   piggy-2 thinking: Intracranial pressure. The skull is a closed box.
   piggy-2 neutral: More pressure inside means less blood gets in.
 ? Finals pressure.
@@ -332,7 +332,7 @@ piggy-2 neutral: He's recovering from his spinal procedure. Ahead of projections
 player: Wait. A pig... studying pigs?
 piggy-2 neutral: Swine are the best translational model.
 piggy-2 bashful_smile: I'm biased. Literally.
-piggy-2 excited: A pig's spinal cord is about seven millimeters wide. Yours is about eight.
+piggy-2 explaining: A pig's spinal cord is about seven millimeters wide. Yours is about eight.
 piggy-2 excited: Same blueprint, more snout. If it works in a pig's spine, it has a real chance in yours.
 piggy-2 thinking: Brains too. Pig brains are gyrencephalic: folded, like yours.
 piggy-2 proud: Gold-standard model. Based.
@@ -371,7 +371,7 @@ piggy-2 neutral: You've been on rounds with me four times now.
 piggy-2 thinking: Rounds teams have titles, and you need one. Pick.
 ? Intern.
   [set p2_nickname = intern]
-  piggy-2 happy: Intern. Bottom of the hierarchy, infinite potential.
+  piggy-2 teasing: Intern. Bottom of the hierarchy, infinite potential.
   piggy-2 proud: Based.
 ? Resident.
   [set p2_nickname = resident]

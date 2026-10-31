@@ -154,11 +154,11 @@ narrator: Something bonks off your shoe. A white, blue and yellow volleyball rol
 [sfx step]
 [show piggy-1 surprised center]
 piggy-1 surprised: Heads up! Oh, you already stopped it— nice feet!
-piggy-1 happy: Sorry! I was passing against that oak tree, and the oak tree is three and oh this week.
+piggy-1 apologetic: Sorry! I was passing against that oak tree, and the oak tree is three and oh this week.
 piggy-1 thinking: Wait. Is your map upside down?
 player: ...Maybe. I'm looking for a Kempanion booth at the Reitz Union?
 piggy-1 excited: The Kempanion booth?! I'm IN that program— you're a new recruit!
-piggy-1 happy: Okay, the Reitz is that way. Past Turlington, then left at the Potato.
+piggy-1 guiding: Okay, the Reitz is that way. Past Turlington, then left at the Potato.
 player: The potato?
 piggy-1 laughing: It's a ten-ton rock! Everybody says "meet at the Potato," and you can't miss it.
 narrator: You pick up the ball.
@@ -176,7 +176,7 @@ narrator: You pick up the ball.
   [endif]
   piggy-1 laughing: A formal handoff! That's a clean API call, right there.
 piggy-1 surprised: Wait, is it 12:44? Period six starts at 12:50, and I'm all the way over at Malachowsky!
-piggy-1 proud: Six minutes is a tenth of an hour. I can make it.
+piggy-1 determined: Six minutes is a tenth of an hour. I can make it.
 piggy-1 happy: I'm Piggy 1!
 [nameplate piggy-1]
 player: I'm {player}.
@@ -222,8 +222,8 @@ piggy-2 thinking: {player}. Kempa intake form, page one, reviewing now.
   piggy-2 neutral: Comfort food: {fact:comfort_food|muffin}. Noted.
 [endif]
 piggy-2 thinking: There's a volleyball scuff on your shoe. You met Piggy 1 at the Plaza.
-piggy-2 thinking: Then you walked here, in this heat, without water.
-piggy-2 thinking: Mild dehydration. Probable.
+piggy-2 clinical: Then you walked here, in this heat, without water.
+piggy-2 clinical: Mild dehydration. Probable.
 [if item(water_bottle) = 0]
   [give water_bottle 1]
 [endif]
@@ -307,7 +307,7 @@ narrator: It is not a small campus.
 piggy-1 excited: Made it! Class, practice and now this— three for three today!
 [show piggy-2 neutral center]
 narrator: Piggy 2 has changed out of his scrubs. There's still a pen behind his ear.
-piggy-2 neutral: Off duty. Mostly.
+piggy-2 relaxed: Off duty. Mostly.
 [show piggy-3 happy right]
 piggy-3 happy: Hi again! Is the pager working?
 piggy-3 happy: It's working. Okay, good.
@@ -315,39 +315,40 @@ piggy-3 happy: It's working. Okay, good.
 # "phone_mumble_nervous" pose, then the snap-out. The mumble delivery is independent of his portrait.
 piggy-3 phone: Oh— hey, did you see this on X today?
 narrator: He holds his phone out at arm's length. On the screen, a robot hand folds one sock, very slowly.
-piggy-1 excited: Whoa! Can it set a volleyball?
+piggy-1 inquisitive: Whoa! Can it set a volleyball?
 piggy-3 phone_mumble mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
-piggy-2 thinking: Is it autonomous, or is someone off-camera holding a controller?
+piggy-2 deadpan: Is it autonomous, or is someone off-camera holding a controller?
 [expr piggy-2 neutral]
 piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? What the heck— this is 20x speed! And is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
 [expr piggy-3 neutral]
 piggy-1 excited: Hey, did you read the Kempa brochure? There's a legend about the big sakura by the tower.
+[expr piggy-2 attentive]
 piggy-3 thinking: Oh, were we supposed to read that? Is that the promise thingie?
-piggy-1 proud: Oh, you didn't read it? Not surprised.
+piggy-1 skeptical: Oh, you didn't read it? Not surprised.
 piggy-1 proud: Anyway, if two people make a promise under the sakura by Century Tower while the carillon plays at dusk...
 piggy-3 excited: ...the promise blooms forever. Also, the brochure's design is bad.
 [expr piggy-1 neutral]
 [expr piggy-3 neutral]
-piggy-2 neutral: Unverified. Based, but unverified.
+piggy-2 deadpan: Unverified. Based, but unverified.
 piggy-1 happy: The brochure says there are 1,853 trees, one for 1853. Nobody's ever counted.
 piggy-3 thinking: I want to count them. Not tonight, but I want to.
-piggy-2 neutral: Maybe our ambassador can count them for us.
+piggy-2 teasing: Maybe our ambassador can count them for us.
 [sfx notify]
 narrator: 【KEMPA STAFF】Kempanions, introduce yourselves! Thirty seconds each!
 piggy-1 excited: Yeah! I'm Piggy 1, a first-year master's student in the KEMPA AIBHS program. Also its ambassador!
 piggy-1 proud: AI in Biomedical and Health Sciences. I practiced saying the whole thing without taking a breath.
 piggy-3 excited: SI in Biomedical and Health Sciences! Superintelligence, obviously.
 [expr piggy-3 neutral]
-piggy-1 thinking: Sure. Right after it learns to return a serve.
+piggy-1 skeptical: Sure. Right after it learns to return a serve.
 piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, late-night ideas and hype!
 [expr piggy-1 neutral]
-piggy-2 proud: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
+piggy-2 explaining: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
 piggy-2 wink: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
 [expr piggy-2 neutral]
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
 piggy-3 bashful_smile: Okay, that's— yeah. That's my pitch.
-piggy-1 happy: That was great!
+piggy-1 encouraging: That was great!
 piggy-3 shy_blush: It was, like, eight seconds.
 [sfx bell]
 narrator: Up in the tower, the bells ring the quarter hour. All at once, the petals let go.

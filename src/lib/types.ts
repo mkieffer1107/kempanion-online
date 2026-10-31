@@ -25,7 +25,7 @@ export type Expression =
   | PortraitPose;
 
 /**
- * The faces a brain may pick (the LLM's tag list, the heuristic lines, the emotion classifier, the post-filter):
+ * The faces generated text may pick (the LLM's tag list, the emotion classifier, the post-filter):
  * the pack's 20 expressions. The portrait poses are left out on purpose.
  */
 export const EXPRESSIONS: readonly Expression[] = [
@@ -37,14 +37,14 @@ export const EXPRESSIONS: readonly Expression[] = [
 /**
  * Portraits made for the game beyond the pack's expressions (art-src/portraits-extra): Piggy 3 holding his phone out,
  * focused phone mumbling (including his X mumble in Talk), and a nervous phone mumble. Both outfits have all three.
- * Piggy 2 also has an everyday wink for his introduction.
+ * Piggy 1 and Piggy 2 have extra introduction poses (including clinical scrubs for Piggy 2).
  * They are Expressions, so a scene can say
- * `piggy-3 phone: …`, but never in EXPRESSIONS: the brains and the LLM never pick a pose. A set without the cell
+ * `piggy-3 phone: …`, but never in EXPRESSIONS: the LLM never picks a pose; curated replies can use them. A set without the cell
  * shows POSE_FALLBACK.
  */
-export type PortraitPose = 'phone' | 'phone_mumble' | 'phone_mumble_nervous' | 'wink';
-export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble', 'phone_mumble_nervous', 'wink'] as const;
-export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral' };
+export type PortraitPose = 'phone' | 'phone_mumble' | 'phone_mumble_nervous' | 'wink' | 'apologetic' | 'skeptical' | 'clinical' | 'deadpan' | 'explaining' | 'guiding' | 'determined' | 'inquisitive' | 'encouraging' | 'relaxed' | 'teasing' | 'attentive';
+export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble', 'phone_mumble_nervous', 'wink', 'apologetic', 'skeptical', 'clinical', 'deadpan', 'explaining', 'guiding', 'determined', 'inquisitive', 'encouraging', 'relaxed', 'teasing', 'attentive'] as const;
+export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral', apologetic: 'sad', skeptical: 'thinking', clinical: 'thinking', deadpan: 'neutral', explaining: 'proud', guiding: 'happy', determined: 'proud', inquisitive: 'thinking', encouraging: 'happy', relaxed: 'neutral', teasing: 'happy', attentive: 'thinking' };
 
 /** Every face a portrait can show: what scenes (KScript) and the renderer accept. */
 export const PORTRAIT_FACES: readonly Expression[] = [...EXPRESSIONS, ...PORTRAIT_POSES];

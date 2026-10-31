@@ -48,7 +48,7 @@ describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () =>
       expect(set.portraits.phone).toBeUndefined();
       expect(set.portraits.phone_mumble).toBeUndefined();
       expect(set.portraits.phone_mumble_nervous).toBeUndefined();
-      const extras = key === 'piggy-2/scrubs' ? ['proud', 'thinking'] : key === 'piggy-2/everyday' ? ['wink'] : [];
+      const extras = key === 'piggy-2/scrubs' ? ['clinical', 'proud', 'thinking'] : key === 'piggy-2/everyday' ? ['attentive', 'deadpan', 'explaining', 'relaxed', 'teasing', 'wink'] : key === 'piggy-1/everyday' ? ['apologetic', 'determined', 'encouraging', 'guiding', 'inquisitive', 'skeptical'] : [];
       expect(Object.keys(set.portraits).filter((p) => !extras.includes(p)).length).toBe(key.endsWith('everyday') ? 20 : 12);
     }
   });
@@ -67,9 +67,9 @@ describe('poses as portrait faces', () => {
   test("never a brain's pick: EXPRESSIONS is still the pack's 20, PORTRAIT_FACES adds the poses", () => {
     expect(EXPRESSIONS.length).toBe(20);
     for (const p of PORTRAIT_POSES) expect(EXPRESSIONS).not.toContain(p);
-    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, ...PHONE_POSES, 'wink']);
+    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, ...PORTRAIT_POSES]);
     // the stand-ins are brain faces that every set has, and the renderer's fallback table carries them
-    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral' });
+    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral', apologetic: 'sad', skeptical: 'thinking', clinical: 'thinking', deadpan: 'neutral', explaining: 'proud', guiding: 'happy', determined: 'proud', inquisitive: 'thinking', encouraging: 'happy', relaxed: 'neutral', teasing: 'happy', attentive: 'thinking' });
     for (const p of PORTRAIT_POSES) {
       expect(EXPRESSIONS).toContain(POSE_FALLBACK[p]);
       expect(ALT_EXPRESSION_FALLBACK[p]).toBe(POSE_FALLBACK[p]);
@@ -127,8 +127,28 @@ describe('poses as portrait faces', () => {
     expect(read('src/lib/vn/runner.ts')).toContain('(PORTRAIT_FACES as readonly string[]).includes(e)');
   });
 
+  test('prologue introduction poses have real cells in their intended outfits and validate', () => {
+    for (const [pig, outfit, poses] of [
+      ['piggy-1', 'everyday', ['apologetic', 'determined', 'encouraging', 'guiding', 'inquisitive', 'skeptical']],
+      ['piggy-2', 'scrubs', ['clinical']],
+      ['piggy-2', 'everyday', ['attentive', 'deadpan', 'explaining', 'relaxed', 'teasing']],
+    ] as const) {
+      for (const pose of poses) {
+        expect(toExpression(pose)).toBe(pose);
+        expect(resolvePortrait(pig, outfit, pose).expression).toBe(pose);
+        const png = readFileSync(join(ROOT, 'art-src/portraits-extra', pig, outfit, `${pose}.png`));
+        expect([png.readUInt32BE(16), png.readUInt32BE(20), png[25]]).toEqual([384, 512, 6]);
+      }
+    }
+    const src = read('src/lib/content/scenes/prologue.ks');
+    expect(validateKScript([{ file: 'prologue.ks', src }]).issues).toEqual([]);
+    expect(src).toContain('piggy-1 skeptical: Sure. Right after it learns to return a serve.');
+    expect(src).toContain('piggy-2 deadpan: Unverified. Based, but unverified.');
+    expect(src).toContain('piggy-2 explaining: Piggy 2, neurosurgery resident at Shands.');
+  });
+
   test("Piggy 2's wink is a real portrait and scene face, with safe fallbacks in other sets", () => {
-    expect(resolvePortrait('piggy-2', 'everyday', 'wink')).toMatchObject({ expression: 'wink', x: 0, y: 1280 });
+    expect(resolvePortrait('piggy-2', 'everyday', 'wink')).toMatchObject({ expression: 'wink', x: 192, y: 1536 });
     expect(resolvePortrait('piggy-2', 'scrubs', 'wink').expression).toBe('neutral');
     expect(resolvePortrait('piggy-1', 'everyday', 'wink').expression).toBe('neutral');
     expect(toExpression('wink')).toBe('wink');

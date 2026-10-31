@@ -1,6 +1,6 @@
 // AI dialogue module: pure parts only (no worker, no transformers.js).
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { EXPRESSIONS, type ChatContext, type ChatRequest, type ChatTurn, type PigId, type SaveData } from '../src/lib/types';
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { EXPRESSIONS, PORTRAIT_FACES, type ChatContext, type ChatRequest, type ChatTurn, type PigId, type SaveData } from '../src/lib/types';
 import { CHARACTERS } from '../src/lib/content/characters';
 import {
   bigBrainOfferDue, dismissBigBrainOffer, markBigBrainOffered, resetAiSession, respond, sessionExchangeCount, suggestReplies,
@@ -12,7 +12,7 @@ import {
   CODEX_LINES, CUT_AT, EMERGENCY_REACH, isCrisisNow, isDistress, isMedicalAdvice, isMedicalEmergency, isSafetyMessage,
   isSafetyReply, matchQuirk, needsCheckIn, normalizeForQuirk, UF_CWC_PHONE, UF_CWC_PHONE_NOWRAP,
 } from '../src/lib/ai/quirks';
-import { classifyIntent } from '../src/lib/ai/heuristic';
+import { classifyIntent, heuristicBrain } from '../src/lib/ai/heuristic';
 import { TaggedStream, classifyExpression, finishLine, normalizeTag, OUTPUT_REGEX, parseTagged } from '../src/lib/ai/emotion';
 import { postfilter, sentenceCutIndex, splitSentences } from '../src/lib/ai/postfilter';
 import { extractFacts, followUpsDue, forgetFact, isSecretFact, rememberFacts, resolveDay } from '../src/lib/ai/memory';
@@ -873,12 +873,24 @@ describe('respond()', () => {
   beforeEach(() => resetAiSession());
   afterEach(() => resetAiHost());
 
+  test('trusted handwritten portrait poses survive the reply pipeline', async () => {
+    const canned = spyOn(heuristicBrain, 'respond').mockResolvedValue({ text: "You're on my team.", expression: 'encouraging', source: 'heuristic' });
+    try {
+      const r = await respond(req('piggy-1', 'How was your day?'));
+      expect(r.expression).toBe('encouraging');
+      // Generated-model tags still use the original expression vocabulary.
+      expect(LINE_RE.test('[encouraging] "Hello."')).toBe(false);
+    } finally {
+      canned.mockRestore();
+    }
+  });
+
   test('no model loaded → Heuristic Brain answers (never throws), with exchange effects', async () => {
     for (const pig of PIGS) {
       const r = await respond(req(pig, 'Hey! How was your day?'));
       expect(['heuristic', 'quirk']).toContain(r.source);
       expect(r.text.trim().length).toBeGreaterThan(0);
-      expect(EXPRESSIONS).toContain(r.expression);
+      expect(PORTRAIT_FACES).toContain(r.expression);
       expect(r.effects?.bond).toBeGreaterThanOrEqual(2);
       expect(r.effects?.fun).toBe(3);
     }

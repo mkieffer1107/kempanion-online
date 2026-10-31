@@ -30,7 +30,7 @@ describe('the prologue robot mumble', () => {
     expect(words).toContain('foundation model…');
     expect(words).toContain('action chunking…');
     const next = scene.ops[scene.ops.indexOf(rant) + 1];
-    expect(next).toMatchObject({ op: 'say', speaker: 'piggy-2', expression: 'thinking' });
+    expect(next).toMatchObject({ op: 'say', speaker: 'piggy-2', expression: 'deadpan' });
     expect(robotMumbleWords(next.op === 'say' ? next.text : '')).toEqual([]);
   });
 

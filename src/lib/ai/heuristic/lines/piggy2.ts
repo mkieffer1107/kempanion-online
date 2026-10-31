@@ -42,7 +42,7 @@ export const P2: PigLines = {
       ["proud", "Good. I placed an electrode array today, and the pig is doing great."],
       ["neutral", "Functional and caffeinated. Mildly ischemic, emotionally. Normal {day}."],
       ["neutral", "Vitals stable. Sleep is my weakest vital sign. Based."],
-      ["thinking", "Fine. More importantly, how are you? Have you had water today?"],
+      ["attentive", "Fine. More importantly, how are you? Have you had water today?"],
       ["bashful_smile", "Better now. That's not a medical statement. Or maybe it is.", { tier: "FW" }],
     ],
     "how_are_you:hungry": [
@@ -68,10 +68,10 @@ export const P2: PigLines = {
     ],
     whats_up: [
       ["neutral", "Reviewing a pig spinal MRI at T10. Beautiful decompression. Based."],
-      ["neutral", "Charting, then lab, then more charting. Living the dream."],
-      ["neutral", "Reading about CSF dynamics. Recreationally."],
+      ["deadpan", "Charting, then lab, then more charting. Living the dream."],
+      ["relaxed", "Reading about CSF dynamics. Recreationally."],
       ["proud", "Today we placed electrodes on a pig's cortex. Tiny chip, huge data. He's doing great."],
-      ["neutral", "Studying the circle of Willis. A roundabout for blood. Perfusion's entire personality."],
+      ["explaining", "Studying the circle of Willis. A roundabout for blood. Perfusion's entire personality."],
       ["thinking", "Lab pigs at dawn, then the Communicore. I may have skipped lunch. Don't tell anyone."],
     ],
     "whats_up:hungry": [["sad", "Thinking about food. I said lunch was a social construct. I was incorrect.", { a: "hungry" }]],
@@ -141,7 +141,7 @@ export const P2: PigLines = {
     ],
     ask_name: [
       ["neutral", "Piggy 2, MD. Fourth-year neurosurgery resident, on my research year. Based."],
-      ["neutral", "Piggy 2. The “2” is for second opinion."],
+      ["teasing", "Piggy 2. The “2” is for second opinion."],
       ["proud", "I'm Piggy 2. You may also call me “Doctor.” “Attending” takes a few more years."],
       ["neutral", "Piggy 2. Someday patients will call me “the pig with the steady hooves.”"],
     ],
@@ -229,7 +229,7 @@ export const P2: PigLines = {
     tired_talk: [
       ["thinking", "Sleep is when your glymphatic system clears out the brain. Go to bed. Based biology."],
       ["neutral", "Fatigue noted. Prescription: eight hours and a glass of water. Refills unlimited."],
-      ["thinking", "You look pale. Sit and drink some water, doctor's orders. Well, resident's orders."],
+      ["clinical", "You look pale. Sit and drink some water, doctor's orders. Well, resident's orders."],
       ["neutral", "Tired is low perfusion of the soul. Rest it."],
     ],
     "tired_talk:needy": [

@@ -228,7 +228,7 @@ const thoughts: readonly ThoughtDef[] = [
     line: 'Truffle fries: crisp, salty, a little fancy. I declassified them for you, and only you.',
   },
   {
-    id: 'p2.bat-hearts', topic: 'life', label: 'Bat heart rates', icon: 'moon', face: 'neutral', when: ['place:lake_alice', 'time:evening'],
+    id: 'p2.bat-hearts', topic: 'life', label: 'Bat heart rates', icon: 'moon', face: 'neutral', when: ['place:marston', 'time:evening'],
     line: "A flying bat's heart can beat past eight hundred times a minute. Mine is at seventy-two; we are not the same.",
   },
   {

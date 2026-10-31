@@ -57,11 +57,11 @@ narrator: He's upside down in a drift of petals, holding the ball over his head 
 [bgm piggy1_theme]
 [show piggy-1 laughing center]
 piggy-1 laughing: Ball's safe! Tree's fine!
-piggy-1 happy: And I'm, like, eighty percent fine.
+piggy-1 apologetic: And I'm, like, eighty percent fine.
 piggy-1 proud: That's my fourth tree this semester. Personal record.
 piggy-1 surprised: Wait. I know you!
 piggy-1 excited: {player}! My ball rolled right to your feet on your first day!
-piggy-1 thinking: That's twice now. That ball likes you more than it likes me.
+piggy-1 skeptical: That's twice now. That ball likes you more than it likes me.
 [bond piggy-1 +15]
 narrator: Across the lawn, somebody yells, "Ball! Little help?"
 piggy-1 excited: They need it back. Think fast, teammate!
@@ -78,7 +78,7 @@ narrator: He pops the ball straight up. It hangs there for a second, then drops 
   [sfx spike] [shake 0.4 200]
   piggy-1 laughing: KILL! ...Oh no, I touched it twice in a row.
   piggy-1 laughing: That's a double touch. Don't tell the ref!
-  piggy-1 happy: You've got real platform, {player}. You're on my team now, no take-backs.
+  piggy-1 encouraging: You've got real platform, {player}. You're on my team now, no take-backs.
   [bond piggy-1 +30]
 ? Catch it.
   [set p1_h1_pick = catch]
@@ -135,7 +135,7 @@ piggy-1 surprised: {player}! Perfect timing, I need a time-out.
 piggy-1 happy: Fresh air is a performance enhancer. That's why the whiteboard lives outside now.
 [bond piggy-1 +10]
 piggy-1 thinking: Data structures homework: a circular queue. Fixed array, six slots.
-piggy-1 thinking: You add at the tail and take from the head. Hit the end of the array, and you wrap back to zero.
+piggy-1 guiding: You add at the tail and take from the head. Hit the end of the array, and you wrap back to zero.
 piggy-1 sad: My queue says it's empty, but it's extremely full. It has six things in it!
 piggy-1 confused: When head equals tail, it could mean empty OR full. I've been staring at that for forty-seven minutes.
 narrator: He holds up the marker. The cap has been chewed, slightly.
@@ -167,8 +167,8 @@ narrator: He holds up the marker. The cap has been chewed, slightly.
 [cg cg_p1_whiteboard]
 piggy-1 excited: A rotation IS a circular buffer that sweats!
 narrator: He draws a court right over his diagram. Six slots, arrows looping, a tiny pig serving from position one.
-piggy-1 excited: Tail goes to tail plus one, mod six. That's just a rotation, I've done it a thousand times!
-piggy-1 thinking: And full-or-empty? On a court you never wonder, you just count the players.
+piggy-1 determined: Tail goes to tail plus one, mod six. That's just a rotation, I've done it a thousand times!
+piggy-1 inquisitive: And full-or-empty? On a court you never wonder, you just count the players.
 piggy-1 happy: So I keep a count! Six means full, zero means empty.
 [cg off]
 [sfx typing]

@@ -5,7 +5,7 @@
 // A reply with a scripted delivery plays it instead of one line: Piggy 3's X mumble (playMumble).
 import { tick } from 'svelte';
 import {
-  EXPRESSIONS, type ChatContext, type ChatMumble, type ChatReply, type ChatTurn, type Expression, type LocationId, type OutfitId,
+  PORTRAIT_FACES, type ChatContext, type ChatMumble, type ChatReply, type ChatTurn, type Expression, type LocationId, type OutfitId,
   type PigId,
 } from '../types';
 import { audio } from '../audio';
@@ -95,7 +95,7 @@ const SENTENCE_END = /[.!?…]+["”’')\]]*\s+(?=["“‘'(\[]?[A-Z0-9])/;
 const SENTENCE_SHOWN = /[.!?…]+["”’')\]]*\s*$/;
 
 function asExpression(e: string | undefined): Expression {
-  return e && (EXPRESSIONS as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
+  return e && (PORTRAIT_FACES as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
 }
 
 /** ChatContext from the live save (plain copies: it may be posted to the LLM worker). */

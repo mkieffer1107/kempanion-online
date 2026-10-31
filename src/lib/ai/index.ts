@@ -5,6 +5,7 @@
 // which installs the real host (game settings/memories + the LLM worker).
 import { CHARACTERS } from '../content/characters';
 import { now, nowDate } from '../state/clock';
+import { PORTRAIT_FACES } from '../types';
 import type { ChatContext, ChatReply, ChatRequest, ChatTurn, Expression, PigId, SaveData } from '../types';
 import { classifyExpression, animFor, finishLine, isExpression, parseTagged, TaggedStream } from './emotion';
 import { classifyIntent, heuristicBrain, suggestTopics } from './heuristic';
@@ -236,7 +237,7 @@ async function heuristicReply(
   try {
     const r = await heuristicBrain.respond(req, onToken, signal);
     const text = postfilter(r.text, { pig: req.pig, pigName: CHARACTERS[req.pig].name, light: true }) || LAST_RESORT[req.pig];
-    const expression = isExpression(r.expression) ? r.expression : classifyExpression(req.pig, text, req.playerText).expression;
+    const expression = (PORTRAIT_FACES as readonly string[]).includes(r.expression) ? r.expression : classifyExpression(req.pig, text, req.playerText).expression;
     opts.onExpression?.(expression);
     return { ...r, text, expression, source: r.source === 'quirk' ? 'quirk' : 'heuristic' };
   } catch {
