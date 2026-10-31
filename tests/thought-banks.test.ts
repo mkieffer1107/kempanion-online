@@ -378,7 +378,7 @@ describe('thought banks: every field obeys its limits', () => {
 describe('thought banks: voices and canon', () => {
   test('dates: one single-day thought per pig on his birthday, first on its day; ranges are countdowns or seasons', () => {
     const single = (b: PigThoughts) => b.thoughts.filter((t) => (t.when ?? []).some((g) => /^date:\d\d-\d\d$/.test(g)));
-    expect(single(PIGGY_1_THOUGHTS).map((t) => t.when)).toEqual([['date:06-21']]);
+    expect(single(PIGGY_1_THOUGHTS).map((t) => t.when)).toEqual([['date:09-04']]);
     expect(single(PIGGY_2_THOUGHTS).map((t) => t.when)).toEqual([['date:07-04']]);
     expect(single(PIGGY_3_THOUGHTS).map((t) => t.when)).toEqual([['date:11-07']]);
     for (const pig of PIG_IDS) {

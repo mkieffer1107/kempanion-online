@@ -21,7 +21,7 @@ and fall asleep at their bedtimes.
 
 | | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Who | CS junior; club volleyball outside hitter | MD; fourth-year (PGY-4) neurosurgery resident at UF Health Shands on his research year (pig spinal-cord lab, papers, grants, the occasional call shift), still studying | Builder: AI, coding agents, signals, 3D printing; physics computational lab |
+| Who | First-year master's student in AI in Biomedical and Health Sciences (AIBHS); Kempa AI program ambassador; club volleyball outside hitter | MD; fourth-year (PGY-4) neurosurgery resident at UF Health Shands on his research year (pig spinal-cord lab, papers, grants, the occasional call shift), still studying | Builder: AI, coding agents, signals, 3D printing; physics computational lab |
 | Home spot | Malachowsky Hall; sand courts at dawn/dusk | Communicore (College of Medicine), anatomy lab, his pig lab, Shands (sim lab, call shifts) | Physics Building lab; Marston at night |
 | Work outfit | volleyball uniform | scrubs | black hoodie |
 | Voice | hype, stats, volleyball calls, calls you "teammate" | deadpan, "Based." / "Patriot.", ischemia & perfusion | "Okay, so I was thinking…", "Actually—", "basically", "Best for what?" |

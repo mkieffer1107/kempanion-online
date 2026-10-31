@@ -118,7 +118,7 @@ const SUBJECT_WORDS = new Set(
   religious robotics russian sci science sciences sculpture singing soc sociology software spanish sport sports
   statistics stats studies surveying sustainability teaching technology telecom telecommunication telecommunications
   theater theatre theology therapy tourism toxicology vet veterinary viticulture welding wildlife writing zoology
-  abe ai bme che cise compe cpe cs ece ee hci ise isom mis ml mse pr stem
+  abe ai aibhs bme che cise compe cpe cs ece ee hci ise isom mis ml mse pr stem
   affairs behavior composition development disorders environment hygiene performance production services systems theory`
     .split(/\s+/)
     .filter(Boolean),
@@ -344,6 +344,9 @@ export interface StatedMajor {
  * attack", "a total major disaster", "i'm studying atm".
  */
 export function statedMajor(text: string): StatedMajor | null {
+  // This program name contains an internal "in" and exceeds the general five-word echo limit.
+  // Use its canonical acronym without relaxing the clause boundaries for any other major.
+  text = text.replace(/\b(?:ai|artificial intelligence) in biomedical and health sciences\b/g, 'aibhs');
   for (const m of text.matchAll(MAJOR_NOUN_RE)) {
     const [, whole, name, next] = m;
     if (next && DESCRIBED_RE.test(next)) continue;
@@ -431,7 +434,7 @@ function optTitle(s: string | undefined): string | undefined {
 /** Majors said as initials keep their capitals ("i'm a cs major" → "CS"), languages and peoples theirs ("English"). */
 export function majorCase(s: string | undefined): string | undefined {
   return s
-    ?.replace(/\b(?:cs|cise|ai|ece|ee|bme|mis|hci|ml|stem|uf|pr|abe|che|cpe|ise|isom|mse)\b/g, (w) => w.toUpperCase())
+    ?.replace(/\b(?:cs|cise|ai|aibhs|ece|ee|bme|mis|hci|ml|stem|uf|pr|abe|che|cpe|ise|isom|mse)\b/g, (w) => w.toUpperCase())
     .replace(
       /\b(?:english|spanish|french|german|italian|portuguese|chinese|mandarin|japanese|korean|arabic|russian|latin|greek|hebrew|hindi|vietnamese|american|african|asian|european|caribbean|jewish|latino|latina|latinx|florida)\b/g,
       (w) => w.charAt(0).toUpperCase() + w.slice(1),

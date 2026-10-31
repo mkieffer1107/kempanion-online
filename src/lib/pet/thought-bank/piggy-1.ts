@@ -247,8 +247,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: "Bedtime's calling, so this is my fifth set. Fifth sets go to fifteen points, and my energy is at, like, three.",
   },
   {
-    id: 'p1.birthday-serves', topic: 'birthday', label: 'Birthday serves', icon: 'cake', face: 'excited', when: ['date:06-21'],
-    line: 'Birthday challenge: 21 serves on June 21, all in! Okay, twenty in— still a party!',
+    id: 'p1.birthday-serves', topic: 'birthday', label: 'Birthday serves', icon: 'cake', face: 'excited', when: ['date:09-04'],
+    line: 'Birthday challenge: 4 perfect serves on September 4! Okay, three in— still a party!',
   },
   {
     id: 'p1.candy-sheet', topic: 'holiday-soon', label: 'Candy spreadsheet', icon: 'stats', face: 'excited', when: ['date:10-24..10-31'],

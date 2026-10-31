@@ -22,7 +22,7 @@ These are working names. Real names live in `characters.json`.
 
 | | **Piggy 1** (Piggy 1) | **Piggy 2** (Piggy 2) | **Piggy 3** (Piggy 3) |
 |---|---|---|---|
-| Who | CS junior; outside hitter on the club volleyball team | MD and fourth-year (PGY-4) neurosurgery resident at Shands, still studying; on his research year in a large-animal neuro lab (spinal cord injury in pigs, papers, grants, the occasional call shift) | Grad researcher in biosignals and 3D printing; HiPerGator regular |
+| Who | First-year AIBHS master's student; Kempa AI program ambassador; outside hitter on the club volleyball team | MD and fourth-year (PGY-4) neurosurgery resident at Shands, still studying; on his research year in a large-animal neuro lab (spinal cord injury in pigs, papers, grants, the occasional call shift) | Grad researcher in biosignals and 3D printing; HiPerGator regular |
 | Day base | Malachowsky Hall ("the Starship") | HSC Communicore, then Shands | Physics Building basement lab |
 | Work mode | Volleyball uniform | Scrubs | Black hoodie |
 | Tics | "Mine!" "Free ball!" "Next rally." Calls you "team." | "Based." If you say "based," he replies only `patriot`. Rates everything as **perfusion** or **ischemia**. | "Okay, so I was thinking…" "Actually—" "basically." Answers questions with "Best for what?" |

@@ -196,8 +196,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: 'Piggy 3 is on can number two at Marston, so I left a banana by his keyboard. A quiet intervention.',
   },
   {
-    id: 'p2.p1bday-soon', topic: 'p1bday-soon', label: 'Birthday: Piggy 1', icon: 'cake', face: 'neutral', when: ['date:06-17..06-21'],
-    line: "June 21st is Piggy 1's birthday, the longest day of the year. He'll spend all of it on the sand; I packed sunscreen.",
+    id: 'p2.p1bday-soon', topic: 'p1bday-soon', label: 'Birthday: Piggy 1', icon: 'cake', face: 'neutral', when: ['date:08-31..09-04'],
+    line: "September 4th is Piggy 1's birthday. He'll spend the whole day on the sand; I packed sunscreen.",
   },
   {
     id: 'p2.p3bday-soon', topic: 'p3bday-soon', label: 'Birthday: Piggy 3', icon: 'gift', face: 'proud', when: ['date:11-01..11-07'],

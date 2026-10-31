@@ -212,7 +212,7 @@ export const SEED_POSTS: SeedPost[] = [
   // ── FRIENDS (LIKE, 150) ──
   { id: 'p1.sunrise', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy1', text: "SUNRISE REPS! Sand courts at 6:30. Bring water, I'm bringing oranges." },
   { id: 'p1.rally', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy1', text: "20-touch rally today. TWENTY. Let's goooo! Teammate, you were robbed of seeing it." },
-  { id: 'p1.backprop', cls: 'friend', tier: 1, topic: 'llm', by: 'piggy1', text: 'Explained backprop to my CS lab with a volleyball: bump, set, gradient. They clapped. (I made them.)' },
+  { id: 'p1.backprop', cls: 'friend', tier: 1, topic: 'llm', by: 'piggy1', text: 'Explained backprop to my AIBHS lab with a volleyball: bump, set, gradient. They clapped. (I made them.)' },
   { id: 'p1.germany', cls: 'friend', tier: 1, topic: 'life', by: 'piggy1', text: 'Missing the bakeries from my research days in Germany. The bread. The trains on time. The bread.' },
   { id: 'p1.notonx', cls: 'friend', tier: 1, topic: 'meta', by: 'piggy1', text: "Piggy 3 says I'm 'not on X enough.' I was at PRACTICE. Okay, liking all his posts now." },
   { id: 'p2.reflex', cls: 'friend', tier: 1, topic: 'med', by: 'piggy2', text: 'Acquired: one expired reflex hammer, 1998. Excellent condition. Filed under neuro. Based.' },

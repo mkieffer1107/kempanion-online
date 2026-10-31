@@ -18,7 +18,7 @@ The IDs `p1/p2/p3` are stable. Display names are working placeholders stored in 
 
 | | **p1 · Piggy 1** | **p2 · Piggy 2** | **p3 · Piggy 3** |
 |---|---|---|---|
-| Epithet | The Rally Algorithm | The Perfusion Prodigy | The Midnight Piggy 3 |
+| Epithet | The Hype Ambassador | The Perfusion Patriot | The Midnight Piggy 3 |
 | VN archetype | genki ace, team hype-man | confident senpai with a catchphrase gag | bashful builder who thinks out loud |
 | Name plate / accent | Honey `#F2B33D` | Scrub `#8FB3C9` | Lavender `#B79CE0` |
 | Home spot | Malachowsky Hall | Communicore / Shands | New Physics Building (NPB) |
@@ -27,7 +27,7 @@ The IDs `p1/p2/p3` are stable. Display names are working placeholders stored in 
 | Awake | 7 a.m.–11 p.m. | 5 a.m.–9 p.m. (rounds) | 10 a.m.–2 a.m. (night owl) |
 | Blip voice | bright square, D5 | nasal pulse, G3 | soft triangle, B4 |
 
-**Piggy 1 (p1).** His personality wasn't in the brief, so it's designed here. Piggy 1 is a CS junior and the setter on the club volleyball team.
+**Piggy 1 (p1).** Piggy 1 is a first-year AIBHS master's student, Kempa AI program ambassador and outside hitter on the club volleyball team.
 - **Outlook:** life is a rally: keep the ball off the floor and set up whoever's open.
 - **Voice:** he mixes sports and Big-O in the same breath ("constant-time joy!").
 - **Catchphrases:**
@@ -261,11 +261,11 @@ The header reads "WHO'S YOUR KEMPANION? You'll meet all three. Who shows you aro
 | WHO'S YOUR KEMPANION?   You'll meet all three. Who shows you     |
 |                         around first?                            |
 | +------------------+ +-----------------------------------------+ |
-| |                  | | PIGGY 1            "The Rally Algorithm"  | |
-| |    portrait      | | Birthday   Nov 11 (a binary birthday)   | |
+| |                  | | PIGGY 1            "The Hype Ambassador"  | |
+| |    portrait      | | Birthday   September 4                  | |
 | |    192 x 256     | | Blood      O                            | |
 | |  neutral->happy  | | Height     130 cm                       | |
-| |                  | | Major      Computer Science, 3rd year   | |
+| |                  | | Program    AIBHS master's, year 1       | |
 | |  bg: home spot,  | | Likes      clean rallies, pancakes      | |
 | |  dimmed 40%      | | Dislikes   off-by-one errors, rain      | |
 | |                  | | Spot       Malachowsky Hall atrium      | |
@@ -284,7 +284,7 @@ T layout
 |  portrait centered             |
 |  <  swipe to switch  >         |
 +--------------------------------+
-| PIGGY 1    "The Rally Algorithm" |
+| PIGGY 1    "The Hype Ambassador" |
 | Nov 11 - Blood O - 130 cm      |
 | CS 3rd yr - volleyball setter  |
 | + clean rallies, pancakes      |
@@ -299,10 +299,10 @@ T layout
 
 | | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Birthday | Nov 11 ("a binary birthday") | Jul 4 ("Patriot. Obviously.") | Nov 7 (Marie Curie's birthday too) |
+| Birthday | September 4 | Jul 4 ("Patriot. Obviously.") | Nov 7 (Marie Curie's birthday too) |
 | Blood type | O | A (porcine A–O system; he will explain) | AB (self-reported; Piggy 2 disputes this) |
 | Height | 130 cm (standing reach: classified) | 124 cm (+3 cm of spikes) | 122 cm (123 on humid days) |
-| Major / program | Computer Science, 3rd yr; club volleyball setter | MD; PGY-4 neurosurgery resident on his research year (College of Medicine / UF Health Shands) | Physics grad researcher (computational); builds EEG/ECG tools |
+| Major / program | First-year AIBHS master's; Kempa AI program ambassador; club volleyball outside hitter | MD; PGY-4 neurosurgery resident on his research year (College of Medicine / UF Health Shands) | Physics grad researcher (computational); builds EEG/ECG tools |
 | Likes | clean rallies, pancakes, Python one-liners, sports drinks ("Gatorade was invented at UF!") | perfusion, spinal surgery, pig neuroanatomy, 5:30 a.m. rounds, the anthem at the Swamp | coding agents, open tools, model comparisons, HiPerGator, 3D printing, One Piece, JoJo, iced cafecito |
 | Dislikes | off-by-one errors, net violations, rained-out practice | poor perfusion, unlabeled specimen tubes, "brain surgery isn't that hard" takes | closed file formats, prints failing at 97%, spoilers |
 | Favorite spot | Malachowsky atrium; Southwest Rec court 3 | Communicore study nook | NPB printer corner; Marston at 2 a.m. |

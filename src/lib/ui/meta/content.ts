@@ -6,13 +6,13 @@ export interface MetaLine { speaker: SpeakerId; text: string; expression?: Expre
 
 /** Short epithets for cards and credits. */
 export const EPITHET: Record<PigId, string> = {
-  'piggy-1': 'The Rally Algorithm',
-  'piggy-2': 'The Perfusion Prodigy',
+  'piggy-1': 'The Hype Ambassador',
+  'piggy-2': 'The Perfusion Patriot',
   'piggy-3': 'The Midnight Builder',
 };
 
 export const CAST_LINE: Record<PigId, string> = {
-  'piggy-1': 'CS junior · club volleyball outside hitter',
+  'piggy-1': "First-year AIBHS master's · Kempa AI ambassador · volleyball",
   'piggy-2': 'MD · PGY-4 neurosurgery resident (research year)',
   'piggy-3': 'Builder · physics computational lab',
 };
@@ -274,7 +274,7 @@ export interface CreditBlock { heading?: string; lines: string[]; big?: boolean;
 export const CREDITS: CreditBlock[] = [
   { big: true, lines: ['KEMPANION ONLINE', 'a Kempa AI production'] },
   { heading: 'Starring', cast: true, lines: [
-    'Piggy 1 — CS junior · club volleyball outside hitter',
+    "Piggy 1 — first-year AIBHS master's · Kempa AI ambassador · volleyball",
     'Piggy 2 — MD · PGY-4 neurosurgery resident (research year)',
     'Piggy 3 — builder · physics computational lab',
     'and you, as yourself',

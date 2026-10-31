@@ -558,6 +558,12 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
   const math = parseArithmetic(text);
   if (math) add('arithmetic', 6, math.kind);
 
+  // His program and ambassador role are identity questions, not a generic AI or coding topic.
+  if (pig === 'piggy-1') {
+    if (/\b(?:aibhs|(?:ai|artificial intelligence) in biomedical and health sciences)\b/.test(corrected) && !major?.value) add('ask_major', 5);
+    if (/\bambassador\b|\bkempa ai\b|^what do you do[?!.]*$/.test(corrected)) add('ask_about_self', 5, 'job');
+  }
+
   // entity bonuses
   if (entities.pork) add('pork_joke', 7);
   const food = entities.foods[0];

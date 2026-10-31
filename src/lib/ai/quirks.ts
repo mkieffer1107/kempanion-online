@@ -448,7 +448,7 @@ const CHECK_IN_LINE: Record<PigId, string> = {
 };
 
 const MEDICAL_LINE: Record<PigId, string> = {
-  'piggy-1': "Time-out, teammate! I'm a CS major, not a doctor. Get that checked at UF's Student Health Care Center, and if it's an emergency, call 911.",
+  'piggy-1': "Time-out, teammate! I'm an AI master's student, not a doctor. Get that checked at UF's Student Health Care Center, and if it's an emergency, call 911.",
   'piggy-2': "I'm a pig doctor in a game, not your doctor. Student Health Care Center. Go, and call 911 if it's an emergency.",
   'piggy-3': "Okay, that's actually important, so I'm not going to guess. UF's Student Health Care Center can look at it properly. If it's an emergency, call 911.",
 };

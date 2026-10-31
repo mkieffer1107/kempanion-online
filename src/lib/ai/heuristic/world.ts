@@ -40,9 +40,9 @@ export const OWN_PASSION: Record<PigId, Intent> = {
   'piggy-3': 'passion_p3',
 };
 
-/** A player's major that is also his ("share_self:major_same"): Piggy 1 is a computer science major (not engineering). */
+/** A player's major that is also his ("share_self:major_same"): Piggy 1 studies AI in Biomedical and Health Sciences (not general CS). */
 export const OWN_MAJOR: Partial<Record<PigId, RegExp>> = {
-  'piggy-1': /\b(?:computer science|comp sci|compsci|cs|cise)\b/i,
+  'piggy-1': /\b(?:aibhs|(?:ai|artificial intelligence) in biomedical and health sciences)\b/i,
 };
 
 export type { Taste };

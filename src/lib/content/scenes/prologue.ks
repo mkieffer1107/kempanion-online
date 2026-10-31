@@ -288,9 +288,12 @@ piggy-3 bashful_smile: ...the promise blooms forever. Also, the brochure's UI is
 piggy-2 neutral: Unverified. Based, but unverified.
 piggy-1 happy: The brochure says there are 1,853 trees, one for 1853. Nobody's ever counted.
 piggy-3 thinking: I want to count them. Not tonight, but I want to.
+piggy-2 neutral: Maybe our ambassador can count them for us.
 [sfx notify]
 narrator: 【KEMPA STAFF】Kempanions, introduce yourselves! Thirty seconds each!
-piggy-1 excited: Piggy 1! Computer science, club volleyball, outside hitter— I bring snacks, sunrises and hype!
+piggy-1 excited: Yeah! I'm Piggy 1, a first-year master's student in the KEMPA AIBHS program. Also its ambassador!
+piggy-1 proud: AI in Biomedical and Health Sciences. I practiced saying the whole thing without taking a breath.
+piggy-1 excited: Club volleyball, outside hitter— I bring snacks, sunrises and hype!
 piggy-2 neutral: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
 piggy-3 bashful_smile: Okay, that's— yeah. That's my pitch.
@@ -300,7 +303,7 @@ piggy-3 shy_blush: It was, like, eight seconds.
 narrator: Up in the tower, the bells ring the quarter hour. All at once, the petals let go.
 [cg cg_trio_key_visual]
 [wait 600]
-narrator: Three pigs under a sakura, waiting on you. It feels like the first page of something.
+narrator: Three little piggies under a sakura, waiting on you. It feels like the first page of something.
 [cg off]
 narrator: 【KEMPA STAFF】{player}, please choose your Kempanion!
 [companion pick]

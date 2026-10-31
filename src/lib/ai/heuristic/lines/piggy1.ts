@@ -1,4 +1,4 @@
-// Piggy 1 — sunny CS junior, club volleyball outside hitter, hype-man, stat-keeper. Calls you "teammate".
+// Piggy 1 — sunny first-year AIBHS master’s student and Kempa AI ambassador, club volleyball outside hitter, hype-man, stat-keeper. Calls you "teammate".
 import type { PigLines } from './types';
 import { CRISIS_CALL } from '../../quirks';
 
@@ -110,7 +110,7 @@ export const P1: PigLines = {
       ["thinking", "Time-out. Did something happen? You can tell me, off the court."],
     ],
     "insult:pig": [
-      ["laughing", "I mean… yeah? Pig, outside hitter, CS major. All true!"],
+      ["laughing", "I mean… yeah? Pig, outside hitter, AIBHS master’s student. All true!"],
       ["proud", "Pig AND a teammate. Two-for-one deal. You're welcome!"],
     ],
     apology: [
@@ -129,12 +129,12 @@ export const P1: PigLines = {
     ],
     ask_name: [
       ["happy", "Piggy 1! First in the rotation, first to the ball. Usually."],
-      ["proud", "I'm Piggy 1. Outside hitter, CS junior, professional hype-man."],
+      ["proud", "I'm Piggy 1. Outside hitter, AIBHS master’s student, Kempa AI ambassador."],
       ["laughing", "Piggy 1! The “1” is for first serve. Okay, it's not, but it should be."],
       ["happy", "Piggy 1. You can also call me “the loud one.” Both work!"],
     ],
     ask_about_self: [
-      ["excited", "CS junior, club volleyball outside hitter, morning person. Basically a sunrise with a laptop!"],
+      ["excited", "First-year AIBHS master’s student, club volleyball outside hitter, morning person. Basically a sunrise with a laptop!"],
       ["happy", "I think life's a rally. Keep the ball off the floor and set up whoever's open."],
       ["proud", "I keep stats on everything: serves, sleep, snacks. Forty-seven tender subs this year. Personal record."],
       ["happy", "I'm loud, I'm competitive, and I cheer for everybody. Including you. Especially you."],
@@ -145,8 +145,8 @@ export const P1: PigLines = {
       ["thinking", "Home is wherever there's a net. Right now that's Sakura House, Malachowsky, and the courts."],
     ],
     "ask_about_self:birthday": [
-      ["excited", "June 21! Longest day of the year. More daylight, more volleyball!"],
-      ["proud", "Summer solstice baby, June 21. Maximum practice hours!"],
+      ["excited", "September 4! New semester, fresh goals, and another year of volleyball!"],
+      ["proud", "September 4. Birthday practice counts as a party if the whole team shows up!"],
     ],
     "ask_about_self:what": [
       ["laughing", "Am I a pig? Yep, a pig who plays outside hitter. Rare combo."],
@@ -157,14 +157,14 @@ export const P1: PigLines = {
       ["happy", "Blood type O. Universal donor, universal teammate. It tracks!"],
     ],
     "ask_about_self:job": [
-      ["excited", "I was a researcher in Germany! Data all day, beach volleyball on the weekends. Now my job is club volleyball, unpaid, full hustle!"],
-      ["happy", "Research, in Germany! Best teammates, best bread. I still count my reps in German sometimes: eins, zwei…"],
+      ["excited", "I’m the KEMPA AIBHS program ambassador! First-year master’s student too. Before UF, I was a researcher in Germany."],
+      ["happy", "Kempa AI program ambassador, AIBHS master’s student, teammate on call! I used to do research in Germany. Still count my reps in German: eins, zwei…"],
     ],
     ask_major: [
-      ["happy", "Computer science, third year! I live in Malachowsky. Not literally… mostly."],
-      ["excited", "CS! Algorithms, data structures, and a LOT of volleyball metaphors."],
-      ["proud", "CS junior. I'm taking data structures and explaining every one of them with volleyball."],
-      ["thinking", "Computer science. Some days I'm sure I'm good at it, and some days the compiler disagrees."],
+      ["happy", "First-year master’s in AI in Biomedical and Health Sciences! AIBHS for short. I still basically live in Malachowsky."],
+      ["excited", "AIBHS: AI in Biomedical and Health Sciences! Learning to build AI that helps people. With a LOT of volleyball metaphors."],
+      ["proud", "First-year AIBHS master’s student! I’m also the KEMPA AIBHS program ambassador. Ask me about the program, teammate!"],
+      ["thinking", "AI in Biomedical and Health Sciences, master’s year one! Still coding, still learning. Every good model needs practice reps."],
     ],
     ask_hobby: [
       ["excited", "Volleyball! And coding, and volleyball stats, which is both. Efficiency!"],
@@ -515,7 +515,7 @@ export const P1: PigLines = {
       ["proud", "Best is whatever wins the rally. I have stats if you want them."],
       ["laughing", "Ask Piggy 3 and he'll say “Best for what?” I just say volleyball."],
     ],
-    "other_pig:piggy-1": [["laughing", "Piggy 1? That's me! Outside hitter, CS junior, hype-man, hi!"]],
+    "other_pig:piggy-1": [["laughing", "Piggy 1? That's me! Outside hitter, AIBHS master’s student, Kempa AI ambassador, hi!"]],
     "other_pig:piggy-2": [
       ["happy", "Piggy 2 is the calmest person I know. I'm trying to get him to say “Let's go!” He only says “Based.”"],
       ["proud", "Piggy 2 treats every sprain like an ER consult. Annoying! Also, my ankle is perfect now."],
@@ -617,7 +617,7 @@ export const P1: PigLines = {
       ["excited", "{said}? Love that for you! Adding it to your team bio."],
       ["happy", "You like {said}? Okay, that's going in my stats. Fun-fact column!"],
     ],
-    "share_self:year": [["excited", "Nice, welcome to the rotation! I'm a junior, so ask me anything. About volleyball, mostly."]],
+    "share_self:year": [["excited", "Nice, welcome to the rotation! I’m a first-year master’s student in AIBHS. New rotation, same volleyball obsession!"]],
     share_self: [["happy", "Oh, cool! Tell me more, I'm taking notes. Mental notes… okay, also actual notes."]],
     "followup:why": [
       ["excited", "Glad you asked!"],
@@ -892,7 +892,7 @@ export const P1: PigLines = {
       ["proud", "Professor Snout is Piggy 2's lead pig, and he talks about him like a star player. I'd cheer for him at nationals!"],
     ],
     "ask_about_self:july4": [
-      ["excited", "Fireworks are just a giant “Kill!” for the whole sky. I love them! Mine is June 21, but Piggy 2 gets July 4th every year."],
+      ["excited", "Fireworks are just a giant “Kill!” for the whole sky. I love them! Mine is September 4, but Piggy 2 gets July 4th every year."],
     ],
     "based:rate": [
       ["laughing", "On the based scale? I don't know the scale, so: ten! Piggy 2 will give you the real number."],

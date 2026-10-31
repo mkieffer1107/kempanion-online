@@ -5,7 +5,7 @@
 *Kempa AI · proposal v0.1 · 2026-10-30. Scope: the pet simulation, the economy, the mini-games and the retention loops. The VN layer and the optional LLM plug into this core, but the core does not need either of them.*
 
 **Cast.** These are working nicknames; the final names are still to be decided.
-- **Piggy 1** (Piggy 1, home: Malachowsky Hall). A cheerful outside hitter and CS major who talks in volleyball and algorithm metaphors ("Let me cook. No wait, let me compile."). He gets up early, eats a lot, hypes everyone up and gets restless easily.
+- **Piggy 1** (Piggy 1, home: Malachowsky Hall). A cheerful outside hitter, first-year AIBHS master's student and Kempa AI program ambassador who talks in volleyball and algorithm metaphors ("Let me cook. No wait, let me compile."). He gets up early, eats a lot, hypes everyone up and gets restless easily.
 - **Piggy 2** (Piggy 2, home: Communicore/Shands). A precise fourth-year neurosurgery resident (already an MD) on his research year, whose favorite words are "based," "patriot," "ischemia" and "perfusion." He also loves pig spines and CSF.
 - **Piggy 3** (Piggy 3, home: New Physics Building). He thinks out loud, builds things, asks "best for what?" and is shy and affectionate.
 

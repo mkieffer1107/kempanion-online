@@ -120,10 +120,11 @@ describe('Piggy 2: job and status questions get his job answers', () => {
     }
   });
 
-  test('the other two answer with what they study; "match day" is a volleyball match to Piggy 1', () => {
+  test('the other two answer with their own study or ambassador role; "match day" is volleyball to Piggy 1', () => {
     for (const pig of ['piggy-1', 'piggy-3'] as const) {
       for (const t of ['what do you do?', 'are you a doctor?', 'are you still a student?', 'did you match?']) {
-        expect([t, pig, route(t, pig)]).toEqual([t, pig, 'ask_major']);
+        const expected = pig === 'piggy-1' && t === 'what do you do?' ? 'ask_about_self:job' : 'ask_major';
+        expect([t, pig, route(t, pig)]).toEqual([t, pig, expected]);
       }
     }
     expect(route("it's match day!", 'piggy-1')).toBe('passion_p1:volleyball');

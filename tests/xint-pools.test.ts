@@ -407,8 +407,8 @@ describe('canon in the new lines', () => {
     // he is 128 centimeters, and says so next to Hinata
     expect(CHARACTERS[P1].height).toMatch(/^128 cm/);
     expect(texts(P1, 'passion_p1:haikyu').join(' ')).toMatch(/128 centimeters/);
-    // birthdays: June 21 (his), July 4 (Piggy 2's), November 7 (Piggy 3's)
-    expect(texts(P1, 'ask_about_self:july4').join(' ')).toMatch(/June 21/);
+    // Piggy 1's September birthday and Piggy 2's July birthday remain distinct.
+    expect(texts(P1, 'ask_about_self:july4').join(' ')).toMatch(/September 4/);
     expect(texts(P3, 'ask_about_self:july4').join(' ')).toMatch(/July 4/);
     expect([...texts(P3, 'study:teach'), ...texts(P3, 'ask_about_self:july4')].join(' ')).not.toMatch(/November 7|hint|my birthday/i);
     expect(texts(P3, 'ask_about_self:birthday').filter((t) => /Marie Curie/.test(t)).length).toBeGreaterThanOrEqual(4);
@@ -425,7 +425,7 @@ describe('the persona files and the prompts built from them', () => {
   // other paragraphs' budget (340 tokens, 190 for the lite model). Paragraph 1 did not grow with these edits.
   const BEFORE = { [P1]: 461, [P2]: 701, [P3]: 418 } as const;
   const OPENING: Record<PigId, string> = {
-    [P1]: 'You are Piggy 1, a fictional pig character: a sunny, energetic third-year computer-science student',
+    [P1]: "You are Piggy 1: sunny first-year master's student in AI in Biomedical and Health Sciences (AIBHS)",
     [P2]: 'You are Piggy 2, a fictional pig character: a calm, deadpan doctor, a fourth-year neurosurgery resident',
     [P3]: 'You are Piggy 3, a fictional pig character. You are a curious, hands-on builder who likes Codex, AI,',
   };

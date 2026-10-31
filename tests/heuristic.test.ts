@@ -387,16 +387,33 @@ describe("the player's major", () => {
     }
   });
 
-  test('Piggy 1 is a computer science major too', () => {
+  test('Piggy 1 shares AIBHS, not a general computer science major', () => {
     const same = (said: string) => lines('piggy-1', 'share_self:major_same').map((t) => fill(t, { said }));
-    expect(same('computer science')).toContain(ask('piggy-1', 'my major is computer science').text);
-    expect(same('CS')).toContain(ask('piggy-1', "I'm a CS major").text);
-    expect(same('biology')).not.toContain(ask('piggy-1', 'my major is biology').text);
-    expect(same('computer science')).not.toContain(ask('piggy-2', 'my major is computer science').text);
-    // computer science, not computer engineering (characters/piggy-1.md)
-    expect(same('computer engineering')).not.toContain(ask('piggy-1', "i'm a computer engineering major").text);
-    expect(acks('piggy-1', 'computer engineering')).toContain(ask('piggy-1', "i'm a computer engineering major").text);
-    expect(same('computing')).not.toContain(ask('piggy-1', 'i study computing').text);
+    for (const program of ['AIBHS', 'AI in Biomedical and Health Sciences', 'artificial intelligence in Biomedical and Health Sciences']) {
+      for (const text of [`my major is ${program}`, `I study ${program}`]) {
+        expect(classifyIntent(text, 'piggy-1')).toMatchObject({ intent: 'share_self', topic: 'major' });
+        expect(same('AIBHS')).toContain(ask('piggy-1', text).text);
+      }
+    }
+    for (const major of ['computer science', 'CS', 'computer engineering', 'biology', 'computing', 'AI', 'artificial intelligence', 'AI in medicine']) {
+      const reply = ask('piggy-1', `my major is ${major}`).text;
+      expect(reply).not.toMatch(/SAME MAJOR|same rotation/);
+    }
+  });
+
+  test('Piggy 1 describes his AIBHS degree, ambassador role and September birthday', () => {
+    for (const text of ['what do you study?', 'what is AIBHS?', 'tell me about AI in Biomedical and Health Sciences']) {
+      expect(classifyIntent(text, 'piggy-1').intent).toBe('ask_major');
+      expect(ask('piggy-1', text).text).toMatch(/AIBHS|AI in Biomedical and Health Sciences/);
+    }
+    for (const text of ['what do you do?', 'are you a program ambassador?', 'what is Kempa AI?']) {
+      expect(classifyIntent(text, 'piggy-1')).toMatchObject({ intent: 'ask_about_self', topic: 'job' });
+      expect(ask('piggy-1', text).text).toMatch(/ambassador/);
+    }
+    for (const line of lines('piggy-1', 'ask_about_self:birthday')) {
+      expect(line).toMatch(/September 4/);
+      expect(line).not.toMatch(/June|solstice/);
+    }
   });
 
   test('the year, the pride or "currently" is not part of the major', () => {
@@ -522,7 +539,7 @@ describe("the player's major", () => {
     ] as const) {
       for (const pig of PIG_IDS) expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent, topic }]);
     }
-    // a major that is also a topic word stays a major: Piggy 1 studies computer science himself
+    // a major that is also a coding topic stays a stated player major
     expect(classifyIntent('i study computer science', 'piggy-1')).toMatchObject({ intent: 'share_self', topic: 'major' });
     expect(classifyIntent('i study physics', 'piggy-3')).toMatchObject({ intent: 'share_self', topic: 'major' });
   });

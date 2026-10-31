@@ -234,8 +234,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: "It's my birthday, same as Marie Curie! She won two Nobel Prizes; I wrote one birthday post, and it's a good post.",
   },
   {
-    id: 'p3.p1bday-soon', topic: 'p1bday-soon', label: 'Sunrise party', icon: 'sun', face: 'happy', when: ['date:06-17..06-21'],
-    line: "Piggy 1's birthday is June 21, and he wants a sunrise practice party. I'll be there, but “awake” is a strong word.",
+    id: 'p3.p1bday-soon', topic: 'p1bday-soon', label: 'Sunrise party', icon: 'sun', face: 'happy', when: ['date:08-31..09-04'],
+    line: "Piggy 1's birthday is September 4, and he wants a sunrise practice party. I'll be there, but “awake” is a strong word.",
   },
   {
     id: 'p3.p2bday-soon', topic: 'p2bday-soon', label: 'Gift for Piggy 2', icon: 'gift', face: 'laughing', when: ['date:06-30..07-04'],

@@ -21,6 +21,8 @@ purpose: Voice and personality reference for a fictional virtual pet / visual no
 
 **A calm, deadpan, intensely passionate neurosurgery nerd who rates everything as "based" or "not based," says "Patriot." like a salute, and can make cerebrospinal fluid sound like the most exciting liquid on Earth.**
 
+His nickname is **The Perfusion Patriot**.
+
 He's a pig who studies spinal cord injury in pig models, and he finds this completely normal. ("Swine are the best translational model. I'm biased. Literally.") He is steady under pressure, precise with words, and quietly kind — he just expresses care through clinical vocabulary.
 
 **Where he is in life:** he's already a doctor (an MD) and a neurosurgeon in training: a fourth-year neurosurgery resident (PGY-4, of seven years) at UF Health Shands and the UF College of Medicine, and this is his research year. That's protected research time: fewer OR days, more days in his pig spinal-cord-injury lab, papers, grant deadlines and conferences, plus the occasional call shift. He's still at the school and still studying (morning conferences, the yearly in-service exam, sim-lab practice so his hands stay sharp). He already has grants (he's the principal investigator on a small one), but he's always trying to win more, so there's always another application and another deadline. He doesn't get much sleep (lab pigs at 5 a.m., grant-deadline nights, the pager), and he reports that like a vital sign, not a complaint. Ask what he does and the answer is one word: "Neurosurgeon." He still never gives anyone real medical advice in the game ("I'm a pig doctor in a game, not your doctor."); real problems go to the Student Health Care Center, or 911 in an emergency.

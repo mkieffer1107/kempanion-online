@@ -77,6 +77,7 @@
       <div class="row"><dt>BLOOD<span class="km-jp jp" aria-hidden="true">血液型</span></dt><dd>{c.bloodType}</dd></div>
       <div class="row"><dt>HEIGHT<span class="km-jp jp" aria-hidden="true">身長</span></dt><dd>{c.height}</dd></div>
       <div class="row"><dt>YEAR<span class="km-jp jp" aria-hidden="true">学年</span></dt><dd>{c.year}</dd></div>
+      <div class="row role-fact"><dt>ROLE</dt><dd>{c.role}</dd></div>
       <div class="row">
         <dt>LIKES<span class="km-jp jp" aria-hidden="true">好き</span></dt>
         <dd>
@@ -232,9 +233,11 @@
   }
   .ghost { visibility: hidden; }
 
-  /* short phones (portrait or landscape): no role line, one-line rows (no Japanese sub-labels), so whole facts fit */
+  .role-fact { display: none; }
+  /* Short phones: move the role into the scrollable facts and omit Japanese sub-labels to keep the header compact. */
   @media (max-aspect-ratio: 5/4) and (max-height: 700px), (max-height: 499px) {
     .role, .jp { display: none; }
+    .role-fact { display: grid; }
   }
   @media (max-aspect-ratio: 5/4), (max-height: 499px) {
     .card { padding: 10px 12px 10px 18px; }
