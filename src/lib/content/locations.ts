@@ -149,7 +149,7 @@ const SCHEDULE: Record<PigId, Record<ScheduleSlot, Slot>> = {
     morning: { any: 'communicore', sun: 'dorm' },
     midday: { any: 'communicore', fri: 'plaza', sun: 'dorm' },
     afternoon: { any: 'shands', tue: 'anatomy_lab', thu: 'anatomy_lab', sun: 'reitz' },
-    dusk: { any: 'communicore', sun: 'lake_alice' },
+    dusk: { any: 'communicore', sat: 'marston', sun: 'marston' },
     night: { any: 'marston' },
     owl: { any: 'dorm' },
   },

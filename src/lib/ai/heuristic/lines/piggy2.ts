@@ -132,12 +132,12 @@ export const P2: PigLines = {
       ["bashful_smile", "You don't need to apologize to me. …But thank you. Based."],
     ],
     joke_request: [
-      ["neutral", "A neuron walks into a bar. The bartender asks, “Why the long axon?” …That's my one joke.", { a: "laugh" }],
-      ["neutral", "Why did the CSF leave the brain? It needed space. Subarachnoid space."],
-      ["proud", "What do you call a pig neurosurgeon? Board-certified. Eventually."],
-      ["neutral", "My sleep schedule isn't bad, it's mildly ischemic. …That was a joke. Laugh."],
-      ["laughing", "Microchips in pig brains? Sign me up. Cut out the middle-pig.", { a: "laugh" }],
-      ["neutral", "I tried to write a joke about the spinal cord, but it lost its nerve. …Based anyway."],
+      ["neutral", "Why did the pig bring ink to the lab? He had a pen. …Based.", { a: "laugh" }],
+      ["proud", "What do you call a pig who knows anatomy? An educated swine."],
+      ["neutral", "Why won't I share my retired stethoscopes? I'm a little boar-ding problem."],
+      ["laughing", "I organized my research notes by snoutcome. Very rigorous.", { a: "laugh" }],
+      ["neutral", "Why was the pig so good at research? He never took anything for grunted."],
+      ["proud", "What do you call a pig with a microscope? A lab-boar-atory assistant."],
     ],
     ask_name: [
       ["neutral", "Piggy 2, MD. Fourth-year neurosurgery resident, on my research year. Based."],

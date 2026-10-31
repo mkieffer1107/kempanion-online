@@ -30,7 +30,7 @@ export interface Want {
 
 const PLACES: Record<PigId, LocationId[]> = {
   'piggy-1': ['volleyball_courts', 'plaza', 'malachowsky', 'lake_alice'],
-  'piggy-2': ['communicore', 'shands', 'lake_alice', 'marston'],
+  'piggy-2': ['communicore', 'shands', 'marston'],
   'piggy-3': ['physics', 'marston', 'lake_alice', 'reitz'],
 };
 

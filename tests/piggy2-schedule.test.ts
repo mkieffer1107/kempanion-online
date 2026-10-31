@@ -2,8 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { pigsAt, whereIs } from '../src/lib/content/locations';
 
 describe('Piggy 2 medical-campus schedule', () => {
-  test('Saturday afternoon and evening stay on the medical campus', () => {
-    for (const [hour, location] of [[14, 'shands'], [16, 'shands'], [17, 'communicore'], [19, 'communicore']] as const) {
+  test('Saturday afternoon stays at Shands and evening moves to Marston', () => {
+    for (const [hour, location] of [[14, 'shands'], [16, 'shands'], [17, 'marston'], [19, 'marston']] as const) {
       const date = new Date(2026, 9, 31, hour);
       expect(whereIs('piggy-2', date)).toBe(location);
       expect(pigsAt(location, date)).toContain('piggy-2');
