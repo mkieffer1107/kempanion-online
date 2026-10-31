@@ -17,6 +17,17 @@ const DEFAULT_FADE_MS = 700;
 const BLIP_MIN_GAP_MS = 30;
 const SFX_MIN_GAP_MS = 25;
 const READY_TIMEOUT_MS = 10_000;
+const WAKE_CHECK_MS = 300;
+const SUSPEND_TIMEOUT_MS = 600;
+
+/** Safari may leave resume/suspend promises pending after an OS interruption. Never wait on them forever. */
+function bounded<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('audio operation timed out')), ms);
+    promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); });
+  });
+}
+const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 type Ctx = AudioContext;
 type SessionNavigator = Navigator & { audioSession?: { type: string } };
@@ -50,11 +61,17 @@ function silentWavUrl(): string {
   return URL.createObjectURL(new Blob([view.buffer], { type: 'audio/wav' }));
 }
 
-class AudioEngine implements AudioApi {
+export class AudioEngine implements AudioApi {
   #ctx: Ctx | null = null;
   #node: AudioWorkletNode | null = null;
   #ready = false;
   #init: Promise<void> | null = null;
+  #booting = false;
+  #listening = false;
+  #pageHidden = false;
+  #wake: Promise<void> | null = null;
+  #wakeEpoch = 0;
+  #needsRecovery = false;
   #unlocked = false;
   #userSuspended = false;
   #autoSuspend = true;
@@ -89,25 +106,34 @@ class AudioEngine implements AudioApi {
       this.#warn('audio disabled: this browser lacks Web Audio worklets or WebAssembly');
       return (this.#init = Promise.resolve());
     }
+    this.#listen();
     this.#playThroughSilentSwitch();
     let ctx: Ctx;
     try {
       ctx = new AC({ latencyHint: 'interactive' });
     } catch (e) {
       this.#warn(`audio disabled: ${String(e)}`);
-      return (this.#init = Promise.resolve());
+      this.#needsRecovery = true;
+      return Promise.resolve(); // a temporary iOS context limit can clear by the next tap
     }
     this.#ctx = ctx;
+    this.#booting = true;
+    ctx.onstatechange = () => {
+      if (ctx !== this.#ctx || ctx.state === 'running') return;
+      this.#needsRecovery = true;
+      this.#recover();
+    };
     this.#unlock(); // must run synchronously inside the user gesture (iOS)
-    this.#listen();
     this.#init = this.#boot(ctx).catch((e: unknown) => {
       this.#warn(`audio disabled: ${e instanceof Error ? e.message : String(e)}`);
+      if (ctx !== this.#ctx) return;
       this.#ready = false;
-      this.#current = null;
-      this.#pending = null;
-      this.#node?.disconnect();
-      this.#node = null;
+      this.#needsRecovery = true;
+      this.#disconnect();
+      ctx.onstatechange = null;
       void ctx.close().catch(() => {});
+    }).finally(() => {
+      if (ctx === this.#ctx) this.#booting = false;
     });
     return this.#init;
   }
@@ -115,9 +141,12 @@ class AudioEngine implements AudioApi {
   /** Resume the context and play one silent sample (iOS only unlocks audio inside a gesture). */
   #unlock() {
     const ctx = this.#ctx;
-    if (!ctx || this.#userSuspended) return;
-    if (this.#silence?.paused) this.#playThroughSilentSwitch();
-    if (ctx.state !== 'running') void ctx.resume().catch(() => {});
+    if (!ctx || ctx.state === 'closed' || !this.#foreground()) return;
+    this.#playThroughSilentSwitch();
+    if (ctx.state !== 'running') {
+      // Invoke synchronously: a later promise continuation would lose iOS's user-gesture permission.
+      void ctx.resume().catch(() => {});
+    }
     if (this.#unlocked) return;
     try {
       const src = ctx.createBufferSource();
@@ -131,23 +160,101 @@ class AudioEngine implements AudioApi {
   }
 
   #listen() {
+    if (this.#listening) return;
+    this.#listening = true;
     const onGesture = () => {
-      if (!document.hidden) this.#unlock();
+      if (!this.#foreground()) return;
+      if (!this.#ctx && this.#needsRecovery) { void this.init(); return; }
+      this.#unlock();
+      if (this.#needsRecovery || this.#ctx?.state !== 'running' || !this.#ready) this.#recover();
     };
     for (const ev of ['pointerdown', 'keydown', 'touchend'] as const) {
       window.addEventListener(ev, onGesture, { capture: true, passive: true });
     }
     document.addEventListener('visibilitychange', () => {
-      const ctx = this.#ctx;
-      if (!ctx) return;
-      if (document.hidden) {
-        if (this.#autoSuspend) void ctx.suspend().catch(() => {});
-        this.#silence?.pause();
-      } else if (!this.#userSuspended) {
-        void ctx.resume().catch(() => {});
-        if (this.#silence) this.#playThroughSilentSwitch();
-      }
+      if (document.hidden) this.#background();
+      else { this.#pageHidden = false; this.#recover(); }
     });
+    window.addEventListener('pagehide', () => { this.#pageHidden = true; this.#background(); });
+    window.addEventListener('pageshow', () => { this.#pageHidden = false; this.#recover(); });
+    window.addEventListener('focus', () => { if (!document.hidden) this.#recover(); });
+  }
+
+  #foreground(): boolean {
+    return !this.#userSuspended && !this.#pageHidden && !document.hidden;
+  }
+
+  #cancelWake() {
+    this.#wakeEpoch++;
+    this.#wake = null;
+  }
+
+  #background() {
+    this.#cancelWake();
+    this.#needsRecovery = true;
+    this.#unlocked = false;
+    if (this.#autoSuspend) void this.#ctx?.suspend().catch(() => {});
+    this.#silence?.pause();
+  }
+
+  /** Resume, verify the actual clock, then try Safari's suspend/resume workaround before replacing anything. */
+  #recover() {
+    const ctx = this.#ctx;
+    if (!ctx || !this.#foreground() || this.#wake) return;
+    const epoch = this.#wakeEpoch;
+    this.#needsRecovery = true;
+    this.#unlock();
+    const valid = () => epoch === this.#wakeEpoch && ctx === this.#ctx && this.#foreground();
+    const moving = async () => {
+      const before = ctx.currentTime;
+      await pause(WAKE_CHECK_MS);
+      return ctx.state === 'running' && ctx.currentTime > before;
+    };
+    const recover = async () => {
+      if (await moving()) {
+        if (!valid()) return;
+        if (this.#ready || this.#booting) { this.#needsRecovery = false; return; }
+      }
+      if (!valid()) return;
+      if (ctx.state !== 'closed') {
+        await bounded(ctx.suspend(), SUSPEND_TIMEOUT_MS).catch(() => {});
+        if (!valid()) return;
+        this.#unlocked = false;
+        this.#unlock();
+        if (await moving()) {
+          if (!valid()) return;
+          if (this.#ready || this.#booting) { this.#needsRecovery = false; return; }
+        }
+      }
+      if (!valid()) return;
+      // A broken context cannot be repaired by resume(). Keep the latest song request and user volumes.
+      // Ordinary wakes above retain the exact synth position; this last resort restarts the current track.
+      if (!this.#pending && this.#current) this.#pending = { id: this.#current, fadeMs: 0 };
+      this.#ctx = null; // retire first: late worklet / state-change callbacks cannot affect the replacement
+      this.#ready = false;
+      this.#booting = false;
+      this.#init = null;
+      this.#unlocked = false;
+      this.#serial++;
+      this.#pos = { serial: -1, sec: 0, time: 0, state: 0 };
+      this.#disconnect();
+      ctx.onstatechange = null;
+      void ctx.close().catch(() => {});
+      await this.init();
+    };
+    const task = recover().catch((e: unknown) => this.#warn(`audio recovery failed: ${String(e)}`)).finally(() => {
+      if (this.#wake === task) this.#wake = null;
+    });
+    this.#wake = task;
+  }
+
+  #disconnect() {
+    const node = this.#node;
+    this.#node = null;
+    if (!node) return;
+    node.port.onmessage = null;
+    node.onprocessorerror = null;
+    node.disconnect();
   }
 
   /**
@@ -183,7 +290,7 @@ class AudioEngine implements AudioApi {
 
   async #boot(ctx: Ctx) {
     const wasmUrl = `${import.meta.env.BASE_URL}assets/audio/kempa_synth.wasm`;
-    const [bytes, songs] = await Promise.all([
+    const [bytes, songs] = await bounded(Promise.all([
       fetch(wasmUrl).then((r) => {
         if (!r.ok) throw new Error(`synth not found (${r.status} ${wasmUrl})`);
         return r.arrayBuffer();
@@ -195,9 +302,11 @@ class AudioEngine implements AudioApi {
           return {} as Record<string, Song>;
         }),
       ctx.audioWorklet.addModule(workletUrl),
-    ]);
+    ]), READY_TIMEOUT_MS);
+    if (ctx !== this.#ctx) return;
     this.#songs = songs;
     const node = new AudioWorkletNode(ctx, PROCESSOR, { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+    this.#node = node; // owned while booting too, so a failed or retired context can disconnect it
     node.connect(ctx.destination);
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('synth worklet did not start')), READY_TIMEOUT_MS);
@@ -213,10 +322,15 @@ class AudioEngine implements AudioApi {
       const msg: ToWorklet = { t: 'wasm', bytes };
       node.port.postMessage(msg, [bytes]);
     });
-    node.port.onmessage = (e: MessageEvent<FromWorklet>) => this.#onMessage(e.data);
+    if (ctx !== this.#ctx || node !== this.#node) return;
+    node.port.onmessage = (e: MessageEvent<FromWorklet>) => {
+      if (ctx === this.#ctx && node === this.#node) this.#onMessage(e.data);
+    };
     node.onprocessorerror = () => {
-      this.#warn('synth worklet crashed; audio is off until reload');
+      if (ctx !== this.#ctx || node !== this.#node) return;
+      this.#warn('synth worklet crashed; audio will recover on the next gesture or page return');
       this.#ready = false;
+      this.#needsRecovery = true;
     };
     this.#node = node;
     this.#ready = true;
@@ -237,6 +351,7 @@ class AudioEngine implements AudioApi {
     } else if (m.t === 'error') {
       this.#warn(m.message);
       this.#ready = false;
+      this.#needsRecovery = true;
     }
   }
 
@@ -385,13 +500,14 @@ class AudioEngine implements AudioApi {
 
   suspend(): void {
     this.#userSuspended = true;
+    this.#cancelWake();
+    this.#silence?.pause();
     void this.#ctx?.suspend().catch(() => {});
   }
 
   resume(): void {
     this.#userSuspended = false;
-    const hidden = typeof document !== 'undefined' && document.hidden;
-    if (this.#ctx && (!hidden || !this.#autoSuspend)) void this.#ctx.resume().catch(() => {});
+    this.#recover();
   }
 
   setAutoSuspend(on: boolean): void {

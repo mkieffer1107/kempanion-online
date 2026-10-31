@@ -450,9 +450,7 @@
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
         game.markHidden();
-        if (game.save.flags['ui.muteHidden'] !== false) audio.suspend();
       } else {
-        audio.resume();
         if (game.save.companion && game.hasSave) game.markVisible();
       }
       updateTitle();
