@@ -93,7 +93,7 @@ narrator: He pops the ball straight up. It hangs there for a second, then drops 
   piggy-1 laughing: Valid! Self-preservation is a skill.
   piggy-1 proud: Zero touches, zero injuries. Honestly better stats than mine today.
   [bond piggy-1 +15]
-piggy-1 happy: Real talk: sand courts, sunrise. You should come sometime.
+piggy-1 happy: Real talk: sand courts, after class. You should come sometime.
 piggy-1 shy_blush: No pressure! Just, like... a lot of hype.
 piggy-1 happy: Here. Team snack.
 [give oranges 1]
@@ -237,8 +237,8 @@ narrator: He tugs at his jersey like he's only just remembered he's wearing it.
 piggy-1 bashful_smile: This is the club uniform. It's, uh, teal.
 piggy-1 laughing: You've seen teal before. Okay, moving on!
 [bond piggy-1 +20]
-piggy-1 happy: Dawn patrol is the best part of the day. No classes, no group chats, just sand and reps.
-piggy-1 happy: Kempa's intake form asked about sleep. You answered: {fact:sleep|early bird}
+piggy-1 happy: I am NOT a morning person. The club got this court slot, so I set four alarms.
+piggy-1 happy: Kempa's intake form asked about sleep. You answered: {fact:sleep|not sure}
 piggy-1 laughing: Doesn't matter! Today, everybody's an early bird.
 piggy-1 happy: Serve receive! I serve, you pass it back to me.
 piggy-1 happy: First: platform. Arms together, thumbs side by side, like a USB plug.
@@ -285,7 +285,7 @@ narrator: He taps an easy serve over the net. It wobbles toward you, slow and fl
 narrator: Afterwards, you sit on the bench while the sun clears the trees. He hands you a sports drink without being asked.
 piggy-1 happy: Fun fact: electrolyte sports drinks were invented right here in 1965. The football team kept wilting!
 piggy-1 laughing: Florida invented a drink for being sweaty in Florida. Peak engineering.
-piggy-1 bashful_smile: I usually do dawn patrol alone. Which is fine!
+piggy-1 bashful_smile: I don't usually make dawn patrol. Having you here made the alarms worth it.
 piggy-1 bashful_smile: But this was... better. Same time next week, teammate?
 [set sakura_spike_bonus]
 [remember piggy-1 "Player came to dawn patrol at the sand courts with Piggy 1."]

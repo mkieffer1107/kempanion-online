@@ -12,7 +12,7 @@ export const EPITHET: Record<PigId, string> = {
 };
 
 export const CAST_LINE: Record<PigId, string> = {
-  'piggy-1': "First-year AIBHS master's · Kempa AI ambassador · volleyball",
+  'piggy-1': "First-year AIBHS master's · Kempa AI ambassador · healthcare AI",
   'piggy-2': 'MD · PGY-4 neurosurgery resident (research year)',
   'piggy-3': 'Builder · physics computational lab',
 };
@@ -144,7 +144,7 @@ export const CASHIER: Record<PigId, CashierLines> = {
 /** Location-specific greetings that replace the generic ones. */
 export const SHOP_GREET: Partial<Record<ShopLocation, Partial<Record<PigId, string[]>>>> = {
   midtown: {
-    'piggy-1': ['Late-night snack run? Respect. Practice is at seven, though!'],
+    'piggy-1': ['Late-night snack run? Perfect. I closed the paper before it could suggest five more papers.'],
     'piggy-2': ["It's late. Eat something, then sleep. Doctor's orders. Sleep-deprived doctor's."],
     'piggy-3': ['Oh, hey! Night owl club. The boba place next door is basically my second office.'],
   },
@@ -196,7 +196,7 @@ export const INTAKE_REACTION = {
     undecided: { speaker: 'piggy-1', expression: 'happy', text: "Undeclared is just a free ball. Every option's open!" },
   } as Record<WhyUf, MetaLine>,
   sleep: {
-    early: { speaker: 'piggy-1', expression: 'excited', text: 'Sunrise crew! Sand courts at six, teammate?' },
+    early: { speaker: 'piggy-1', expression: 'excited', text: 'Early bird? We can cover both shifts, teammate. Mine starts after dinner!' },
     night: { speaker: 'piggy-3', expression: 'happy', text: 'Night owl. Marston at 2 a.m. is basically my second apartment.' },
     nosleep: {
       speaker: 'piggy-2', expression: 'thinking',

@@ -76,8 +76,8 @@ describe('decay', () => {
   });
 
   test('a gap over 10 minutes is offline (×0.7)', () => {
-    const s = fresh('piggy-1', T(2026, 10, 28, 8));
-    advance(s, T(2026, 10, 28, 18));
+    const s = fresh('piggy-1', T(2026, 10, 28, 11));
+    advance(s, T(2026, 10, 28, 21));
     const n = s.pigs['piggy-1'].needs;
     expect(n.hunger).toBeCloseTo(80 - 6 * 1.2 * 0.7 * 10, 5);
     expect(n.fun).toBeCloseTo(80 - 5 * 1.2 * 0.7 * 10, 5);
@@ -161,18 +161,20 @@ describe('72 h welcome back', () => {
 
 describe('sleep', () => {
   test('the companion falls asleep at bedtime and wakes at wake time', () => {
-    const s = fresh('piggy-1', T(2026, 10, 28, 21, 0));
-    tickPresent(s, s.lastTick, T(2026, 10, 28, 22, 20));
+    const s = fresh('piggy-1', T(2026, 10, 29, 1));
+    tickPresent(s, s.lastTick, T(2026, 10, 29, 2, 25));
     expect(s.pigs['piggy-1'].asleep).toBe(false);
-    tickPresent(s, s.lastTick, T(2026, 10, 28, 22, 45));
+    tickPresent(s, s.lastTick, T(2026, 10, 29, 2, 30));
     expect(s.pigs['piggy-1'].asleep).toBe(true);
     expect(isAsleep(s, 'piggy-1', s.lastTick)).toBe(true);
     s.pigs['piggy-1'].needs.energy = 20;
     const hunger = s.pigs['piggy-1'].needs.hunger;
-    tickPresent(s, s.lastTick, T(2026, 10, 29, 2, 45), 15 * MIN);
+    tickPresent(s, s.lastTick, T(2026, 10, 29, 6, 30), 15 * MIN);
     expect(s.pigs['piggy-1'].needs.energy).toBeCloseTo(20 + 4 * 15, 5);
     expect(s.pigs['piggy-1'].needs.hunger).toBeCloseTo(hunger - 4 * 6 * 1.2 * 0.25, 5);
-    tickPresent(s, s.lastTick, T(2026, 10, 29, 6, 45));
+    tickPresent(s, s.lastTick, T(2026, 10, 29, 10, 25));
+    expect(s.pigs['piggy-1'].asleep).toBe(true);
+    tickPresent(s, s.lastTick, T(2026, 10, 29, 10, 30));
     expect(s.pigs['piggy-1'].asleep).toBe(false);
   });
 
@@ -195,20 +197,20 @@ describe('sleep', () => {
     expect(s.pigs['piggy-1'].asleep).toBe(false);
     expect(s.pigs['piggy-1'].needs.energy).toBeGreaterThan(70);
 
-    const night = fresh('piggy-1', T(2026, 10, 28, 21, 30));
-    noTasks(night);
-    const tuck = applyAction(night, 'piggy-1', 'sleep', undefined, T(2026, 10, 28, 21, 30));
+    const night = fresh('piggy-1', T(2026, 10, 29, 1, 30));
+    night.flags['pet.tasks'] = JSON.stringify({ d: '2026-10-29', ids: [], done: [] });
+    const tuck = applyAction(night, 'piggy-1', 'sleep', undefined, T(2026, 10, 29, 1, 30));
     expect(tuck.ok).toBe(true);
     expect(tuck.bondDelta).toBe(10);
     expect(night.counters.tuck_nights).toBe(1);
-    tickPresent(night, night.lastTick, T(2026, 10, 28, 22, 15));
+    tickPresent(night, night.lastTick, T(2026, 10, 29, 2, 15));
     expect(night.pigs['piggy-1'].asleep).toBe(true); // tucked in early: stays asleep into bedtime
-    const w = applyAction(night, 'piggy-1', 'wake', undefined, T(2026, 10, 28, 23, 0));
+    const w = applyAction(night, 'piggy-1', 'wake', undefined, T(2026, 10, 29, 3));
     expect(w.ok).toBe(true);
-    night.lastTick = T(2026, 10, 28, 23, 0);
-    tickPresent(night, night.lastTick, T(2026, 10, 28, 23, 20));
+    night.lastTick = T(2026, 10, 29, 3);
+    tickPresent(night, night.lastTick, T(2026, 10, 29, 3, 20));
     expect(night.pigs['piggy-1'].asleep).toBe(false);
-    tickPresent(night, night.lastTick, T(2026, 10, 28, 23, 40));
+    tickPresent(night, night.lastTick, T(2026, 10, 29, 3, 40));
     expect(night.pigs['piggy-1'].asleep).toBe(true);
   });
 });
@@ -265,11 +267,11 @@ describe('sickness', () => {
     advance(c, c.lastTick + 25 * H);
     expect(c.pigs['piggy-1'].sick).toBe(false);
     // overnight sleep with hunger ≥ 40
-    const o = fresh('piggy-1', T(2026, 10, 28, 22, 0));
+    const o = fresh('piggy-1', T(2026, 10, 29, 2, 0));
     o.pigs['piggy-1'].sick = true;
     o.pigs['piggy-1'].needs.hunger = 90;
     o.flags['pet.piggy-1.sickAt'] = o.lastTick;
-    tickPresent(o, o.lastTick, T(2026, 10, 29, 7, 0), 15 * MIN);
+    tickPresent(o, o.lastTick, T(2026, 10, 29, 11, 0), 15 * MIN);
     expect(o.pigs['piggy-1'].sick).toBe(false);
     // Doctor's Rounds needs Piggy 2 at ♥4
     const d = fresh('piggy-3');

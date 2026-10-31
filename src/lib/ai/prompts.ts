@@ -151,8 +151,8 @@ interface Shot {
 
 const SHOTS: Record<PigId, Shot[]> = {
   'piggy-1': [
-    { beat: 'Greeting', user: 'Morning! What are you up to?', expression: 'excited', state: 'Tue 7:05 AM · Sand Volleyball Courts · you feel cheerful · hearts 1' },
-    { beat: 'Explaining volleyball', user: 'How does volleyball even work?', expression: 'happy' },
+    { beat: 'Greeting', user: 'Hey! What are you up to?', expression: 'excited', state: 'Tue 2:05 PM · Malachowsky Hall · you feel cheerful · hearts 1' },
+    { beat: 'Research', user: 'How is your research going?', expression: 'excited' },
     { beat: 'Encouraging the player', user: 'I bombed my quiz today...', expression: 'loving' },
   ],
   'piggy-2': [

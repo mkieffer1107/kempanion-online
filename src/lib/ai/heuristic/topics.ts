@@ -17,7 +17,8 @@ import { PIG_NAME } from './world';
 
 const PASSION_CHIPS: Record<PigId, readonly string[]> = {
   'piggy-1': [
-    "How's volleyball?", 'Teach me a serve!', 'What are you coding?', "How's your serve?", 'Sports drink facts?',
+    "What do you research?", 'What are you coding?', 'What is language research?', "What's healthcare AI?", 'Why AI ethics?',
+    'Why economics?', "How's volleyball?", 'Teach me a serve!',
     'What was Germany like?', 'Say something in German!', 'Haikyu!! fave character?', 'Sand or indoor?',
     'Can I join your team?', 'Volleyball lingo?', 'Claude or Codex?', 'Favorite algorithm?', "Best bug you've fixed?",
   ],
@@ -63,7 +64,7 @@ function askedAboutX(history: readonly ChatTurn[], pig: PigId): boolean {
 const PASSION_AT: Partial<Record<PigId, Partial<Record<LocationId, readonly string[]>>>> = {
   'piggy-1': {
     volleyball_courts: ['Sand or indoor?', 'Can I join your team?', 'Volleyball lingo?', "How's your serve?"],
-    malachowsky: ['Favorite algorithm?', "Best bug you've fixed?", 'What are you coding?', 'Claude or Codex?'],
+    malachowsky: ["What do you research?", 'What is language research?', "What's healthcare AI?", 'Why AI ethics?', 'Why economics?', 'Favorite algorithm?', 'What are you coding?', 'Claude or Codex?'],
   },
   'piggy-2': {
     shands: ['Do you miss the OR?', "What's a research year?", 'Why neurosurgery?'],

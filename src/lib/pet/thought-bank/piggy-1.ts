@@ -1,5 +1,5 @@
 // Piggy 1's thought pool for the idle thought bubbles: 58 thoughts plus 4 sick ones (thoughts final.md §16.1).
-// Sunny hype-man: exclamation marks, stats, volleyball and code as metaphors for each other, "teammate" (and "captain"
+// Sunny night-owl researcher: exclamation marks, useful questions, stats and volleyball, "teammate" (and "captain"
 // only at tier:W), a little sheepish about his code. Germany is background (cap 3), food never reads as a want.
 // Data only: the seeded scheduler that picks from it is ../thoughts.ts. Row order is part of the data (weighted picks walk it).
 import type { PigThoughts, ThoughtDef, TopicRule } from './types';
@@ -27,8 +27,8 @@ const topics: Readonly<Record<string, TopicRule>> = {
 
 const thoughts: readonly ThoughtDef[] = [
   {
-    id: 'p1.sunrise-61', topic: 'volleyball', label: 'Sunrise #61', icon: 'sun', face: 'excited', when: ['time:morning'],
-    line: "Sunrise number 61 this semester, and I haven't gotten tired of a single one. Sixty-one for sixty-one!",
+    id: 'p1.sunrise-61', topic: 'volleyball', label: 'Rare sunrise', icon: 'sun', face: 'excited', when: ['time:morning'],
+    line: "Made a rare sunrise practice! Beautiful sky, terrible hour for a night owl.",
   },
   {
     id: 'p1.toss-left', topic: 'volleyball', label: 'Toss drifts left', icon: 'ball', face: 'laughing', when: ['place:volleyball_courts'],
@@ -79,36 +79,36 @@ const thoughts: readonly ThoughtDef[] = [
     line: "“Free ball!” is the nicest call in volleyball. It means: here's a gift, take your time, make it pretty.",
   },
   {
-    id: 'p1.flaky-test', topic: 'cs', label: 'Flaky test', icon: 'bug', face: 'thinking',
-    line: "One of my tests only passes on Tuesdays. I respect the schedule, but it's getting benched.",
+    id: 'p1.flaky-test', topic: 'cs', label: 'Suspicious column', icon: 'bug', face: 'thinking',
+    line: "One copied column made my model suspiciously accurate. Turns out cleaning the data was the exciting part!",
   },
   {
-    id: 'p1.bracket-tree', topic: 'cs', label: 'Bracket = tree', icon: 'laptop', face: 'thinking',
-    line: "A tournament bracket is just an upside-down binary tree! Every match is a node, and I'm aiming for the root.",
+    id: 'p1.bracket-tree', topic: 'cs', label: 'Evidence graph', icon: 'laptop', face: 'thinking',
+    line: "My evidence graph has one lonely node with no source. No imaginary connections on my watch, teammate!",
   },
   {
-    id: 'p1.two-pointers', topic: 'cs', label: 'Two pointers', icon: 'laptop', face: 'proud',
-    line: 'Solved a contest problem in fourteen minutes! Two pointers closing in, like two blockers sealing the seam.',
+    id: 'p1.two-pointers', topic: 'cs', label: 'Two valid readings', icon: 'laptop', face: 'proud',
+    line: 'Two of us labeled the same sentence differently. Best part: we both had a reason worth discussing!',
   },
   {
-    id: 'p1.sprite-16', topic: 'cs', label: '16x16 volleyball', icon: 'ball', face: 'proud',
-    line: "Spent two hours drawing a 16-by-16 volleyball sprite for my game. It's a circle— a REALLY good circle.",
+    id: 'p1.sprite-16', topic: 'cs', label: 'Tiny research demo', icon: 'laptop', face: 'proud',
+    line: "Built a tiny viewer for my research notes! Three clickable dots somehow became my entire evening.",
   },
   {
-    id: 'p1.merge-net', topic: 'cs', label: 'Merge conflict', icon: 'bug', face: 'thinking',
-    line: 'Merge conflicts and net violations are the same call: two of us touched the same thing. Replay the point!',
+    id: 'p1.merge-net', topic: 'cs', label: 'One swapped label', icon: 'bug', face: 'thinking',
+    line: 'Swapped one annotation and the whole example made sense. Tiny label, enormous plot twist!',
   },
   {
     id: 'p1.coverage-92', topic: 'cs', label: 'Coverage: 92%', icon: 'stats', face: 'thinking',
-    line: 'Test coverage hit 92%. The missing 8% is where the bug hides, like a ball in the back corner.',
+    line: 'Coverage says 92%, but I still write down which cases fail. The awkward examples deserve their own little spotlight!',
   },
   {
     id: 'p1.pair-prog', topic: 'cs', label: 'Pair programming', icon: 'laptop', face: 'happy',
     line: 'Pair-programming with Piggy 3 is like sand doubles: he reads the court, I chase everything. Great split!',
   },
   {
-    id: 'p1.hackathon-plan', topic: 'cs', label: 'Hackathon plan', icon: 'log', face: 'laughing', when: ['day:weekday'],
-    line: 'Hackathon plan: code, snack, code, nap, code. Piggy 2 crossed out two of the codes and wrote SLEEP.',
+    id: 'p1.hackathon-plan', topic: 'cs', label: 'Demo labels', icon: 'log', face: 'laughing', when: ['day:weekday'],
+    line: 'My demo finally explains its own plot! Piggy 2 asked one question and I immediately added three clearer labels.',
   },
   {
     id: 'p1.haikyu-hype', topic: 'haikyu', label: 'Haikyu!! hype', icon: 'manga', face: 'excited',
@@ -136,7 +136,7 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.winter-sunrise', topic: 'germany', label: 'Sunrise at 8:15?!', icon: 'moon', face: 'laughing', when: ['time:morning'],
-    line: "In German winter, the sun didn't come up until 8:15. I had to WAIT for my own sunrise practice!",
+    line: "German winter taught me that sunrise can arrive late too. Finally, a sky that understands my schedule!",
   },
   {
     id: 'p1.spaghettieis', topic: 'germany', label: 'Spaghettieis', icon: 'vegan_ice_cream', face: 'shy_blush', when: ['tier:FW'],
@@ -147,8 +147,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: "In German I had to pick “du” or “Sie” for every new person. Here everybody's just “teammate,” which is way easier!",
   },
   {
-    id: 'p1.electrolytes', topic: 'food', label: 'Electrolytes!', icon: 'sideline_sip', face: 'proud',
-    line: "Electrolytes are teammates for your cells: sodium sets, potassium spikes. Piggy 2 says that's not how it works.",
+    id: 'p1.electrolytes', topic: 'food', label: 'Warm drink', icon: 'sideline_sip', face: 'proud',
+    line: "I brought my drink to a research meeting and spent ten minutes explaining my spreadsheet. The drink got warm!",
   },
   {
     id: 'p1.orange-count', topic: 'food', label: 'Orange count: 4/6', icon: 'oranges', face: 'proud', when: ['time:day'],
@@ -159,24 +159,24 @@ const thoughts: readonly ThoughtDef[] = [
     line: "Half a tender sub and I'm hungry again by two. Whole sub it is— the data has spoken!",
   },
   {
-    id: 'p1.tiny-volleyballs', topic: 'food', label: 'Tiny volleyballs', icon: 'boba_tea', face: 'laughing',
-    line: "Boba pearls are tiny volleyballs. I'm not saying I bump them up the straw, but I'm not NOT saying it.",
+    id: 'p1.tiny-volleyballs', topic: 'food', label: 'Boba notebook', icon: 'boba_tea', face: 'laughing',
+    line: "Boba break with a notebook: one page of project ideas, three doodles, and a very ambitious snack budget!",
   },
   {
     id: 'p1.forgot-lunch', topic: 'food', label: 'Forgot lunch again', icon: 'feed', face: 'sad', when: ['need:hungry'],
-    line: 'Packed knee pads, three chargers, and a spare ball... and forgot lunch. My priorities need a time-out.',
+    line: 'Packed three chargers, a poster draft, and notes for a new student... but no lunch. Logistics: still under review!',
   },
   {
     id: 'p1.nook-taken', topic: 'campus', label: 'Nook taken!', icon: 'book', face: 'angry', when: ['place:malachowsky'],
-    line: "Someone's in MY Malachowsky nook! Fine, I took the next one over— it's a rebuilding year.",
+    line: "Someone took my favorite study nook! We ended up sharing the outlet and talking about our projects.",
   },
   {
     id: 'p1.beat-elevator', topic: 'campus', label: 'Beat the elevator', icon: 'medal_gold', face: 'proud', when: ['place:malachowsky'],
     line: "Raced the Malachowsky elevator up four floors and won by two seconds. The elevator doesn't know it lost.",
   },
   {
-    id: 'p1.turtle-lineup', topic: 'campus', label: 'Turtle lineup', icon: 'turtle', face: 'happy', when: ['place:lake_alice'],
-    line: "Nine turtles sunning on one Lake Alice log, perfectly spaced. That's a better serve-receive formation than ours!",
+    id: 'p1.turtle-lineup', topic: 'campus', label: 'Turtle lineup', icon: 'turtle', face: 'happy', when: ['time:day'],
+    line: "Saw nine turtles on a Lake Alice log! Notebook stayed shut; their afternoon had absolutely no deadlines.",
   },
   {
     id: 'p1.game-day', topic: 'campus', label: 'Game day!', icon: 'pennant', face: 'excited', when: ['day:gameday'],
@@ -188,10 +188,10 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.midtown-slice', topic: 'campus', label: 'Midtown: one slice', icon: 'pizza_slice', face: 'happy', when: ['place:midtown'],
-    line: "Midtown rule: one slice, one walk, and home by 10:30. I've only broken it twice!",
+    line: "Midtown walk after a late work session! Pizza, bright windows, and finally a conversation without a bibliography.",
   },
   {
-    id: 'p1.based-count', topic: 'friends', label: 'Based count: 14', icon: 'talk', face: 'proud', when: ['with:piggy-2'],
+    id: 'p1.based-count', topic: 'friends', label: 'Based count: 14', icon: 'talk', face: 'proud', when: ['with:piggy-3'],
     line: "Piggy 2 said “Based” fourteen times today, and I said “Let's go” thirty-one times. We're both winning!",
   },
   {
@@ -220,7 +220,7 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.lunch-assist', topic: 'player', label: 'Lunch assist', icon: 'hunger', face: 'loving', when: ['time:day'],
-    line: 'Hope you ate real food today, teammate. Snacks are the assist, but lunch is the kill.',
+    line: 'Hope you made room for lunch, teammate! My latest experiment: closing the laptop while I eat.',
   },
   {
     id: 'p1.loudest-cheer', topic: 'player', label: 'Loudest cheer', icon: 'heart', face: 'flustered_blush', when: ['tier:W'],
@@ -228,23 +228,23 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.good-luck-text', topic: 'player', label: 'Good-luck text', icon: 'kempapager', face: 'affectionate_blush', when: ['tier:W'],
-    line: "Sunrise practice is better when I know you'll text “nice serve” later. You don't even have to see the serve.",
+    line: "Your good-luck text is pinned above my notes, captain. It has survived three reorganizations and one juice spill!",
   },
   {
     id: 'p1.pink-carton', topic: 'player', label: 'Pink carton', icon: 'strawberry_milk', face: 'shy_blush', when: ['secret'],
-    line: "You know about the strawberry milk, so: a cold carton after sunrise practice beats any trophy. Don't tell the team.",
+    line: "You know about the strawberry milk: one cold carton after evening practice, just for me. Our tiny secret!",
   },
   {
     id: 'p1.sitting-52', topic: 'life', label: '52 min of sitting', icon: 'play', face: 'sad', when: ['need:bored'],
-    line: "Fifty-two minutes in a chair— that's two whole sets! Quick pepper break, even just two touches?",
+    line: "Fifty-two minutes staring at an abstract, then a walk made it click! Apparently the chair was not helping.",
   },
   {
     id: 'p1.keyboard-sand', topic: 'life', label: 'Keyboard sand', icon: 'wash', face: 'confused', when: ['need:dirty'],
     line: 'Found sand in my keyboard, my sock, and somehow my granola bar. Bath before it reaches the code?',
   },
   {
-    id: 'p1.fifth-set', topic: 'life', label: 'Fifth-set energy', icon: 'moon', face: 'sleepy', when: ['time:late'],
-    line: "Bedtime's calling, so this is my fifth set. Fifth sets go to fifteen points, and my energy is at, like, three.",
+    id: 'p1.fifth-set', topic: 'life', label: 'Desk lamp hours', icon: 'moon', face: 'happy', when: ['time:late'],
+    line: "Quiet house, warm lamp, and one promising paper! Night-owl hours are excellent until I forget where I left my snack.",
   },
   {
     id: 'p1.birthday-serves', topic: 'birthday', label: 'Birthday serves', icon: 'cake', face: 'excited', when: ['date:09-04'],
@@ -260,7 +260,7 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.sick-bench', topic: 'sick', label: 'Benched today', icon: 'ball', face: 'sad',
-    line: "Coach calls this a rest day. I call it the longest bench of my life, and I'm waiting to be subbed back in.",
+    line: "Rest-day achievement: left my research notebook closed! I am accepting congratulations from the couch.",
   },
   {
     id: 'p1.sick-rewatch', topic: 'sick', label: 'Haikyu!! rewatch', icon: 'manga', face: 'happy',
@@ -272,7 +272,7 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p1.sick-sips', topic: 'sick', label: 'Tiny timeouts', icon: 'sideline_sip', face: 'sleepy',
-    line: "Small sips, like timeouts between points. I'm winning this match slowly— very slowly.",
+    line: "Tea, tissues, and the least ambitious to-do list I have ever written. One item: get cozy!",
   },
 ];
 

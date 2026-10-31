@@ -130,12 +130,12 @@ export const LINES = {
     'piggy-3': ['Wait— my curls have a build process. You are breaking it.'],
   },
   sleepTalk: {
-    'piggy-1': ['...mine... mine... got it...', '...zzz... side out...'],
+    'piggy-1': ['...mine... mine... got it...', '...zzz... check the labels...'],
     'piggy-2': ['...perfusion... excellent...', '...zzz... based...'],
     'piggy-3': ["...five more minutes... job's almost done...", '...zzz... ship it...'],
   },
   tuck: {
-    'piggy-1': ["Practice at seven. You'll still be here, right? ...Night!"],
+    'piggy-1': ["Okay, laptop closed. The paper can wait. You'll still be here tomorrow, right? ...Night!"],
     'piggy-2': ['Sleep clears the brain. Glymphatics. Based. Goodnight.'],
     'piggy-3': ["Five more minutes, the job's almost— okay. Fine. Night. Thanks."],
   },
@@ -145,7 +145,7 @@ export const LINES = {
     'piggy-3': ["Okay, just resting my eyes. I'm still thinking."],
   },
   notSleepy: {
-    'piggy-1': ["Sleep? Now? The sun's still up! Let's rally!"],
+    'piggy-1': ["Sleep? I'm still working through this idea. Give me one more page!"],
     'piggy-2': ['Energy adequate. Sleep later. Promise.'],
     'piggy-3': ["I'm not tired. Okay, a little. Not nap tired."],
   },
@@ -266,11 +266,11 @@ export interface DiaryEntry { did: string; line: string; when?: 'night' | 'day' 
 
 export const DIARY: Record<PigId, readonly DiaryEntry[]> = {
   'piggy-1': [
-    { did: 'ran sunrise drills at the sand courts.', line: 'You missed a SICK rally. I will reenact it!', when: 'day' },
-    { did: 'updated his serve-stats spreadsheet.', line: "87.5% this week. Okay, it's a spreadsheet. A really good one." },
+    { did: 'met his study group at Malachowsky.', line: 'We finally agreed on what the labels mean. That counts as progress!', when: 'day' },
+    { did: 'checked a research dataset for duplicate examples.', line: 'Found the same example in two splits. Good catch before the victory lap!' },
     { did: 'dug a volleyball out of a sakura tree.', line: "Counts as a save. I'm counting it." },
-    { did: 'did homework in his Malachowsky nook.', line: 'A rotation IS a circular buffer. I am a genius. Maybe.', when: 'day' },
-    { did: 'slept like a libero.', line: 'Eight hours! Recovery is part of training!', when: 'night' },
+    { did: 'read about explainable AI in his Malachowsky nook.', line: 'I want to see which evidence changed the answer, not just the confidence score.', when: 'day' },
+    { did: 'followed a trail of research papers past midnight.', line: 'One citation became six tabs. I did leave myself notes this time!', when: 'night' },
     { did: 'taught a squirrel to bump. Kind of.', line: 'It stole my orange. Respect, honestly.', when: 'day' },
   ],
   'piggy-2': [

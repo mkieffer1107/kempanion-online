@@ -1,48 +1,48 @@
-// Piggy 1 — sunny first-year AIBHS master’s student and Kempa AI ambassador, club volleyball outside hitter, hype-man, stat-keeper. Calls you "teammate".
+// Piggy 1 — sunny first-year AIBHS master’s student, Kempa AI ambassador, night-owl researcher and volleyball teammate.
 import type { PigLines } from './types';
 import { CRISIS_CALL } from '../../quirks';
 
 export const P1: PigLines = {
   chat: {
     greeting: [
-      ["excited", "Hey, {player}! Perfect timing. I just finished my 50th serve!", { a: "wave" }],
-      ["happy", "Teammate! You found me. Free ball, let's talk!", { a: "wave" }],
-      ["excited", "Oh, hi! I was literally about to text you. Great minds, same rotation!"],
-      ["happy", "Hey hey! You, me, {place}. The starting lineup looks good."],
-      ["happy", "Hey! Nice to see you on the court— well, off the court. You know what I mean!", { tier: "NF" }],
+      ["excited", "Hey, {player}! Perfect timing. I finally got this explanation to make sense!", { a: "wave" }],
+      ["happy", "Teammate! You found me. I saved you the comfy chair!", { a: "wave" }],
+      ["excited", "Oh, hi! I was literally about to text you. Great minds, excellent timing!"],
+      ["happy", "Hey hey! You, me, {place}. Pretty good plan already!"],
+      ["happy", "Hey! I have a new project to show you. After you tell me about your day!", { tier: "NF" }],
       ["bashful_smile", "Hey, {player}. …Okay, today just got way better. Don't tell my stats spreadsheet.", { tier: "W" }],
       ["affectionate_blush", "{player}! Captain, I saved you a spot. I always save you a spot.", { tier: "W" }],
     ],
     farewell: [
       ["happy", "Good rally today. Same time tomorrow?", { a: "wave" }],
       ["excited", "Later, teammate! Hydrate! That's Piggy 2's line, but it's a good line.", { a: "wave" }],
-      ["happy", "See ya! I'll be at the sand courts at dawn if you need a hype-man.", { a: "wave" }],
-      ["sad", "Aw, already? Okay. Next rally's ours, {player}!", { a: "wave" }],
+      ["happy", "See ya! Message me later if you need a hype-man. Later is my best hour!", { a: "wave" }],
+      ["sad", "Aw, already? Tell me how it goes, {player}! I'm rooting for you!", { a: "wave" }],
       ["happy", "Side out! You're free to go. Thanks for hanging out!", { a: "wave", tier: "N" }],
       ["bashful_smile", "Bye, captain. …Text me when you get home, okay?", { a: "wave", tier: "W" }],
     ],
     // "Thank you." is also a quick reply under the crisis and medical lines (ai/topics.ts GENTLE_CHIPS): every
     // answer here has to work there too (no high fives, no stats).
     thanks: [
-      ["happy", "Anytime, teammate! That's what the rotation is for."],
+      ["happy", "Anytime, teammate! You don't have to figure everything out alone."],
       ["happy", "Always. You're on my team, and I've got you."],
-      ["happy", "Of course! Nobody touches the ball twice in a row, but everybody helps."],
-      ["loving", "I've got your back. Every rally, every day."],
+      ["happy", "Of course! I'm glad you asked. Really."],
+      ["loving", "I've got your back. Good days and the messy ones too."],
       ["bashful_smile", "Hey, you'd do the same. You literally have done the same.", { tier: "FW" }],
     ],
     how_are_you: [
-      ["excited", "Great! I'm 9 for 10 on serves today, and the tenth one hit a squirrel. He's fine, just mad."],
-      ["happy", "Honestly? Pumped: two commits and a sand session before 9. Let's goooo!"],
-      ["happy", "Good! Little sore from practice, but sore means progress. How about you, teammate?"],
-      ["proud", "I'm like a perfect set: right where I need to be. Okay, that was corny, but true!"],
+      ["excited", "Great! My model finally beat the simple baseline. Now I get to find out WHY!"],
+      ["happy", "Honestly? Pumped! A paper, two commits, and a really good question I can't stop thinking about."],
+      ["happy", "Good! Had a late night untangling some data, so today includes a proper break. How about you?"],
+      ["proud", "Pretty good! Helped a new student find their lab. Best part of being an ambassador!"],
       ["bashful_smile", "Better now that you asked. Seriously. How are YOU?", { tier: "FW" }],
     ],
     "how_are_you:hungry": [
-      ["sad", "Real talk? I've been running on one sports drink since 6 a.m. Tender sub run?", { a: "hungry" }],
+      ["sad", "Real talk? I got absorbed in my notes and missed lunch. Tender sub run?", { a: "hungry" }],
       ["sad", "Okay, honestly? My stomach just called a time-out. It wants a snack.", { a: "hungry" }],
     ],
     "how_are_you:tired": [
-      ["sleepy", "I think I'm… *yawn*… at like 12% battery. Wake me up for nationals.", { a: "yawn" }],
+      ["sleepy", "I think I'm… *yawn*… at like 12% battery. The abstract can wait. Nap first.", { a: "yawn" }],
       ["sleepy", "Tired, but good tired! Practice tired. Okay, also homework tired.", { a: "yawn" }],
     ],
     "how_are_you:sick": [
@@ -58,10 +58,10 @@ export const P1: PigLines = {
       ["excited", "Top of the rotation! I could spike the moon right now!", { a: "jump" }],
     ],
     whats_up: [
-      ["happy", "Debugging a circular queue. It's basically a volleyball rotation, so I'm winning."],
-      ["excited", "Just tracked my serves: 87.5% this week! Okay, it's a spreadsheet. A REALLY good spreadsheet."],
-      ["happy", "Waiting for practice and pretending to read about hash maps. Wanna pretend with me?"],
-      ["proud", "Planning a hackathon project and a tournament at the same time. Totally manageable. Probably."],
+      ["happy", "Checking whether my model learned the task or just memorized a giveaway in the data. Sneaky little thing!"],
+      ["excited", "Drawing a tiny knowledge graph! Connecting the right sources feels like finishing a puzzle."],
+      ["happy", "Reading about how people interpret the same sentence differently. Want to try an example?"],
+      ["proud", "Planning a research demo, an ambassador event, AND practice. My calendar has requested a meeting."],
       ["happy", "Trying to get Piggy 2 to say “Let's go!” He keeps saying “Based.” I'm counting it."],
       ["happy", "Not much! Hanging at {place}, counting squirrels. Eleven so far, and one is staring at my snack."],
     ],
@@ -69,14 +69,14 @@ export const P1: PigLines = {
     "whats_up:tired": [["sleepy", "Fighting a nap. The nap is winning, two sets to zero.", { a: "yawn" }]],
     compliment_looks: [
       ["happy", "Ha, thanks! It's the fringe. Five extra centimeters of hype.", { tier: "N" }],
-      ["laughing", "You think so? I've been diving in sand since 6. This is my “after” look!", { tier: "N" }],
+      ["laughing", "You think so? This is my “stayed up fixing one tiny thing” look. Apparently it works!", { tier: "N" }],
       ["shy_blush", "Wait, really? Oh. Cool, that's— cool.", { tier: "F" }],
       ["flustered_blush", "Me? Okay, I'm gonna be thinking about that during warmups. Thanks, teammate.", { tier: "F" }],
       ["bashful_smile", "…You're gonna make me miss a serve, saying stuff like that.", { tier: "W" }],
       ["affectionate_blush", "Captain, you can't just say that. …Okay, you can. Say it again?", { tier: "W" }],
     ],
     compliment_skill: [
-      ["proud", "Thanks! I'm 9 for 10 today, so the data agrees with you!"],
+      ["proud", "Thanks! I finally explained it without needing six footnotes. Huge win!"],
       ["excited", "Kill! Did you SEE that? I mean, thank you!", { a: "celebrate" }],
       ["happy", "Team effort! You're on the team, so that's also a compliment to you."],
       ["shy_blush", "Oh, come on. You're making me blush on main court.", { tier: "NF" }],
@@ -134,8 +134,8 @@ export const P1: PigLines = {
       ["happy", "Piggy 1. You can also call me “the loud one.” Both work!"],
     ],
     ask_about_self: [
-      ["excited", "First-year AIBHS master’s student, club volleyball outside hitter, morning person. Basically a sunrise with a laptop!"],
-      ["happy", "I think life's a rally. Keep the ball off the floor and set up whoever's open."],
+      ["excited", "First-year AIBHS master’s student, Kempa AI ambassador, night owl! Curious researcher, loud teammate, and still an outside hitter."],
+      ["happy", "I like clear explanations and good questions! Also making sure nobody feels like the only confused person in the room."],
       ["proud", "I keep stats on everything: serves, sleep, snacks. Forty-seven tender subs this year. Personal record."],
       ["happy", "I'm loud, I'm competitive, and I cheer for everybody. Including you. Especially you."],
       ["shy", "Too nerdy for the team, too jocky for the lab. Don't tell anyone I said that.", { tier: "FW" }],
@@ -157,20 +157,20 @@ export const P1: PigLines = {
       ["happy", "Blood type O. Universal donor, universal teammate. It tracks!"],
     ],
     "ask_about_self:job": [
-      ["excited", "I’m the KEMPA AIBHS program ambassador! First-year master’s student too. Before UF, I was a researcher in Germany."],
-      ["happy", "Kempa AI program ambassador, AIBHS master’s student, teammate on call! I used to do research in Germany. Still count my reps in German: eins, zwei…"],
+      ["excited", "I’m the KEMPA AIBHS program ambassador and a first-year master’s student! I study useful, understandable AI and did research in Germany."],
+      ["happy", "Kempa AI ambassador, AIBHS master’s student, teammate on call! Research, welcoming new people, and the occasional very loud volleyball game."],
     ],
     ask_major: [
       ["happy", "First-year master’s in AI in Biomedical and Health Sciences! AIBHS for short. I still basically live in Malachowsky."],
-      ["excited", "AIBHS: AI in Biomedical and Health Sciences! Learning to build AI that helps people. With a LOT of volleyball metaphors."],
+      ["excited", "AIBHS: AI in Biomedical and Health Sciences! I want to understand how models reach answers, especially when people depend on them."],
       ["proud", "First-year AIBHS master’s student! I’m also the KEMPA AIBHS program ambassador. Ask me about the program, teammate!"],
-      ["thinking", "AI in Biomedical and Health Sciences, master’s year one! Still coding, still learning. Every good model needs practice reps."],
+      ["thinking", "AI in Biomedical and Health Sciences, master’s year one! My CS and economics background means I ask about both the model and the tradeoffs."],
     ],
     ask_hobby: [
-      ["excited", "Volleyball! And coding, and volleyball stats, which is both. Efficiency!"],
-      ["happy", "Sunrise sand practice, game dev, and cheering at literally any sport."],
+      ["excited", "Volleyball, building little tools, and explaining a paper until it finally clicks. That last one counts as fun!"],
+      ["happy", "Evening sand volleyball, game dev, German conversation, and late-night research rabbit holes!"],
       ["happy", "Haikyu!! rewatches with Piggy 3. He says One Piece is better. He's wrong, respectfully!"],
-      ["proud", "Competitive programming! It's like a tournament, but nobody dives into sand."],
+      ["proud", "Coding challenges! Also asking why a simple model worked better than the fancy one. Extremely my kind of mystery."],
       ["happy", "High-fiving strangers on the Plaza. It counts as a hobby if you do it enough."],
     ],
     ask_favorite_food: [
@@ -188,9 +188,9 @@ export const P1: PigLines = {
       ["happy", "A tender sub after a lost set. Okay, after a won set too. Comfort food doesn't check the score!"],
     ],
     "ask_where:self": [
-      ["happy", "Malachowsky by day, sand courts at dawn and dusk. Right now? {place}!"],
+      ["happy", "Labs and Malachowsky for research, courts for evening volleyball, then late-night code. Right now? {place}!"],
       ["proud", "Find the loudest corner of Malachowsky. That's me. Or follow the sound of “MINE!” to the courts."],
-      ["happy", "Mornings in Malachowsky, lunch on the Plaza, sand courts after. I'm very findable!"],
+      ["happy", "Malachowsky when I'm awake by day, sand courts in the evening, and a late-night desk lamp. I'm very findable!"],
     ],
     "ask_where:other": [
       ["thinking", "{other}? Probably at {otherplace} right now. That's his rotation!"],
@@ -204,11 +204,11 @@ export const P1: PigLines = {
       ["thinking", "Piggy 2 basically lives at the Communicore, Piggy 3 at the Physics Building. I live wherever there's a net!"],
     ],
     ask_schedule: [
-      ["proud", "Dawn: sand courts, Tuesday, Thursday, Saturday. Morning: Malachowsky. Lunch: the Plaza."],
-      ["happy", "Bed by 10:30, up at 6:30. I'm a machine. A sleepy machine."],
+      ["proud", "Night owl, teammate! I do my best reading late. Daytime is for labs, class, and welcoming new people."],
+      ["happy", "Late coding, a proper sleep, then back to research. Early alarms and I are still negotiating."],
       ["excited", "Practice at dusk Monday, Wednesday, and Friday! Come watch. Or play, mostly play!"],
-      ["happy", "Friday lunch is Pig Pen Friday on the Plaza, all three of us. It's mandatory. I made it mandatory."],
-      ["thinking", "Class, practice, homework, repeat. I color-coded it. It's a very rainbow week."],
+      ["happy", "Pig Pen Friday is a tradition! I bring the hype whenever the three of us can get together."],
+      ["thinking", "Class, research, ambassador stuff, practice. I color-coded it, then added breaks. Personal growth!"],
     ],
     hungry_talk: [
       ["excited", "Same! Tender sub run? I'll race you to the Reitz!", { a: "run_right" }],
@@ -218,7 +218,7 @@ export const P1: PigLines = {
       ["happy", "Hunger is just your body calling a time-out. Answer the call!"],
     ],
     "hungry_talk:needy": [
-      ["sad", "Okay, real talk: I've been running on one sports drink since 6 a.m. Feed us both?", { a: "hungry" }],
+      ["sad", "Okay, real talk: research notes are not lunch. I checked. Feed us both?", { a: "hungry" }],
       ["sad", "Hungry? Me too. My stomach just threw a StackOverflowError.", { a: "hungry" }],
       ["sad", "Ball's up! …Oh wait. That's just my stomach.", { a: "hungry" }],
     ],
@@ -226,12 +226,12 @@ export const P1: PigLines = {
       ["thinking", "Rest is part of training! Even pros take time-outs."],
       ["happy", "Sleep is the best recovery protocol. Piggy 2 told me. Many, many times."],
       ["sleepy", "Power nap! Twenty minutes, then we go again."],
-      ["happy", "Go recharge, teammate. I need you at full battery for tomorrow's rally!"],
+      ["happy", "Go recharge, teammate. Your work will still be there after you've rested."],
     ],
     "tired_talk:needy": [
       ["sleepy", "Same. I did sprints AND a problem set. I'm mostly couch now.", { a: "yawn" }],
       ["sleepy", "Yeah… my legs filed a complaint with my brain. The brain approved it.", { a: "yawn" }],
-      ["sleepy", "I think I'm… *yawn*… at like 12% battery. Wake me up for nationals.", { a: "yawn" }],
+      ["sleepy", "I think I'm… *yawn*… at like 12% battery. The abstract can wait. Nap first.", { a: "yawn" }],
     ],
     sick_talk: [
       ["sad", "Oh no! Rest up, teammate. I'll bring oranges, because vitamin C is a team sport."],
@@ -244,9 +244,9 @@ export const P1: PigLines = {
       ["sick", "I think I caught something at practice. Can you sit with me so I'm not just staring at the ceiling?", { a: "sick" }],
     ],
     food_offer: [
-      ["excited", "A snack?! You're officially my setter. Nice set!"],
+      ["excited", "A snack?! You remembered! My notes were getting dangerously close to becoming dinner."],
       ["happy", "For me? Team snack! Let's split it, that's the rule."],
-      ["happy", "Yes, please! Fuel for the next rally!"],
+      ["happy", "Yes, please! Research break with my favorite teammate!"],
       ["excited", "Free ball! I mean, free food! Same energy!"],
     ],
     "food_offer:love": [
@@ -303,14 +303,14 @@ export const P1: PigLines = {
     "ask_favorite_food:boiled_peanuts": [["confused", "Boiled peanuts? They're WET peanuts, teammate. I'll pass."]],
     study: [
       ["happy", "Study session? I'm in! I'll bring snacks and an unreasonable number of highlighters."],
-      ["proud", "Pro tip: fifty minutes on, ten minutes off. Like sets with a break between."],
-      ["excited", "Homework is just practice reps. Rep it out!"],
+      ["proud", "Let's pick one question and work through a small example. Then take an actual break!"],
+      ["excited", "Explaining it out loud helps me spot what I don't understand yet. Want to teach each other?"],
       ["happy", "Malachowsky's got the best study nook in Gainesville. Windows, outlets, and the AI lab is right there."],
-      ["thinking", "Stuck? Break it into rotations, one small problem at a time. Nobody touches the ball twice!"],
+      ["thinking", "Stuck? Let's find the first step that feels unclear. We can start right there, teammate."],
     ],
     exam_stress: [
-      ["loving", "Hey. We just lost one point, not the set. You've got this."],
-      ["happy", "Treat it like a serve receive: breathe, platform, pass. You know more than you think."],
+      ["loving", "Hey. One tough exam doesn't define you. Let's figure out what would help right now."],
+      ["happy", "Try one small practice problem with me. No timer, no performance. We're just figuring it out."],
       ["proud", "Game plan: review sets, snack breaks, and real sleep. Piggy 2 made me add the sleep part."],
       ["excited", "Quiz me! Or I quiz you. Loser buys oranges!"],
       ["loving", "Whatever the grade is, you're still on my team. That's not on the syllabus.", { tier: "FW" }],
@@ -318,7 +318,7 @@ export const P1: PigLines = {
     player_sad: [
       ["loving", "Hey. We just lost one point, not the set. Next rally's ours.", { a: "pet_reaction" }],
       ["sad", "Aw, teammate. Want to talk about it, or want me to just sit here? Both are options.", { a: "sit_down" }],
-      ["loving", "Bad days happen to everyone. Even setters shank sometimes. You're still my teammate."],
+      ["loving", "You don't have to turn this into a lesson or a win. I'm happy to just be here with you."],
       ["loving", "Come here, team huddle. …Okay, it's just me, but I'm a very good huddle.", { a: "love" }],
       ["thinking", "If it's more than a bad day, UF's Counseling & Wellness Center is real and good. I'm here too.", { tier: "FW" }],
       ["affectionate_blush", "You don't have to be “on” with me. I'll cheer loud enough for both of us today.", { tier: "W" }],
@@ -327,15 +327,15 @@ export const P1: PigLines = {
       ["excited", "LET'S GOOOO! That's a kill! Point to you!", { a: "celebrate" }],
       ["excited", "Yes! I knew you could do it! Up top!", { a: "jump" }],
       ["proud", "I'm logging this in the stats. Category: teammate wins. Count: one more!"],
-      ["happy", "That's amazing! Tell me EVERYTHING. Play by play!"],
+      ["happy", "That's amazing! Tell me EVERYTHING. What part are you proudest of?"],
       ["excited", "Ace! You're on fire today! I'm so proud of you!", { a: "celebrate" }],
     ],
     bored: [
-      ["excited", "Bored? Pepper drills! I bump, you set, we never stop!", { a: "play_ball" }],
+      ["excited", "Bored? We could build a tiny game! One button, one silly idea, unreasonable enthusiasm!", { a: "play_ball" }],
       ["happy", "Let's race to Century Tower! Ready? Free ball— GO!", { a: "run_right" }],
       ["excited", "Sakura Spike at the courts! I'll go easy on you. …Probably."],
-      ["happy", "We could count squirrels on the Plaza. I'm at eleven, and it's competitive."],
-      ["proud", "Wanna learn a jump serve? Step one: believe. Step two: actually jump."],
+      ["happy", "Want a paper rabbit hole, a campus walk, or a very silly coding challenge? You pick!"],
+      ["proud", "Wanna help with my research demo? I need someone to tell me where the explanation gets confusing."],
     ],
     weather: [
       ["happy", "Every weather is volleyball weather if you believe!"],
@@ -348,7 +348,7 @@ export const P1: PigLines = {
     ],
     "weather:hot": [
       ["happy", "Hot? That's why sports drinks were invented here! UF science, baby!"],
-      ["excited", "That's why I practice at dawn. By noon the air is basically soup!"],
+      ["excited", "Evening practice, please! By noon the air is basically soup."],
     ],
     "weather:cold": [
       ["laughing", "Cold?! It's sixty degrees. Gainesville just broke out the parkas."],
@@ -371,7 +371,7 @@ export const P1: PigLines = {
       ["excited", "Pick a spot and I'll race you there. Free ball— GO!"],
     ],
     "campus_place:any": [
-      ["excited", "The sand courts at sunrise! Nobody there but me, the birds, and 47 serves."],
+      ["excited", "Malachowsky for a good work session, Lake Alice for a walk, and the courts when it cools down!"],
       ["happy", "My nook by the windows in Malachowsky. Outlets, sunlight, and the AI lab right there!"],
     ],
     "campus_place:century_tower": [
@@ -411,7 +411,7 @@ export const P1: PigLines = {
     ],
     "campus_place:lake_alice": [
       ["excited", "Lake Alice at dusk! The bats come out 15 or 20 minutes after sunset. Half a million of them!"],
-      ["happy", "I jog Lake Alice on Tuesdays and Thursdays. The gators watch, so I run faster."],
+      ["happy", "I like a Lake Alice walk when I need a break. The gators are very good at reminding me to keep my distance!"],
     ],
     "campus_place:reitz": [
       ["happy", "The Reitz! Food court, game room, campus store. Basically a snack embassy."],
@@ -419,7 +419,7 @@ export const P1: PigLines = {
     ],
     "campus_place:volleyball_courts": [
       ["excited", "The sand courts! My second home— okay, first home. Don't tell Malachowsky.", { a: "volleyball_ready" }],
-      ["proud", "Sunrise sand sessions are the best part of my day. Come at dawn and I'll save you a court."],
+      ["proud", "Evening sand sessions! Best way to get out of my research notes and back into my hooves."],
     ],
     "campus_place:midtown": [
       ["happy", "Midtown at night! Pizza, boba, neon. Great post-game energy."],
@@ -430,30 +430,60 @@ export const P1: PigLines = {
       ["happy", "Home sweet co-op! The yard sakura blooms all year. Nobody knows why, and I don't ask!"],
     ],
     passion_p1: [
-      ["excited", "Volleyball and code are the same thing! Roles, rotations, timing, and nobody touches the ball twice."],
-      ["proud", "Ask me anything about volleyball or CS. I have stats AND metaphors."],
+      ["excited", "I love AI you can question! Show me the evidence, let me inspect the mistakes, and then let's make it useful."],
+      ["proud", "Research, coding, economics, helping new students… and yes, volleyball! Which rabbit hole are we taking?"],
+    ],
+    "passion_p1:research": [
+      ["excited", "I like research where the explanation matters! A good result gets me excited; figuring out why gets me talking."],
+      ["thinking", "My favorite research question starts with “What did we miss?” A messy example can teach us more than another decimal."],
+      ["happy", "I'm learning to connect language, clinical data, and useful tools. Still a student, teammate! Lots of reading, lots of questions."],
+      ["proud", "A simple baseline, careful labels, and notes someone else can follow. Not glamorous, but that's how I trust my own work."],
+    ],
+    "passion_p1:nlp": [
+      ["excited", "Natural language processing! One sentence can have two reasonable readings. I love finding where a model misses the difference."],
+      ["thinking", "Entailment, contradiction, or not enough information? Tiny wording changes make surprisingly good research questions."],
+      ["happy", "I'm interested in language patterns in mental-health research. Patterns in a dataset aren't a diagnosis of a person."],
+      ["proud", "Before I trust a language classifier, I check the labels and look for shortcuts. Sometimes the “smart” part is a giveaway word!"],
+    ],
+    "passion_p1:health_ai": [
+      ["excited", "Healthcare AI gets interesting when people can check the answer! I want a report's claims connected to the data and sources behind them."],
+      ["thinking", "An image, a note, and a speech sample can tell different parts of a story. Combining them carefully is the interesting bit."],
+      ["happy", "A knowledge graph can connect findings to relevant papers. I like following the links and asking whether they really support the claim."],
+      ["proud", "I'm studying these tools, not treating patients. I can talk models and research questions; clinical decisions need qualified people."],
+    ],
+    "passion_p1:ethics": [
+      ["thinking", "Who benefits, who gets missed, and who has to live with the mistake? Those belong in the research question, not just the conclusion."],
+      ["happy", "I like asking people why they chose an answer. Two identical choices can hide very different reasoning!"],
+      ["proud", "A better average score doesn't settle everything. I want to know whose examples still go wrong and whether the data belongs in the project."],
+      ["excited", "Ethics discussions in CS can get lively! Change one consequence in an example and suddenly everyone has a new question."],
+    ],
+    "passion_p1:economics": [
+      ["happy", "I studied CS and economics before AIBHS! Now I ask how a tool works AND whether using it is worth the tradeoff."],
+      ["thinking", "A model can be more accurate and still cost more time than it saves. That's an economics question sneaking into my code!"],
+      ["excited", "Incentives, opportunity costs, who gets access… I like the human questions behind a shiny technical demo."],
+      ["proud", "I also like education research. Where do students end up, and what helped them get there? Useful data has people behind it, teammate."],
     ],
     "passion_p1:volleyball": [
       ["excited", "Three touches per side: pass, set, hit. Nobody touches it twice in a row. It's basically mutual exclusion!", { a: "volleyball_set" }],
       ["excited", "Volleyball was invented in 1895 and first called “mintonette.” Cute, right?"],
       ["proud", "I play outside hitter. My job is to hit hard and be loud, and I'm great at both.", { a: "volleyball_spike" }],
       ["happy", "A rally is a three-stage pipeline: bump, set, spike. No stalls!"],
-      ["excited", "Sand at sunrise is the best. Cool air, empty courts, and every dig feels like a movie."],
+      ["excited", "Evening sand is the best. Cooler air, friends showing up, and every dig feels like a movie."],
       ["proud", "I'm 47 for 50 on serves this week. The three misses were windy, and I'm counting the wind."],
       ["shy", "I'm learning to call “Yours!” instead of “Mine!” every time. Trusting the team is a skill too.", { tier: "FW" }],
     ],
     "passion_p1:cs": [
-      ["happy", "CS is volleyball for your brain! Algorithms are plays, data structures are formations."],
-      ["excited", "A rotation is basically round-robin scheduling. Everybody gets a turn to serve!"],
-      ["thinking", "A blocked spike is a merge conflict at the net. You reset and go again."],
+      ["happy", "I like building tools people can understand. An answer gets more interesting when we can trace how it happened!"],
+      ["excited", "Language models are fun, but the labels and data splits matter too. A fancy model can learn a very boring shortcut."],
+      ["thinking", "I start with a simple baseline, inspect its mistakes, then try the fancy model. Boring setup, excellent surprises!"],
       ["proud", "My test coverage is at 92%! The other 8% knows what it did."],
       ["laughing", "Claude helps me code the serve tracker. Piggy 3 keeps offering Codex a tryout. I told him we need a libero, not another laptop!"],
       ["shy", "Honestly? I'm not sure my code is “actually good,” but it runs! And it has tests!", { tier: "FW" }],
     ],
     "passion_p1:stats": [
-      ["excited", "I wrote a script that tracks my serve accuracy. 87.5% this week!"],
-      ["proud", "Stats are the best! Serves, sleep, snacks. If it moves, I track it."],
-      ["happy", "Numbers don't lie. Okay, they do if you're bad at Excel, but I'm great at Excel."],
+      ["excited", "A good score is exciting! Then I check the split, compare a baseline, and see which examples went wrong."],
+      ["proud", "Stats are the best! Research results, study habits, serve accuracy. But I want to know what the number actually measures."],
+      ["happy", "Numbers need context! Averages can hide a group the model keeps getting wrong. That's worth a closer look."],
     ],
     "passion_p1:spreadsheet": [
       ["proud", "My spreadsheet has fourteen tabs. One is just for tender subs. It's a REALLY good spreadsheet."],
@@ -465,7 +495,7 @@ export const P1: PigLines = {
       ["happy", "I drink Sideline Sip because it's basically hometown history in a bottle."],
     ],
     "passion_p1:hackathon": [
-      ["excited", "Hackathons are tournaments for code! Twenty-four hours, no sleep, all snacks."],
+      ["excited", "Hackathon plan: a tiny useful demo, readable code, and time to sleep. I am trying to learn that last part!"],
       ["thinking", "My hackathon project is a serve tracker. Piggy 3 keeps asking which metric actually matters. Fair question."],
     ],
     passion_p2: [
@@ -512,15 +542,15 @@ export const P1: PigLines = {
     ],
     "passion_p3:opensource": [["thinking", "Open source? Piggy 3 says if you can't inspect it, you can't trust it. Same with referees!"]],
     ask_best: [
-      ["excited", "The best? Volleyball. Next question!"],
-      ["proud", "Best is whatever wins the rally. I have stats if you want them."],
+      ["excited", "The best? Something useful that we can understand and check. Also a really good tender sub!"],
+      ["proud", "Best depends on the goal! Speed, clarity, accuracy, cost. My economics notes have entered the chat."],
       ["laughing", "Ask Piggy 3 and he'll say “Best for what?” I just say volleyball."],
     ],
     "other_pig:piggy-1": [["laughing", "Piggy 1? That's me! Outside hitter, AIBHS master’s student, Kempa AI ambassador, hi!"]],
     "other_pig:piggy-2": [
       ["happy", "Piggy 2 is the calmest person I know. I'm trying to get him to say “Let's go!” He only says “Based.”"],
       ["proud", "Piggy 2 treats every sprain like an ER consult. Annoying! Also, my ankle is perfect now."],
-      ["excited", "Piggy 2 drags me to bed at 10:30, and I drag him to cardio. Fair trade!"],
+      ["excited", "Piggy 2 reminds me that “one more abstract” is not a sleep schedule. I remind him that breaks count too!"],
     ],
     "other_pig:piggy-3": [
       ["happy", "Piggy 3 is the best builder ever! We pair-program, and he keeps asking which metric matters."],
@@ -559,8 +589,8 @@ export const P1: PigLines = {
       ["laughing", "LOL! Okay, I'm good. …I'm not good, that was so funny.", { a: "laugh" }],
     ],
     question_generic: [
-      ["thinking", "Great question! I'll answer it like a serve receive: with enthusiasm and questionable accuracy."],
-      ["confused", "Hmm, that one's out of my zone! Ask me about volleyball, code, or snacks!"],
+      ["thinking", "Great question! Let's work out what we know first. I'd rather check than confidently make something up."],
+      ["confused", "Hmm, that's outside what I know! Want to try research, code, campus life, or snacks?"],
       ["thinking", "I don't know, but I bet Piggy 3 could build something that knows. Or Piggy 2 could diagnose it."],
       ["laughing", "That's a tough read! Can you set it up a different way?"],
     ],
@@ -584,9 +614,9 @@ export const P1: PigLines = {
     ],
     ask_about_me: [
       ["happy", "I know you're {player}, and you're on my team. That's the important stuff!"],
-      ["proud", "You study {major}! I remember. I keep stats on my teammates."],
-      ["happy", "You're from {hometown}! Do they have sand courts there? Asking for me."],
-      ["happy", "Your comfort food is {comfort_food}. It's in the team snack spreadsheet!"],
+      ["proud", "You study {major}! I remember. How's that going, teammate?"],
+      ["happy", "You're from {hometown}! What's one thing you miss about it?"],
+      ["happy", "Your comfort food is {comfort_food}. I made a note. Important teammate information!"],
       ["excited", "You like {likes}! I remember everything about my teammates. Okay, most things."],
     ],
     "ask_about_me:none": [
@@ -638,7 +668,7 @@ export const P1: PigLines = {
     ],
     followup: [
       ["confused", "Hmm, why what? Set it up again for me, teammate!"],
-      ["thinking", "More about what? I've got volleyball, code, and snacks queued up!"],
+      ["thinking", "More about what? I've got research, coding, campus stories, and snacks queued up!"],
       ["laughing", "Really! Probably! What were we talking about?"],
     ],
     repeat: [
@@ -648,11 +678,11 @@ export const P1: PigLines = {
       ["thinking", "Instant replay! I think you hit that one before."],
     ],
     unknown: [
-      ["confused", "Whoa, that one went over the net! Try practice, code, or snacks."],
+      ["confused", "I missed what you meant, teammate! Want to try that another way?"],
       ["thinking", "Hmm, I didn't catch that one. Can you set it up again?"],
-      ["laughing", "Shank, my bad, I missed that! Ask me about volleyball? I'm great at volleyball."],
-      ["confused", "That's a weird spin on the ball! Try “How's volleyball?” or “Want a snack?”"],
-      ["happy", "No idea, but I support it! Wanna talk volleyball instead?"],
+      ["laughing", "My bad, I lost the thread! What part should we start with?"],
+      ["confused", "I'm not sure I understood. Are you asking about me, a project, or something else?"],
+      ["happy", "I don't know that one yet! Tell me a little more and we can figure out where to look."],
     ],
     "hungry_talk:ask": [
       ["happy", "Nope, I'm good! Had a tender sub at noon. Fuel tank: full!"],
@@ -664,7 +694,7 @@ export const P1: PigLines = {
     ],
     "tired_talk:ask": [
       ["excited", "Tired, me? I could run sprints right now. Okay, maybe after a snack."],
-      ["proud", "Nope, full battery! Sunrise practice charges me up."],
+      ["proud", "Pretty awake! I'm a night owl, so my best ideas like to arrive after dinner."],
     ],
     "sick_talk:ask": [
       ["happy", "Nope, healthy as a jump serve! Thanks for checking, teammate."],
@@ -679,7 +709,7 @@ export const P1: PigLines = {
       ["sad", "Oh no, I'm so sorry. Do you want to tell me about them? I'm listening, for real."],
       ["loving", "I'm really sorry. No pep talk right now. I'm just going to sit with you."],
     ],
-    "ask_about_self:color": [["happy", "Gold! Like sunrise on the sand courts. Also like a gold medal, mostly the medal."]],
+    "ask_about_self:color": [["happy", "Gold! Like a warm desk lamp when an idea finally clicks. Also medals, I still like medals!"]],
     "ask_about_self:animals": [
       ["happy", "Dogs are basically teammates with fur. Cats are, like, defensive specialists."],
       ["laughing", "Squirrels? They're the Plaza's starting lineup: bold, fast, and thieves."],
@@ -694,7 +724,7 @@ export const P1: PigLines = {
     ],
     "ask_hobby:music": [
       ["excited", "Anything I can warm up to! Our team playlist is 150 BPM minimum."],
-      ["happy", "Hype music, obviously. If it doesn't make you want to spike something, skip."],
+      ["happy", "Hype music for practice, quieter music for late reading! My desk lamp has heard some excellent playlists."],
     ],
     "ask_hobby:games": [
       ["excited", "Volleyball games! Okay, also rhythm games. I'm competitive about those too."],
@@ -769,16 +799,16 @@ export const P1: PigLines = {
     // Each pool answers one chip (routing in heuristic/intents.ts). Piggy 3’s X habit is teased here, never ranted about: when
     // he mutters his AI words it is quiet, fast and to himself.
     "passion_p1:germany": [
-      ["excited", "Germany was awesome! Research all week, then sand volleyball every weekend. Even the parks had nets!"],
+      ["excited", "Germany was awesome! Research, German conversation, new friends, and volleyball when we could get outside."],
       ["proud", "I tracked every train I took, because stats. The trains were on time 71% of the time. I was on time 100%, because I show up forty minutes early to everything."],
       ["happy", "In Germany, when the workday ends, it ENDS. They call it Feierabend. I'm still practicing that one, and Piggy 2 says my rest schedule is theoretical."],
-      ["thinking", "I researched sports data, mostly: where balls land, who rotates when. Okay, mostly I cleaned the data. Cleaning is eighty percent of research, teammate."],
+      ["thinking", "I worked on language and healthcare AI research in Germany. Cleaning data, checking model explanations, and learning how much the question matters!"],
       ["shy", "Sometimes I miss it: the bread, the sand courts, and a team that yelled “Los geht's!” every point. Now I yell it at Piggy 2, and he says “Based.”", { tier: "FW" }],
     ],
     "passion_p1:german": [
       ["excited", "Eins, zwei, drei! That's one, two, three. I still count my serves in German when I'm nervous."],
       ["excited", "Los geht's! It means “let's go.” My team there yelled it before every point, so now it's my favorite cheer."],
-      ["happy", "Guten Morgen! It means “good morning.” I said it to the sand courts every sunrise, and they never once answered."],
+      ["happy", "Guten Abend! Good evening, much more my hour! A late conversation in German is an excellent study break."],
       ["laughing", "In German, a ball is “Ball,” a hand is “Hand,” and volleyball is “Volleyball.” I was fluent on day one!"],
       ["bashful_smile", "Tschüss, teammate! That's “bye” with extra hiss. …I'd say it slower, but I'd rather you stayed.", { tier: "FW" }],
     ],
@@ -793,14 +823,14 @@ export const P1: PigLines = {
       ["excited", "Sand! Two players, no subs, nowhere to hide. Every ball is yours, and I LOVE that.", { a: "volleyball_ready" }],
       ["thinking", "Indoor is six players passing messages. Sand is pair programming with sunburn. I love both, but only one of them ends up in my fringe."],
       ["laughing", "Sand gets EVERYWHERE. I found some in my laptop once, and now my keyboard is 3% beach."],
-      ["happy", "Sand is harder to jump on, so sunrise sand is basically a free leg day. Indoor is for rainy afternoons, and Gainesville decides that for me."],
+      ["happy", "Sand makes every jump work harder! I like an evening session after research. Rainy afternoons are for indoor courts."],
       ["proud", "Indoor taught me rotations, and sand taught me to do everything myself. Okay, sand also taught me to fall gracefully."],
     ],
     "passion_p1:team": [
       ["excited", "YES. Roster updated! Practice is at dusk on Monday, Wednesday, and Friday, so bring knee pads and your loudest “Mine!”", { a: "celebrate" }],
       ["happy", "Club volleyball takes everyone who shows up and tries. You're doing both, so you're in, teammate!"],
       ["proud", "Tryouts? Free ball, you're in. I already made you a column in the stats spreadsheet."],
-      ["thinking", "Sunrise sand is Tuesday, Thursday, and Saturday, if you want extra reps. No pressure. Okay, a little pressure."],
+      ["thinking", "We can find an evening for sand doubles! No pressure, teammate. I can explain the calls before we start."],
       ["shy_blush", "You want to be on my team? Like, actually? …Best recruiting day of my life.", { tier: "FW" }],
     ],
     "passion_p1:calls": [
@@ -820,7 +850,7 @@ export const P1: PigLines = {
     "passion_p1:bug": [
       ["laughing", "My serve tracker once said I practiced tomorrow. A timezone bug. For one day, I was the best-prepared pig in history."],
       ["thinking", "Off-by-one! My rotation code skipped the last player in the lineup, so he never got to serve. Now everybody gets a turn."],
-      ["proud", "A bug that only crashed on Tuesdays. After three hours I found it: the code assumed practice was never at dawn. Practice is at dawn on Tuesdays."],
+      ["proud", "One script thought an after-midnight experiment belonged to tomorrow. Dates are much more complicated when you're a night owl!"],
       ["thinking", "When code breaks, I do what I do after a bad serve: time-out, reset, read the error. Nine times out of ten, the error is telling the truth."],
       ["shy", "A missing semicolon, forty-five minutes. I'm not proud. I'm a little proud.", { tier: "FW" }],
     ],
@@ -852,27 +882,27 @@ export const P1: PigLines = {
       ["affectionate_blush", "Captain. You've got this. I've watched you get back up every single time.", { tier: "W" }],
     ],
     "ask_about_self:chronotype": [
-      ["excited", "Early bird! Sand courts at six, sunrise at my back. By ten at night I'm a decorative pig.", { a: "volleyball_ready" }],
-      ["proud", "Early bird. Up at 6:30, asleep by 10:30. Piggy 3 says that's a cry for help."],
-      ["happy", "Morning person, all the way! Mornings have the best light, the best sand, and zero merge conflicts."],
-      ["happy", "Early bird, obviously! Your intake form says “{chronotype},” so I'm rescheduling practice around you. Okay, around my snacks."],
+      ["excited", "Night owl! Late reading, code, and a desk lamp. Early alarms get a very polite complaint from me.", { a: "volleyball_ready" }],
+      ["proud", "Night owl! Piggy 3 and I can both turn “one quick fix” into a very late night. We need a snack cutoff."],
+      ["happy", "Night owl, all the way! Quiet hours are good for untangling an idea. I still need a proper sleep afterward."],
+      ["happy", "Night owl! Your intake form says “{chronotype},” so let's find a time that works for both of us."],
     ],
     "study:teach": [
-      ["excited", "In beach volleyball you can't tip the ball with open fingers, so players poke it with their knuckles. Polite volleyball!"],
+      ["excited", "A model can score well by spotting a clue in the labels instead of learning the task. That's why I check for leakage!"],
       ["happy", "In 1947, engineers found a real moth stuck in a computer and taped it into the logbook. A literal bug! Debugging used to need tweezers."],
-      ["proud", "The libero wears a different color jersey so the referees can track them. Volleyball has built-in data labeling!"],
-      ["thinking", "A volleyball rotation is a circular queue: when we win the serve back, everyone moves one spot clockwise. CS in real life!"],
+      ["proud", "Two sentences can each sound clear and still have more than one reasonable relationship. Annotation takes discussion!"],
+      ["thinking", "A knowledge graph connects things by named relationships. I like being able to follow each connection instead of guessing!"],
     ],
     "ask_about_self:dream": [
-      ["excited", "Nationals! Club nationals with the whole team, and me serving for match point. I've already planned the celebration.", { a: "celebrate" }],
+      ["excited", "Research people can actually use and question! A clear explanation matters as much to me as a shiny demo.", { a: "celebrate" }],
       ["thinking", "Ship my serve tracker so every player gets stats. Piggy 3 says start with one metric, so fine: ONE metric."],
-      ["happy", "Build a game where the code is good and the team is even better. That's the dream job, teammate!"],
-      ["shy", "Honestly? To be as good at code as I am at volleyball. I'm working on it, one practice day at a time.", { tier: "FW" }],
+      ["happy", "Build useful tools, keep learning, and make new students feel welcome. Also win a tournament. I can have several dreams!"],
+      ["shy", "Honestly? To ask better questions, not just get faster answers. And to make a nervous new student feel like they belong.", { tier: "FW" }],
     ],
     "ask_hobby:shows": [
       ["excited", "Haikyu!! rewatch number five. It's volleyball research, teammate!"],
       ["happy", "Pro volleyball replays, mostly. I pause every serve and take notes. It's a VERY slow movie night."],
-      ["laughing", "Whatever Piggy 3 puts on. He pauses it to explain the animation, and I fall asleep by ten."],
+      ["laughing", "Whatever Piggy 3 puts on. He pauses it to explain the animation, and suddenly it's two in the morning."],
       ["thinking", "Underdog sports stories. I like any show where the team loses once, trains hard, and comes back louder."],
     ],
     "ask_about_self:competitive": [
@@ -937,13 +967,13 @@ export const P1: PigLines = {
 
   greet: {
     "greet:morning": [
-      ["excited", "Morning, teammate! Two commits and fifty jump serves already. Your serve!", { a: "wave" }],
-      ["happy", "Good morning! Sunrise practice was perfect. Cold sand, empty courts, 47 serves!"],
-      ["excited", "Rise and shine! The courts are open and the air isn't soup yet. Let's goooo!"],
+      ["excited", "Morning, teammate! I'm awake. The enthusiasm is loading a little slowly, but it's coming!", { a: "wave" }],
+      ["happy", "Good morning! My best idea arrived late last night. Now I'm checking whether it survives daylight."],
+      ["excited", "Morning! Is it too early to be excited about a research question? Because I found a good one."],
     ],
     "greet:day": [
-      ["happy", "Hey, {player}! Perfect timing. I just finished my 50th serve.", { a: "wave" }],
-      ["excited", "Teammate, hey! I was just debugging a rotation. Want to help, or want to hype?"],
+      ["happy", "Hey, {player}! Perfect timing. I saved you a seat and a research rabbit hole!", { a: "wave" }],
+      ["excited", "Teammate, hey! I was just untangling a dataset. Want to help, or want to hype?"],
       ["happy", "There you are! I saved you a seat. Malachowsky rules: first come, first served."],
     ],
     "greet:evening": [
@@ -952,11 +982,11 @@ export const P1: PigLines = {
     ],
     "greet:night": [
       ["sleepy", "Hey, {player}. Long day— good long day, though! Hi."],
-      ["happy", "Oh, hey! I'm winding down, ten-thirty bedtime is sacred. Well, ten-thirty-ish."],
+      ["happy", "Oh, hey! This is my good thinking hour. Want to see the little demo I made?"],
     ],
     "greet:late": [
-      ["sleepy", "*yawn* {player}? It's so late. Teammates need sleep. …Okay, five minutes."],
-      ["sleepy", "Whoa, it's late. Are you okay? I'm half asleep, but I'm here."],
+      ["sleepy", "{player}, another night owl? I'm reading one more paper. Famous last words, teammate!"],
+      ["sleepy", "Hey, you! Late-night company is welcome. Research talk or a quiet break?"],
     ],
     "greet:any": [
       ["happy", "Hey, teammate! Free ball! Let's chat!", { a: "wave" }],
@@ -994,26 +1024,26 @@ export const P1: PigLines = {
 
   idle: {
     greet: [
-      "Hey, teammate! Let's goooo!", "Morning! Fifty serves done!", "Oh hey! Perfect timing!", "Teammate spotted! Hi!",
+      "Hey, teammate! Let's goooo!", "Hey! New idea, want to hear?", "Oh hey! Perfect timing!", "Teammate spotted! Hi!",
       "Hi, {player}! Free ball!", "Ready when you are!", "Hey hey! Your serve!", "There you are!",
     ],
     hungry: [
       "Ball's up! …Oh wait. That's my stomach.", "My stomach just called a time-out.", "Snack? Tender sub? Anything?",
-      "Running on one sports drink since 6 a.m.", "Fuel low! Requesting a team snack!", "StackOverflowError in my stomach.",
+      "Forgot lunch. The notes were good.", "Fuel low! Requesting a team snack!", "StackOverflowError in my stomach.",
       "Oranges? Please? TEAM SNACK?", "I could eat a whole tender sub. Two.",
     ],
     tired: [
-      "*yawn* 12% battery…", "Wake me up for nationals.", "My legs filed a complaint.", "Bench. Me. Nap. Now.",
-      "Can't… spike… too sleepy…", "Time-out. Nap time-out.", "Running on fumes and hype.", "One more set? …Tomorrow.",
+      "*yawn* 12% battery…", "The abstract can wait. Nap first.", "My legs filed a complaint.", "Bench. Me. Nap. Now.",
+      "Can't… read… tiny footnote…", "Time-out. Nap time-out.", "Running on fumes and hype.", "One more fix? …Tomorrow.",
     ],
     dirty: [
       "I dove for one ball. Then another.", "I'm mostly sand now.", "Sand gets EVERYWHERE.", "Bath? I'm 40% beach.",
       "There's sand in my fringe.", "Floor diving has consequences.", "I smell like practice. Sorry!", "Pancake save! Also, bath?",
     ],
     bored: [
-      "Pepper drills? Anyone? Please?", "Bored! Let's race somewhere!", "Counting squirrels. Eleven so far.",
-      "Can we play? Can we? Can we?", "I need a rally. Any rally.", "Sitting still is my weakness.",
-      "Free ball! …No? Okay.", "Wanna learn a jump serve?",
+      "Tiny coding challenge? Anyone?", "Bored! Let's race somewhere!", "Counting squirrels. Eleven so far.",
+      "Can we play? Can we? Can we?", "I need a fresh research question.", "Walk first, then untangle the notes.",
+      "Free ball! …No? Okay.", "Want to try my little demo?",
     ],
     sick: [
       "Benched… bring tea?", "*sniff* Sub me out, coach.", "My nose is at 0% accuracy.", "Can you sit with me?",
@@ -1028,25 +1058,25 @@ export const P1: PigLines = {
       "Team morale +10!", "That tickles! Ha!", "Nice platform, teammate!", "Head pat? Best assist ever.",
     ],
     fed: [
-      "Nice set! Delicious!", "Fuel acquired! Let's go!", "Team snack! Thanks!", "That hit the spot! Kill!",
-      "Refueled! Back in rotation!", "Side out for my stomach!", "Thank you, teammate!", "Best. Assist. Ever.",
+      "Nice set! Delicious!", "Fuel acquired! Let's go!", "Team snack! Thanks!", "That hit the spot, teammate!",
+      "Refueled! My notes can wait, though.", "Notebook closed, snack time!", "Thank you, teammate!", "Best. Assist. Ever.",
     ],
     cleaned: [
-      "Fresh! Sand gets EVERYWHERE.", "Squeaky clean, like new kicks!", "No more beach in my fringe!", "Clean pig, clean serves!",
-      "Ahh, game-day fresh!", "Bye-bye, sand!", "I feel like a new ball!", "Fresh rotation!",
+      "Fresh! Sand gets EVERYWHERE.", "Squeaky clean, like new kicks!", "No more beach in my fringe!", "Clean pig, clear head!",
+      "Ahh, ready for a fresh page!", "Bye-bye, sand!", "My laptop is safely out of splash range!", "Fresh rotation!",
     ],
     woke: [
-      "Morning! Is it practice?!", "Up! Up! I'm up!", "Rise and serve!", "*yawn* …Let's goooo.",
-      "Did I miss practice?!", "Sunrise mode: on!", "I dreamed I served an ace!", "Ready position! …Mostly.",
+      "Is it morning? Please say no.", "Up! Up! I'm up!", "Awake! Where did I leave my notes?", "*yawn* …Let's goooo.",
+      "Did I miss practice?!", "Night owl rebooting…", "I dreamed I served an ace!", "Ready position! …Mostly.",
     ],
     sleepy: [
-      "*yawn* Ten-thirty bedtime…", "Fading fast, teammate.", "Bed soon. Practice at 6:30.", "Eyes closing… mid-rally…",
+      "*yawn* The late night caught up…", "Fading fast, teammate.", "Sleep first. The paper can wait.", "Eyes closing… mid-rally…",
       "Gonna dream about volleyball.", "Night mode… activating.", "Even my fringe is tired.", "One more stat… then sleep.",
     ],
     random: [
-      "Volleyball was once called mintonette!", "A rotation is a round-robin queue!", "47 serves today. New record!",
+      "Volleyball was once called mintonette!", "A clean baseline makes my day!", "New plot! New questions! Good day!",
       "Gatorade was invented at UF!", "A squirrel stole my banana once.", "Mine! …Oh, it's a leaf.",
-      "Pig Pen Friday is the best day.", "Code's like a rally: no stalls!",
+      "Pig Pen Friday is the best day.", "Can we trace that claim to a source?",
     ],
     whisper: [
       "Zzz… mine… mine…", "…free ball… zzz", "…forty-eight… forty-nine…", "Zzz… side out…",

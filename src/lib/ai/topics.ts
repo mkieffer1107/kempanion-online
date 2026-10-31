@@ -6,7 +6,7 @@ import { CRISIS_REACH, isDistress, isMedicalAdvice } from './quirks';
 
 const TOPIC: Record<PigId, RegExp> = {
   'piggy-1':
-    /\b(volley\w*|serves?|serving|spikes?|setter|bump|digs?|blocks?|rally|rallies|practice|courts?|sand|outside hitter|team(mate)?s?|club|tournament|code|coding|program\w*|algorithm\w*|computer science|cs|hackathon|stats?|analytics|spreadsheet|malachowsky|gatorade|pub ?subs?|game dev)\b/i,
+    /\b(volley\w*|serves?|serving|spikes?|setter|bump|digs?|blocks?|rally|rallies|practice|courts?|sand|outside hitter|team(mate)?s?|club|tournament|code|coding|program\w*|algorithm\w*|computer science|cs|hackathon|stats?|analytics|spreadsheet|malachowsky|gatorade|pub ?subs?|game dev|research\w*|nlp|natural language|health ?care ai|explainable ai|ai ethics|economics|knowledge graphs?|data leakage)\b/i,
   // his residency too (a fourth-year resident on his research year): call shifts, the in-service exam, his grants;
   // not a resident advisor, Resident Evil or the resident in your dorm (as in heuristic/entities.ts)
   'piggy-2':
@@ -23,7 +23,7 @@ export function topicMatch(pig: PigId, text: string): boolean {
 }
 
 const PASSION: Record<PigId, readonly string[]> = {
-  'piggy-1': ['How was practice?', 'Teach me to serve?', 'What are you coding?', 'Best study spot?'],
+  'piggy-1': ['What do you research?', 'Teach me to serve?', 'What are you coding?', 'Best study spot?'],
   'piggy-2': ["What's perfusion?", 'Why pig spines?', 'How were rounds?', 'What are you researching?'],
   'piggy-3': ['What are you building?', "What's the best AI model?", 'Are you on X?', 'What are you watching?'],
 };

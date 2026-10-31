@@ -405,6 +405,7 @@ export const P3: PigLines = {
     ],
     "passion_p3:ai": [
       ["thinking", "That score looks good. What was it compared against, though? I want to see them doing the same task."],
+      ["thinking", "The model's impressive, but somebody had to collect and clean all that data. I want tools that help with that part too."],
       ["excited", "I keep wondering if an EEG encoder could work like a language model. Like, tokens, but brainwaves."],
       ["thinking", "I like models I can download and inspect. Then we can figure out what it's actually doing."],
       ["happy", "The Big Brain option in Settings is a real model running in your browser. Best for what, though? Free chat, mostly."],
@@ -412,6 +413,7 @@ export const P3: PigLines = {
     "passion_p3:opensource": [
       ["thinking", "I'd rather use something we can actually download and inspect. Especially over medical data."],
       ["happy", "Open source is basically a promise that you can check the work. I like that promise."],
+      ["happy", "An open medical-model test suite? Oh, that's useful. I want to try the examples, not just look at the leaderboard."],
     ],
     "passion_p3:hipergator": [
       ["excited", "HiPerGator is UF's supercomputer, and HiPerGator 4 has 504 Blackwell GPUs. Best for what, though?"],

@@ -64,20 +64,19 @@ jokes about anatomy-lab donors ("Donors are our first teachers."). All bond is w
 
 Visual periods: morning 05–10, day 10–17, evening 17–20, night 20–05 (day/night background variants, graded blends between).
 Schedule slots (finer): dawn 05–08, morning 08–12, midday 12–14, afternoon 14–17, dusk 17–20, night 20–24, owl 00–05.
-Bedtimes: Piggy 1 22:30–06:30 · Piggy 2 22:00–05:00 · Piggy 3 00:30–08:30 (asleep pigs are at Sakura House).
+Bedtimes: Piggy 1 02:30–10:30 · Piggy 2 22:00–05:00 · Piggy 3 00:30–08:30 (asleep pigs are at Sakura House).
 
 | Slot | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| dawn | volleyball courts (Tu/Th/Sa), else asleep→Sakura House | Shands (lab-pig rounds, sim lab, call shifts) | asleep |
-| morning | Malachowsky | Communicore | physics (from 10:30) |
-| midday | Plaza | Communicore | physics |
+| dawn | asleep at Sakura House | Shands (lab-pig rounds, sim lab, call shifts) | asleep |
+| morning | asleep until 10:30, then Malachowsky | Communicore | physics (from 10:30) |
+| midday | Malachowsky | Communicore | physics |
 | afternoon | Malachowsky | Shands (M/W/F) / anatomy lab (Tu/Th) | physics |
-| dusk | volleyball courts (M/W/F) / Lake Alice (Tu/Th) | Communicore | Lake Alice |
+| dusk | volleyball courts | Communicore | Lake Alice |
 | night | Sakura House | Marston → home 22:00 | Marston |
-| owl | asleep | asleep | Marston until 00:30 |
+| owl | Sakura House, asleep from 02:30 | asleep | Marston until 00:30 |
 
-Overrides: Friday midday → all three at the Plaza ("Pig Pen Friday"). Weekends: P1 courts/Plaza, P2 Lake Alice (Sun dusk),
-P3 Reitz (Sun). Saturday home-game days in fall → stadium afternoon. Sunday mornings everyone sleeps in.
+Overrides: P1 stays at Malachowsky throughout the day, including weekends; he plays volleyball at dusk and visits Midtown Fri/Sat nights. P2/P3 meet at the Plaza Friday midday, visit the stadium Saturday afternoon/dusk, and have their own Sunday stops. P1’s Dawn Patrol heart event is an unusual early club booking, reached through its existing scene time skip.
 
 ## 6. Pet simulation (companion only; the other two take care of themselves)
 

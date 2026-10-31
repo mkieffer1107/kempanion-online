@@ -66,6 +66,10 @@ const thoughts: readonly ThoughtDef[] = [
     line: "My For You page is robot arms, One Piece, EEG papers, and cats. That's the whole algorithm— it's basically just me.",
   },
   {
+    id: 'p3.data-work', topic: 'x', label: 'Behind the data', icon: 'book', face: 'thinking',
+    line: "Cool model, but who collected and cleaned the data? I want that part of the thread too.",
+  },
+  {
     id: 'p3.thread-27', topic: 'x', label: 'Thread 1/27', icon: 'thread', face: 'excited',
     line: "There's a thread, and it says 1/27. Okay, I'm committing— I'm reading all twenty-seven before I reply to anything.",
   },
@@ -99,7 +103,7 @@ const thoughts: readonly ThoughtDef[] = [
   },
   {
     id: 'p3.world-models', topic: 'x', label: 'World models', icon: 'map', face: 'thinking',
-    line: "World models predict what happens next in a whole world. I'd settle for one that predicts Piggy 1 knocking at 6 a.m.",
+    line: "World models predict what happens next in a whole world. I'd settle for one that predicts Piggy 1's stray volleyballs.",
   },
   {
     id: 'p3.vla', topic: 'x', label: 'VLA robot demo', icon: 'robot', face: 'excited',
@@ -234,8 +238,8 @@ const thoughts: readonly ThoughtDef[] = [
     line: "It's my birthday, same as Marie Curie! She won two Nobel Prizes; I wrote one birthday post, and it's a good post.",
   },
   {
-    id: 'p3.p1bday-soon', topic: 'p1bday-soon', label: 'Sunrise party', icon: 'sun', face: 'happy', when: ['date:08-31..09-04'],
-    line: "Piggy 1's birthday is September 4, and he wants a sunrise practice party. I'll be there, but “awake” is a strong word.",
+    id: 'p3.p1bday-soon', topic: 'p1bday-soon', label: 'Evening courts', icon: 'gift', face: 'happy', when: ['date:08-31..09-04'],
+    line: "Evening courts and snacks for Piggy 1's September 4 birthday. I'll be there, but “athletic” is a strong word.",
   },
   {
     id: 'p3.p2bday-soon', topic: 'p2bday-soon', label: 'Gift for Piggy 2', icon: 'gift', face: 'laughing', when: ['date:06-30..07-04'],
@@ -295,5 +299,5 @@ const thoughts: readonly ThoughtDef[] = [
   },
 ];
 
-/** Piggy 3's topics (with their rules) and thoughts: 60 everyday ones and 4 for when he's sick. */
+/** Piggy 3's topics (with their rules) and thoughts: 61 everyday ones and 4 for when he's sick. */
 export const PIGGY_3_THOUGHTS: PigThoughts = { pig: 'piggy-3', topics, thoughts };

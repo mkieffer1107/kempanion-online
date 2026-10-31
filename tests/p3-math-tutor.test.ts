@@ -38,8 +38,8 @@ describe('Piggy 3 used to tutor math', () => {
     }
     expect(reply('piggy-3', 'did you ever have a job?')).toMatch(TUTOR);
     expect(reply('piggy-3', 'did you ever have a job?')).toMatch(/\bmath\b/i);
-    // the other two answer with their own work: Piggy 1 researched in Germany, Piggy 2 is training in neurosurgery
-    expect(reply('piggy-1', 'did you ever have a job?')).toMatch(/Germany/);
+    // the other two answer with their own work: Piggy 1 is an ambassador/research student, Piggy 2 is training in neurosurgery
+    expect(reply('piggy-1', 'did you ever have a job?')).toMatch(/ambassador|research|Germany/i);
     expect(reply('piggy-2', 'did you ever have a job?')).toMatch(/Neuro/);
   });
 

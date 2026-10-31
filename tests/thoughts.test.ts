@@ -540,7 +540,7 @@ describe('pickThought: gates', () => {
 describe('wants win; asleep and off', () => {
   /** A minute inside a want slot while the companion is awake. */
   function wantTime(): number {
-    for (let t = T('2026-10-30T09:00:00'); t < T('2026-10-30T20:00:00'); t += 60_000) if (wantSlot(t)) return t;
+    for (let t = T('2026-10-30T11:00:00'); t < T('2026-10-30T20:00:00'); t += 60_000) if (wantSlot(t)) return t;
     throw new Error('no want slot');
   }
 
@@ -570,7 +570,7 @@ describe('wants win; asleep and off', () => {
     save.pigs['piggy-2'].asleep = true;
     expect(thinkBlock(save, 'piggy-2', day)).toBe('asleep');
     save.pigs['piggy-2'].asleep = false;
-    expect(thinkBlock(save, 'piggy-1', T('2026-10-30T23:55:00'))).toBe('asleep'); // the others sleep by their bedtimes
+    expect(thinkBlock(save, 'piggy-1', T('2026-10-30T03:55:00'))).toBe('asleep'); // the others sleep by their bedtimes
     expect(thoughtPref(save)).toBe('some');
     save.flags['ui.thoughts'] = 'off';
     expect(thoughtPref(save)).toBe('off');

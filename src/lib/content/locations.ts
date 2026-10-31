@@ -73,7 +73,7 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
     bg: 'reitz', song: 'shop', outdoor: true, focusX: 240, map: { x: 0.33, y: 0.42 }, actions: ['shop'],
   },
   volleyball_courts: {
-    id: 'volleyball_courts', name: 'Sand Volleyball Courts', jp: 'ビーチバレー場', blurb: 'Sunrise practice. Piggy 1 is usually mid-serve.',
+    id: 'volleyball_courts', name: 'Sand Volleyball Courts', jp: 'ビーチバレー場', blurb: 'Evening rallies. Piggy 1 trades his laptop for a volleyball.',
     bg: 'volleyball_courts', song: 'piggy1_theme', outdoor: true, focusX: 240, map: { x: 0.12, y: 0.79 }, actions: ['minigame:volley'],
   },
   midtown: {
@@ -103,7 +103,7 @@ export function backgroundFor(loc: LocationId, pig?: PigId | null): BackgroundId
 
 /** Bedtimes by local clock, [sleepHour, wakeHour] (fractional hours). */
 export const BEDTIME: Record<PigId, [number, number]> = {
-  'piggy-1': [22.5, 6.5],
+  'piggy-1': [26.5, 10.5],
   'piggy-2': [22, 5],
   'piggy-3': [24.5, 8.5],
 };
@@ -136,11 +136,11 @@ type Slot = Partial<Record<Weekday | 'any', LocationId>>;
 /** Where each pig hangs out when awake. Weekday-specific entries win over 'any'. See GAME_DESIGN.md §5. */
 const SCHEDULE: Record<PigId, Record<ScheduleSlot, Slot>> = {
   'piggy-1': {
-    dawn: { any: 'dorm', tue: 'volleyball_courts', thu: 'volleyball_courts', sat: 'volleyball_courts' },
-    morning: { any: 'malachowsky', sat: 'volleyball_courts', sun: 'dorm' },
-    midday: { any: 'plaza' },
-    afternoon: { any: 'malachowsky', sat: 'stadium', sun: 'plaza' },
-    dusk: { any: 'volleyball_courts', tue: 'lake_alice', thu: 'lake_alice', sat: 'stadium' },
+    dawn: { any: 'dorm' },
+    morning: { any: 'malachowsky' },
+    midday: { any: 'malachowsky' },
+    afternoon: { any: 'malachowsky' },
+    dusk: { any: 'volleyball_courts' },
     night: { any: 'dorm', fri: 'midtown', sat: 'midtown' },
     owl: { any: 'dorm' },
   },

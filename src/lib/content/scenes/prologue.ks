@@ -117,7 +117,7 @@ narrator: 【KEMPA AI】Question 3 of 4. Early bird or night owl?
   [set fact.sleep = "Early bird"]
   [remember all "sleep=Early bird"]
   [bond piggy-1 +20]
-  narrator: 【KEMPA AI】Early bird! Someone you're about to meet agrees with you, loudly.
+  narrator: 【KEMPA AI】Early bird! Campus before the crowds. Excellent time to claim a study nook.
 ? Night owl.
   [set intake.sleep = night]
   [set fact.sleep = "Night owl"]
@@ -340,7 +340,7 @@ piggy-1 proud: AI in Biomedical and Health Sciences. I practiced saying the whol
 piggy-3 excited: SI in Biomedical and Health Sciences! Superintelligence, obviously.
 [expr piggy-3 neutral]
 piggy-1 thinking: Sure. Right after it learns to return a serve.
-piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, sunrises and hype!
+piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, late-night ideas and hype!
 [expr piggy-1 neutral]
 piggy-2 proud: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
 piggy-2 wink: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
@@ -362,7 +362,7 @@ narrator: 【KEMPA STAFF】{player}, please choose your Kempanion!
   [burst hearts]
   [shake 0.3 200]
   piggy-1 excited: TEAM OF TWO! Let's goooooo!
-  piggy-1 happy: Breakfast is at six-thirty. Sunrise practice is optional, but breakfast is not.
+  piggy-1 happy: Breakfast might be brunch. Evening practice is optional, but snacks are not.
   piggy-2 neutral: Defensible choice. Still based.
   piggy-3 happy: Oh— no, totally, that makes sense. Best for what you need, right?
   piggy-3 bashful_smile: ...I'll make you a keychain anyway.

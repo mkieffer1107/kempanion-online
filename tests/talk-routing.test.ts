@@ -71,6 +71,28 @@ const X_ASKS = { 'Are you on X?': 'passion_p3:x', 'Are you on Twitter?': 'passio
 const PLACES = ['plaza', 'physics', 'marston', 'lake_alice', 'volleyball_courts', 'malachowsky', 'shands', 'communicore', 'anatomy_lab', 'dorm'] as const;
 
 describe('every chip routes to its own topic', () => {
+  test('Piggy 1 discusses his research without rerouting the other pigs or a player introduction', () => {
+    const research: Record<string, string> = {
+      'What do you research?': 'research', 'What is language research?': 'nlp',
+      "What's healthcare AI?": 'health_ai', 'Why AI ethics?': 'ethics', 'Why economics?': 'economics',
+      'Tell me about natural language inference': 'nlp', 'How do you check data leakage?': 'research',
+      'What are knowledge graphs?': 'health_ai', 'Do you study multimodal models?': 'health_ai',
+    };
+    for (const [question, topic] of Object.entries(research)) {
+      expect(route('piggy-1', question)).toBe(`passion_p1:${topic}`);
+      expect(topicLabel(classifyIntent(question, 'piggy-1'))).toBeTruthy();
+      const result = respondHeuristic({ pig: 'piggy-1', playerText: question, history: [], context: ctx('piggy-1') });
+      expect(pool('piggy-1', `passion_p1:${topic}`).some((line) => result.text.endsWith(fill(line, buildVars('piggy-1', ctx('piggy-1')))))).toBe(true);
+    }
+    expect(route('piggy-3', "What's healthcare AI?")).toBe('passion_p3:medai');
+    expect(route('piggy-2', 'Tell me about MRI')).toBe('passion_p2:mri');
+    for (const other of ['Piggy 2', 'Piggy 3']) {
+      expect(classifyIntent(`What does ${other} research?`, 'piggy-1').intent).toBe('other_pig');
+    }
+    expect(classifyIntent('My major is economics', 'piggy-1').intent).toBe('share_self');
+    expect(classifyIntent('I study computer science', 'piggy-1').intent).toBe('share_self');
+  });
+
   test("Piggy 3's chips: each to its own topic; X, Twitter and Codex are his quirks first (any brain)", () => {
     for (const [chip, key] of Object.entries(P3_CHIPS)) expect([chip, route('piggy-3', chip)]).toEqual([chip, key]);
     expect(matchQuirk({ pig: 'piggy-3', playerText: 'Are you on X?', history: [] })?.reply.effect).toBe('mumble');
@@ -226,7 +248,8 @@ describe('the chat box (3 rows)', () => {
   });
 
   test('the new chips are among the 3 rows most turns, for every pig, and every one of them comes up', () => {
-    const NEW = new Set<string>([...Object.keys(OWN['piggy-1']), ...Object.keys(OWN['piggy-2']), ...SHARED_CHIPS, ...Object.keys(X_ASKS)]);
+    const NEW = new Set<string>([...Object.keys(OWN['piggy-1']), ...Object.keys(OWN['piggy-2']), ...SHARED_CHIPS, ...Object.keys(X_ASKS),
+      'What do you research?', 'What is language research?', "What's healthcare AI?", 'Why AI ethics?', 'Why economics?']);
     for (const pig of PIG_IDS) {
       const seen = new Set<string>();
       let withNew = 0;

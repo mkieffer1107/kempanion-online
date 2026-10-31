@@ -189,7 +189,9 @@ describe('every chip reaches its own pool', () => {
           if (owner === P3 && !/^(?:Teach me a math|Were you|What even|What does an EEG|What's medical|Would you build|Why sugar|When's your|Favorite physics|What's HiPer)/.test(chip)) continue;
           // Piggy 2 hears "What does an EEG show?" as his own electrodes talk, and every pig answers "When's your birthday?" about himself
           if (guest === P2 && chip === 'What does an EEG show?') continue;
-          expect([guest, chip, route(guest, chip)]).toEqual([guest, chip, key]);
+          // Healthcare AI is now part of Piggy 1's own research, so he answers in his own voice.
+          const expected = guest === P1 && chip === "What's medical AI?" ? 'passion_p1:health_ai' : key;
+          expect([guest, chip, route(guest, chip)]).toEqual([guest, chip, expected]);
         }
       }
     }
@@ -470,6 +472,16 @@ describe('the persona files and the prompts built from them', () => {
     const biggest = Math.max(...MODEL_IDS.map((t) => MODELS[t].budget.persona));
     expect(trimPersona(CHARACTERS[P3].prompt, biggest)).toContain("You're hooked on X and sometimes say X.com; you never call it Twitter, and you correct anyone who does.");
     for (const pig of [P1, P2]) for (const tier of MODEL_IDS) expect([pig, tier, systemPrompt(pig, tier).includes('Twitter')]).toEqual([pig, tier, false]);
+  });
+
+  test('the research refresh preserves core personalities after prompt trimming at every model tier', () => {
+    for (const tier of MODEL_IDS) {
+      const p1 = systemPrompt(P1, tier);
+      for (const trait of ['night owl', 'Malachowsky', 'teammate', 'Claude, not Codex', 'never use X', 'healthcare AI']) {
+        expect([tier, trait, p1.includes(trait)]).toEqual([tier, trait, true]);
+      }
+      expect(systemPrompt(P3, tier)).toContain('Open medical-model evaluations and careful scientific data');
+    }
   });
 
   test('Piggy 1 and Piggy 2 carry the new canon in their files, and the prompts hold it', () => {

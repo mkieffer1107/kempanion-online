@@ -562,6 +562,15 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
   if (pig === 'piggy-1') {
     if (/\b(?:aibhs|(?:ai|artificial intelligence) in biomedical and health sciences)\b/.test(corrected) && !major?.value) add('ask_major', 5);
     if (/\bambassador\b|\bkempa ai\b|^what do you do[?!.]*$/.test(corrected)) add('ask_about_self', 5, 'job');
+    // His research questions have their own answers; the other pigs retain their existing subject routes.
+    // A player's stated field still goes through share_self rather than becoming a lecture about his work.
+    if (!major?.value && !entities.pigs.some((p) => p !== pig)) {
+      if (/\b(?:research(?! year\b)|researching)\b|\bdata(?:set)? (?:labels?|leakage|splits?|curation)\b|\bmechanistic interpretability\b/.test(corrected)) add('passion_p1', 4, 'research');
+      if (/\bnlp\b|\bnatural language (?:processing|inference)\b|\bnli\b|\blanguage (?:research|data|ambiguity)\b|\btext (?:classification|annotations?)\b/.test(corrected)) add('passion_p1', 4.5, 'nlp');
+      if (/\b(?:medical|clinical|health ?care|interpretable|explainable) ai\b|\bai (?:in|for) (?:medicine|health ?care)\b|\bmri\b|\bmultimodal\b|\bclinical (?:notes?|data|models?)\b|\bknowledge graphs?\b/.test(corrected)) add('passion_p1', 6, 'health_ai');
+      if (/\b(?:ai|research|data) ethics\b|\bethical ai\b|\b(?:algorithmic|model|dataset) (?:bias|fairness)\b|\bresponsible ai\b/.test(corrected)) add('passion_p1', 4.7, 'ethics');
+      if (/\beconomics?\b|\bopportunity costs?\b|\bcareer pathways?\b|\bengineering education\b/.test(corrected)) add('passion_p1', 4.5, 'economics');
+    }
   }
 
   // entity bonuses
