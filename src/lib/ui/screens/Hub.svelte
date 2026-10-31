@@ -503,7 +503,8 @@
     const onPig = pigHit(e.clientX, e.clientY, e.pointerType === 'touch');
     if (onPig) hapticTap(e);
     press = { id: e.pointerId, x0: e.clientX, y0: e.clientY, onPig, lifted: false, lastX: e.clientX, dir: 0, turns: [] };
-    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    const nativeSurface = (e.target as HTMLElement).closest('[data-native-haptic]');
+    try { (nativeSurface ?? e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ }
     if (!onPig || !canLift()) return;
     cursor = 'hold';
     // catch him in mid-air: no drag needed
@@ -1080,6 +1081,16 @@
         onpointerleave={leave}
       >
         <StageHost label="{placeName}. {ch.name}{asleep ? ' is asleep' : ''}.{thinkingAbout}">
+          <!-- A bounded native-label target follows the pig. It bubbles real pointer events
+               through the existing tap/lift/toss handlers and the golden-petal capture. -->
+          <span
+            class="pig-haptic-area"
+            data-haptic-area
+            data-haptic-drag-threshold={DRAG_PX}
+            aria-hidden="true"
+            style:left="calc({pigPos.x - 34} * var(--u))"
+            style:top="calc({pigPos.y - 112} * var(--u))"
+          ></span>
           {#each crumbs as c, i (i)}
             <button type="button" class="crumb" style:left="{c.x}%" style:top="{c.y}%" aria-label="Crumbs. Tap to tidy up." onclick={() => act('tidy')}>
               <span class="bits" aria-hidden="true"></span>
@@ -1205,6 +1216,7 @@
   .needs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 
   /* Cursor: the pixel hand from styles/cursors.css, switched through data-cursor (point / grab / hold). */
+  .pig-haptic-area { position: absolute; width: calc(68 * var(--u)); height: calc(122 * var(--u)); pointer-events: none; }
   .stage-wrap { position: absolute; inset: 0; touch-action: none; -webkit-user-select: none; user-select: none; }
 
   .crumb {

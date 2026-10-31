@@ -1,6 +1,7 @@
-/** Short, gesture-only feedback. The Safari switch technique is best-effort, not a vibration API. */
+import { installNativeHaptics } from './native-haptics';
+
+/** Short, gesture-only Android feedback. Apple uses trusted label surfaces, never synthetic switch clicks. */
 export function createHaptics(doc: Document, nav: Navigator, enabled: () => boolean) {
-  let label: HTMLLabelElement | undefined;
   let last = -Infinity;
   let touchTarget: EventTarget | null = null;
   let touchAt = -Infinity;
@@ -24,28 +25,6 @@ export function createHaptics(doc: Document, nav: Navigator, enabled: () => bool
     try {
       if (!appleTouch && typeof nav.vibrate === 'function') {
         nav.vibrate(12);
-      } else if (appleTouch) {
-        if (!label) {
-          label = doc.createElement('label');
-          label.setAttribute('aria-hidden', 'true');
-          label.style.cssText = 'position:fixed;left:-100px;top:-100px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
-          const input = doc.createElement('input');
-          input.type = 'checkbox';
-          input.setAttribute('switch', '');
-          input.tabIndex = -1;
-          input.style.appearance = 'auto';
-          label.append(input);
-          doc.body.append(label);
-        }
-        // Synchronous within the original gesture; no repeated toggles, timers or RAF loops.
-        const focused = doc.activeElement as HTMLElement | null;
-        label.click();
-        // Safari may focus the offscreen switch even with tabIndex=-1. Keep the
-        // visible control (and any text selection/keyboard) in charge of focus.
-        if (label.contains(doc.activeElement)) {
-          (doc.activeElement as HTMLElement | null)?.blur?.();
-          focused?.focus?.({ preventScroll: true });
-        }
       }
     } catch { /* Unsupported or blocked hardware must never interrupt the game. */ }
   }
@@ -69,7 +48,6 @@ export function createHaptics(doc: Document, nav: Navigator, enabled: () => bool
     doc.removeEventListener('click', click, true);
     doc.removeEventListener('visibilitychange', visibility);
     cancel();
-    label?.remove();
   } };
 }
 
@@ -78,7 +56,9 @@ export function installHaptics(enabled: () => boolean) {
   active?.destroy();
   const controller = createHaptics(document, navigator, enabled);
   active = controller;
-  return () => { controller.destroy(); if (active === controller) active = undefined; };
+  const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const stopNative = appleTouch ? installNativeHaptics(document, enabled) : undefined;
+  return () => { stopNative?.(); controller.destroy(); if (active === controller) active = undefined; };
 }
 /** For canvas interactions that have no button; call only after a successful hit test. */
 export function hapticTap(event: PointerEvent) { active?.tap(event); }
