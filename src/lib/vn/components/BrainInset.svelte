@@ -2,22 +2,19 @@
   // The hub's Big Brain chip, shown over a scene by [brain] (tutorial_big_brain) where the hub keeps it: the real
   // BrainChip, so it reads live (HEUR, the % while Big Brain installs, BIG), ringed like the pager tutorial's lit keys,
   // with an arrow pointing at it from the inner side. A picture, not a button: the chip is inert (no Big Brain panel
-  // mid-scene) and a tap on it advances the line like a tap on the picture. Nothing after a "no" to Big Brain, and
-  // nothing while HIDE has the interface hidden.
+  // mid-scene) and a tap on it advances the line like a tap on the picture. Available even before a download, but
+  // hidden while HIDE has the interface hidden.
   //   place="top"    phone portrait: the right end of the free band above the stage, where the hub's status row has
   //                  the chip (the arrow sits beside it, so the inset stays in that row on short phones too)
   //   place="stage"  wide layouts: the stage's top-left corner, where the hub's status pill starts (taps fall through
   //                  to the stage)
   import BrainChip from '../../ui/components/BrainChip.svelte';
-  import { bigBrainUiEnabled, getBigBrainChoice, onBigBrainChoice } from '../../ai/choice';
   import { brainInset } from '../brain.svelte';
   import { dialogue } from '../dialogue.svelte';
 
   let { place = 'stage' }: { place?: 'top' | 'stage' } = $props();
 
-  let choice = $state(getBigBrainChoice());
-  $effect(() => onBigBrainChoice((v) => (choice = v)));
-  const shown = $derived(brainInset.on && bigBrainUiEnabled(choice) && !dialogue.uiHidden);
+  const shown = $derived(brainInset.on && !dialogue.uiHidden);
 </script>
 
 {#if shown}

@@ -224,7 +224,6 @@ export const TASKS = { perDay: 3, money: 25, bond: 10 } as const;
 export const PETALS = { money: 5, perDay: 10, minGapMs: 3 * MIN } as const;
 
 export const MINIGAME = {
-  minEnergy: 20,
   minMoney: 5,
   firstRunMult: 2,
   blessingFirstRunMult: 3,

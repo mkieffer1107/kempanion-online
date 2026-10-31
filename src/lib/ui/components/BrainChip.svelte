@@ -1,10 +1,10 @@
 <script lang="ts">
-  // HEUR / BIG status chip (the download % while Big Brain installs). Opens the Big Brain panel
-  // (src/lib/ai/ModelPanel.svelte, loaded on demand so the model manager stays out of the main bundle) over the screen.
-  // Renders nothing unless this device said yes to Big Brain on the start menu (src/lib/ai/choice.ts): a "no"
-  // keeps every Big Brain control out of the game, and Settings → Brain is where the player changes their mind.
+  // BRAIN / BIG status chip (the download % while Big Brain installs). Opens the Big Brain panel
+  // over the screen. The controls ship with the app so a later deploy cannot strand an open page with a missing
+  // panel chunk. The large worker/runtime and model weights still load only when explicitly requested.
   import { game } from '../../state/game.svelte';
-  import { bigBrainUiEnabled, getBigBrainChoice, onBigBrainChoice } from '../../ai/choice';
+  import ModelPanel from '../../ai/ModelPanel.svelte';
+  import { aiManager as mgr } from '../../ai/manager.svelte';
   import { pushEscape } from '../ui.svelte';
   import { audio } from '../../audio';
   import Icon from './Icon.svelte';
@@ -12,21 +12,11 @@
   let { small = false }: { small?: boolean } = $props();
   let open = $state(false);
 
-  let choice = $state(getBigBrainChoice());
-  $effect(() => onBigBrainChoice((v) => (choice = v)));
-  const enabled = $derived(bigBrainUiEnabled(choice));
-
-  // The model manager is loaded lazily (App imports it after the first gesture); mirror its state once present.
-  type Manager = typeof import('../../ai/manager.svelte').aiManager;
-  let mgr = $state<Manager | null>(null);
-  $effect(() => {
-    if (enabled && !mgr) void import('../../ai/manager.svelte').then((m) => (mgr = m.aiManager));
-  });
   /** BIG only once a model is actually loaded and enabled. */
-  const big = $derived(game.save.settings.aiMode === 'llm' && mgr?.status === 'ready');
+  const big = $derived(game.save.settings.aiMode === 'llm' && mgr.status === 'ready');
   /** Download/prepare progress while Big Brain is being installed. */
   const pct = $derived.by(() => {
-    if (!mgr?.busy) return null;
+    if (!mgr.busy) return null;
     const { loaded, total } = mgr.progress;
     return total > 0 ? Math.min(99, Math.floor((100 * loaded) / total)) : 0;
   });
@@ -49,32 +39,26 @@
   });
 </script>
 
-{#if enabled}
-  <button
-    type="button"
-    class="chip"
-    data-coach="brain"
-    class:big
-    class:busy={pct !== null}
-    class:small
-    onclick={show}
-    aria-label={pct !== null ? `Big Brain installing, ${pct}%. Open brain settings` : big ? 'Big Brain is on. Open brain settings' : 'Heuristic Brain. Open brain settings'}
-    title="Brain"
-  >
-    <Icon id={big || pct !== null ? 'brain_big' : 'brain_heur'} size={small ? 16 : 20} />
-    <span>{pct !== null ? `${pct}%` : big ? 'BIG' : 'HEUR'}</span>
-  </button>
-{/if}
+<button
+  type="button"
+  class="chip"
+  data-coach="brain"
+  class:big
+  class:busy={pct !== null}
+  class:small
+  onclick={show}
+  aria-label={pct !== null ? `Big Brain installing, ${pct}%. Open brain settings` : big ? 'Big Brain is on. Open brain settings' : 'Big Brain is off. Open brain settings to download or load it'}
+  title="Big Brain settings"
+>
+  <Icon id={big || pct !== null ? 'brain_big' : 'brain_heur'} size={small ? 16 : 20} />
+  <span>{pct !== null ? `${pct}%` : big ? 'BIG' : 'BRAIN'}</span>
+</button>
 
 {#if open}
   <div class="panel-layer" role="presentation">
     <button type="button" class="scrim" tabindex="-1" aria-label="Close" onclick={hide}></button>
     <div class="panel-box">
-      {#await import('../../ai/ModelPanel.svelte') then m}
-        <m.default onClose={hide} />
-      {:catch}
-        <p class="px-panel dark err">The Big Brain panel couldn’t load. The Heuristic Brain is still here!</p>
-      {/await}
+      <ModelPanel onClose={hide} />
     </div>
   </div>
 {/if}
@@ -96,6 +80,7 @@
     letter-spacing: 0.06em;
     cursor: pointer;
   }
+  .chip > span { display: var(--brain-label-display, inline); }
   .chip.big { color: var(--sakura-2); border-color: var(--sakura-3); }
   .chip.busy {
     color: var(--gold);
@@ -116,5 +101,4 @@
   .scrim { position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 26, 0.62); cursor: default; }
   .panel-box { position: relative; width: min(680px, 100%); max-height: 100%; overflow: auto; display: flex; }
   .panel-box > :global(*) { flex: 1; max-height: 100%; }
-  .err { padding: 16px; margin: 0; }
 </style>

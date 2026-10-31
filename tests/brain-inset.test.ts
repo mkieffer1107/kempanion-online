@@ -130,7 +130,7 @@ describe('tutorial_big_brain', () => {
       expect(first).toBeGreaterThan(0);
       expect(seen.slice(0, first).every((l) => !l.on)).toBe(true);
       expect(seen.slice(first).every((l) => l.on)).toBe(true);
-      expect(seen.at(-1)!.text).toMatch(/^【KEMPA AI】Tip: tap the brain chip at the top of the screen/);
+      expect(seen.at(-1)!.text).toMatch(/^【KEMPA AI】Tip: the brain chip always opens Big Brain controls/);
       expect(brainInset.on).toBe(false);
       expect(game.save.flags['tut.big_brain_coach']).toBe(true); // the hub's coach mark takes over
     });
@@ -154,9 +154,9 @@ describe('wiring', () => {
     expect(scene).toMatch(/\{#snippet overlay\(\)\}[\s\S]*<BrainInset place="top" \/>[\s\S]*\{\/snippet\}/);
   });
 
-  test('it is the real chip, inert, and only after a yes to Big Brain', () => {
+  test('it is the real chip, inert, even before opting into Big Brain', () => {
     expect(inset).toMatch(/<span class="ring" inert><BrainChip small \/><\/span>/);
-    expect(inset).toContain('bigBrainUiEnabled(choice)');
+    expect(inset).not.toContain('bigBrainUiEnabled');
     expect(inset).toContain('brainInset.on');
   });
 });

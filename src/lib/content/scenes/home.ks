@@ -110,14 +110,13 @@ replayable: false
 [sfx notify]
 narrator: 【KEMPA AI】Tutorial complete! Your Kempanion is now in your care (no pressure).
 
-# Right after the KempaPager tutorial (and once for saves that already saw it), if you said yes to the Big Brain at the
-# title screen: your Kempanion points at the brain chip ("here's how you can make me smarter"). The hub mirrors the
-# title-screen answer into flag bigbrain = accepted just before it looks for scenes (no answer or "no" = no chip, no
-# tutorial). It ends by setting tut.big_brain_coach, and the hub pulses an arrow on the chip until you tap it.
+# Right after the KempaPager tutorial, once: point out the always-available brain chip, whether or not
+# Big Brain was accepted or this device can run it. The built-in brain works without a download.
+# The coach arrow stays until the player opens the chip.
 === tutorial_big_brain
 title: Make Me Smarter
 summary: Your Kempanion shows you the Big Brain chip.
-trigger: location=hub; seen=tutorial_hub; seen!=tutorial_big_brain; flag=bigbrain; !flag=bigbrain_unsupported
+trigger: location=hub; seen=tutorial_hub; seen!=tutorial_big_brain
 priority: 99
 replayable: false
 ---
@@ -127,34 +126,34 @@ replayable: false
   [show piggy-1 thinking center]
   piggy-1 thinking: Oh, wait— one more play before you go!
   [brain]
-  piggy-1 happy: See the little brain chip, top of the screen? That's how you make me smarter. Big Brain!
-  piggy-1 excited: You said yes at the start, so Piggy 3's been installing it. Tap the brain to check how it's going!
-  piggy-1 happy: Once it says BIG, I can actually think about what you say, instead of running my usual playbook.
-  piggy-1 thinking: And it all runs right here on your device. Nothing gets sent anywhere. Piggy 3 made me say that part.
+  piggy-1 happy: See the little brain chip up top? That's your Big Brain shortcut, teammate!
+  piggy-1 excited: Tap it to download or load Big Brain if your device supports it, or check its progress. Optional extra player on the team!
+  piggy-1 thinking: You can turn it off and unload it there anytime. My built-in playbook still works without it!
+  piggy-1 happy: Big Brain runs on your device. Our chats stay right here. Piggy 3 made me practice that part.
 [elif companion = piggy-2]
   [bg home_p2 fade]
   [bgm piggy2_theme]
   [show piggy-2 neutral center]
   piggy-2 neutral: One more item before orientation ends.
   [brain]
-  piggy-2 neutral: Top of the screen: the brain chip. That's how you make me smarter.
-  piggy-2 neutral: You consented to the Big Brain at the start. Tap the chip to monitor the install.
-  piggy-2 happy: Once it reads BIG, I can actually think about what you say. Higher cognition. Based.
-  piggy-2 shy: I've put electrodes in a lot of pig brains. Nobody's ever upgraded mine. ...Thank you.
+  piggy-2 neutral: Top of the screen: the brain chip. Big Brain controls. Always available.
+  piggy-2 neutral: Tap to download or load it on a supported device, or monitor progress. Entirely optional.
+  piggy-2 happy: Turn it off and unload it there anytime. The built-in brain remains operational. Based.
+  piggy-2 neutral: It runs on your device. Conversation stays local. No electrodes required.
 [else]
   [bg home_p3 fade]
   [bgm piggy3_theme]
   [show piggy-3 thinking center]
   piggy-3 thinking: Okay, so— one more thing. I built this part, so I'm kind of excited about it.
   [brain]
-  piggy-3 happy: See the little brain up top? That's how you make me smarter. It's the Big Brain.
-  piggy-3 excited: You said yes at the start, so it's installing! Tap it to see the progress bar. I made it chunky.
-  piggy-3 thinking: It basically runs right in your browser, on your graphics card. Nothing gets sent anywhere.
-  piggy-3 bashful_smile: When it says BIG, I can actually keep up with you. In conversation, I mean.
+  piggy-3 happy: See the little brain up top? Big Brain controls, even if you don't want to use it right now.
+  piggy-3 excited: Tap to download or load it if your device supports it, or watch the progress bar. I made it chunky.
+  piggy-3 thinking: You can turn it off and unload it there anytime. My built-in brain works without downloading anything.
+  piggy-3 bashful_smile: It runs right here on your device. Our chats stay local. Optional brain, same pig.
 [endif]
 [set tut.big_brain_coach]
 [sfx notify]
-narrator: 【KEMPA AI】Tip: tap the brain chip at the top of the screen to check on your Kempanion's Big Brain.
+narrator: 【KEMPA AI】Tip: the brain chip always opens Big Brain controls. Downloading and loading are optional; your built-in brain keeps working.
 [brain off]
 
 # Played when the pet sim reports an absence of more than 72 h (it sets welcome_party_ready, tops up needs and

@@ -1,9 +1,9 @@
 // The player's per-device answer to "Download Big Brain?" — asked once on the start menu (BigBrainPrompt).
 // It lives in localStorage, not in the save: the model is cached by this browser, so a save moved to another
 // device must not carry the answer with it.
-//   'accepted' → Big Brain controls appear in the game (status chip, % while downloading) and it autoloads.
-//   'declined' or no answer yet → every Big Brain control stays out of the game (no chip, no in-game offers).
-// Settings → Brain is where the player changes their mind: downloading there sets 'accepted', removing the
+//   'accepted' → permit cached-model autoload and optional in-game offers.
+//   'declined' or no answer yet → no automatic load; the Home/Talk shortcut remains available.
+// Settings → Brain or the shortcut lets the player change their mind: downloading sets 'accepted', removing the
 // model sets 'declined'. Pure module (no runes, no DOM besides storage): bun-testable.
 
 export type BigBrainChoice = 'accepted' | 'declined';
@@ -82,7 +82,7 @@ export function onBigBrainChoice(cb: Listener): () => void {
   };
 }
 
-/** Big Brain controls (status chip, download %, in-game offers) only exist after a yes on this device. */
+/** Whether this device opted in (visibility of the persistent shortcut is independent). */
 export function bigBrainUiEnabled(choice: BigBrainChoice | null): boolean {
   return choice === 'accepted';
 }

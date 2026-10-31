@@ -14,6 +14,8 @@
   import { findTriggeredScene } from '../../vn';
   import { idleLine } from '../../ai/heuristic';
   import { CHARACTERS } from '../../content/characters';
+  import ActivityLabel from '../components/ActivityLabel.svelte';
+  import { actionKind, type ActivityKind } from '../location/activities';
   import { LOCATIONS, isBedtime, whereIs, type LocationAction } from '../../content/locations';
   import { localDate, timeOfDay, weekday } from '../../time';
   import {
@@ -423,7 +425,7 @@
   };
 
   const actions = $derived.by(() => {
-    const list: { key: string; label: string; icon?: string; face?: PigId; run: () => void }[] = [];
+    const list: { key: string; label: string; icon?: string; face?: PigId; kind?: ActivityKind; run: () => void }[] = [];
     for (const p of present) list.push({ key: `talk-${p}`, label: `Talk to ${oneLine(p)}`, face: p, run: () => talk(p) });
     if (present.length) list.push({ key: 'gift', label: 'Give a gift', icon: 'gift', run: startGift });
     if (loc === 'dorm') {
@@ -434,9 +436,9 @@
       const x = ACTION[a];
       if (!x) continue;
       const drawn = a === 'omikuji' && omikujiToday(game.save, gameClock.minute * 60_000) !== null;
-      list.push({ key: a, ...x, label: drawn ? 'Read today’s omikuji' : x.label });
+      list.push({ key: a, ...x, kind: actionKind(a), label: drawn ? 'Read today’s omikuji' : x.label });
     }
-    if (def.id === 'shands') list.push({ key: 'buy-meds', label: 'Buy medicine', icon: 'care', run: () => { leaveForSub(); game.go('shop', { location: 'shands', back: 'location', backParams }); } });
+    if (def.id === 'shands') list.push({ key: 'buy-meds', label: 'Buy medicine', kind: 'shop', icon: 'care', run: () => { leaveForSub(); game.go('shop', { location: 'shands', back: 'location', backParams }); } });
     return list;
   });
 
@@ -530,7 +532,7 @@
   {#snippet dock()}
     <div class="dockbar">
       <button type="button" class="px-btn ghost" onclick={() => game.go('map')}><Icon id="map" size={20} /> Map</button>
-      {#if companion}<button type="button" class="px-btn ghost" onclick={() => game.go('hub')}><Icon id="home" size={20} /> Pager</button>{/if}
+      {#if companion}<button type="button" class="px-btn ghost" onclick={() => game.go('hub')}><Icon id="home" size={20} /> Home</button>{/if}
     </div>
   {/snippet}
 
@@ -571,7 +573,7 @@
           <li>
             <button type="button" class="cmd" onclick={a.run} data-cycle data-key={a.key}>
               {#if a.face}<PigFace pig={a.face} size={22} />{:else if a.icon}<Icon id={a.icon} size={22} />{/if}
-              <span>{a.label}</span>
+              <span class="cmd-label">{#if a.kind}<ActivityLabel kind={a.kind} icon={false} />{/if}<span>{a.label}</span></span>
             </button>
           </li>
         {/each}
@@ -661,6 +663,7 @@
     text-align: left;
     cursor: pointer;
   }
+  .cmd-label { display: grid; min-width: 0; }
   .cmd:focus-visible { border-color: var(--sakura-2); background: rgba(255, 183, 197, 0.12); outline: none; }
   .cmd:focus-visible::before { content: '▶'; color: var(--sakura-2); font-size: 12px; margin-left: -4px; }
   /* Mouse only: touch browsers keep :hover on the last tapped command, and its ▶ would rewrap/resize the list. */

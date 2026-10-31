@@ -14,6 +14,8 @@
   import { viewport } from '../viewport.svelte';
   import { ui } from '../ui.svelte';
   import ClockChip from '../components/ClockChip.svelte';
+  import ActivityLabel from '../components/ActivityLabel.svelte';
+  import { locationKinds } from '../location/activities';
   import PigFace from '../components/PigFace.svelte';
   import Icon from '../components/Icon.svelte';
   import SpriteAnim from '../components/SpriteAnim.svelte';
@@ -138,6 +140,7 @@
     <aside class="side">
       <section class="card px-panel dark" aria-live="polite">
         <p class="cname">{sel.name} <span class="jp" aria-hidden="true">{sel.jp}</span></p>
+        <div class="activities">{#each locationKinds(sel) as kind (kind)}<ActivityLabel {kind} />{/each}</div>
         <p class="blurb">{sel.blurb}</p>
         <p class="who">
           {#if selPigs.length}
@@ -164,6 +167,7 @@
                 {#each who as p (p)}<PigFace pig={p} size={20} label />{/each}
                 {#if marks[id]}<span class="mark inline" class:heart={marks[id] === 'heart'} aria-label={marks[id] === 'heart' ? 'Heart event ready' : 'Event'}>{marks[id] === 'heart' ? '♥' : '!'}</span>{/if}
               </span>
+              <span class="activities row-activities">{#each locationKinds(loc) as kind (kind)}<ActivityLabel {kind} />{/each}</span>
             </button>
             <button type="button" class="px-btn small go-sm" onclick={() => go(id)} aria-label="Go to {loc.name}">GO</button>
           </li>
@@ -264,14 +268,16 @@
   .go { justify-self: start; min-width: 120px; }
   .list { flex: 1; min-height: 0; list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: 4px; }
   .list li { display: flex; gap: 6px; align-items: center; }
+  .activities { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+  .row-activities { grid-column: 1 / -1; }
   .row {
     flex: 1;
     min-width: 0;
-    min-height: 44px;
-    display: flex;
+    min-height: 54px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    gap: 2px 6px;
     padding: 4px 8px;
     background: rgba(255, 255, 255, 0.05);
     color: inherit;
@@ -290,27 +296,21 @@
   .go-sm { min-width: 52px; min-height: 44px; }
   .head .px-btn { min-height: 44px; min-width: 44px; }
 
-  /* T: map on top, card + list below. The art is as wide as the screen but leaves the board (100cqh) room for what goes
-     under it (--under): 10 + 8 px gaps, two list rows (2 × 44 + 4) and the tallest card, 233 px (the Plaza with three
-     faces and the ♥ note). That only bites on short phones and squarish windows, and never below half width. */
-  .mode-t { --under: 343px; }
+  /* T: map on top, card + list below. Reserve room for the selected card's category line
+     and two 54 px list rows; short screens still keep a half-width map at minimum. */
+  .mode-t { --under: 385px; }
   .mode-t .board { flex-direction: column; container-type: size; }
   .mode-t .map-box { flex: none; container-type: inline-size; }
   .mode-t .map { width: min(100cqw, max(50cqw, (100cqh - var(--under)) * 1.5)); }
   .mode-t .side { flex: 1; }
-  /* short phones (iPhone SE / mini), and 360 px Androids a little taller (the Plaza's card wraps to 254 px there): no
-     blurb or ♥ note (the ♥ is still on the pin and the row). The tallest card is then 164 px (Marston's two-line name
-     with two pigs), so the art leaves 276 px: 18 for the gaps, 92 for two rows and 166 for the card. It shrinks only
-     below about 580 px tall (SE, 553: 213 px tall instead of 239). */
+  /* Short phones hide descriptive copy, keeping activity labels and navigation visible. */
   @media (max-height: 640px), (max-width: 370px) and (max-height: 680px) {
-    .mode-t { --under: 276px; }
+    .mode-t { --under: 318px; }
     .mode-t .card .blurb, .mode-t .card .heart-note { display: none; }
   }
-  /* Up to about 350 px wide the "who" line wraps a second time and the tallest card is 187 px (Marston with two pigs;
-     the Plaza's is 181): 24 px more room, so those phones keep two rows as well. The step sits between 344 and 352 px
-     in Chromium and WebKit alike; 356 leaves a margin. */
+  /* The narrowest phones need an extra line for the occupants. */
   @media (max-width: 356px) and (max-height: 680px) {
-    .mode-t { --under: 300px; }
+    .mode-t { --under: 342px; }
   }
   /* S: compact header; the card drops the blurb and the ♥ note as on short T phones (with the Plaza's ♥ note the
      list was down to one row and Go sat under the map toasts) */

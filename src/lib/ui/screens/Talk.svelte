@@ -1,7 +1,7 @@
 <script lang="ts">
   // Free chat with a pig (any of the three): his current spot as the stage, his portrait, the VN dialogue box, the
   // reply options (ChatChoices: quick replies as VN choice rows + "Say something else…") and a top bar with Back,
-  // face/name/hearts, the brain chip (only after a yes to Big Brain on this device) and his memories of you.
+  // face/name/hearts, the always-available brain chip and his memories of you.
   // Piggy 3's X mumble (chat.ts playMumble): the stream shows small and dim in the box, and its buzzwords pop around
   // his portrait in lilac clouds (MumbleBubbles, on the stage), clear of his face, the phone, the top bar and the box.
   //   W / S  he stands on the LEFT, the box sits at the bottom in its normal size, and the options float on the
@@ -323,6 +323,8 @@
     background: rgba(26, 16, 48, 0.86);
     border-bottom: var(--px) solid var(--box-edge);
   }
+  /* The brain panel opens inside the status region; lift it over later dialogue/menu siblings. */
+  :global(.gl.chrome-vn > .frame > .r.status:has(.topbar .panel-layer)) { z-index: 60; }
   .who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .nm { font-family: var(--font-display); font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sp { flex: 1; }
@@ -358,7 +360,7 @@
   }
   .side::-webkit-scrollbar { display: none; }
   .side > :global(.cc) { margin-block: auto; }
-  /* S: the top bar keeps to the left 40% (below), so the options can use the full height beside it. */
+  /* S: the top bar keeps to the left of the options (below), so they can use the full height beside it. */
   .side.short { top: calc(var(--u) * 2); }
   /* S while typing: the window is hidden (its line is back when the keyboard closes) and --box-h is 0 */
   .stage-wrap :global(.vn.stepped-aside) { visibility: hidden; }
@@ -438,7 +440,18 @@
   .note { font-size: 12px; opacity: 0.75; margin: 10px 0 0; }
 
   :global(.mode-w) .topbar { width: auto; border: var(--px) solid var(--box-edge); }
-  :global(.mode-s) .topbar { width: auto; max-width: 40%; border: var(--px) solid var(--box-edge); }
+  /* Keep the short header clear of the options on the right. The full portrait already identifies him;
+     dropping its tiny duplicate and the brain caption leaves room for his name and 44 px controls. */
+  :global(.mode-s) .topbar { --brain-label-display: none; width: auto; max-width: 40%; gap: 4px; border: var(--px) solid var(--box-edge); }
+  :global(.mode-s) .topbar > :global(.face), :global(.mode-s) .sp { display: none; }
+  :global(.mode-s) .topbar > :global([data-coach='brain']) { flex: none; }
+  :global(.mode-s) .back, :global(.mode-s) .mem { flex: none; }
   :global(.mode-s) .bl { display: none; }
+  @media (max-width: 600px) {
+    /* The smallest landscape phones need a little more of the left side for the full name.
+       Options begin at 42% and have their own inset; all three controls stay 44 px wide. */
+    :global(.mode-s) .topbar { max-width: 42%; gap: 3px; }
+    :global(.mode-s) .nm { font-size: 14px; }
+  }
   @media (max-width: 400px) { .bl { display: none; } }
 </style>

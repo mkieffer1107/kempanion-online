@@ -61,7 +61,9 @@ describe('arrival right after the tutorial (story2-extra-scene-after-tutorial)',
   const afterTutorial: ArrivalSession = { autoScenes: [HUB_TUTORIAL], roomShown: false };
 
   test('a random home scene that wins the roll waits: the room shows first', () => {
-    const r = arrive(freshSave('piggy-3'), afterTutorial);
+    const save = freshSave('piggy-3');
+    save.seenScenes.push('tutorial_big_brain');
+    const r = arrive(save, afterTutorial);
     expect(r.rolled).toBe('home_p3_rain');
     expect(r.plays).toBeNull();
   });
@@ -70,6 +72,12 @@ describe('arrival right after the tutorial (story2-extra-scene-after-tutorial)',
     const r = arrive(freshSave('piggy-3', { bigbrain: 'accepted' }), afterTutorial);
     expect(r.rolled).toBe('tutorial_big_brain');
     expect(r.plays).toBe('tutorial_big_brain');
+  });
+
+  test('the brain tutorial also explains the shortcut before opting in or on an unsupported device', () => {
+    for (const flags of [{}, { bigbrain_unsupported: true }]) {
+      expect(arrive(freshSave('piggy-3', flags), afterTutorial).plays).toBe('tutorial_big_brain');
+    }
   });
 
   test('…and the random scene still waits after it (the room has not shown yet)', () => {
@@ -81,15 +89,21 @@ describe('arrival right after the tutorial (story2-extra-scene-after-tutorial)',
   });
 
   test('once the room has shown, random home scenes may take over again', () => {
-    expect(arrive(freshSave('piggy-3'), { autoScenes: [HUB_TUTORIAL], roomShown: true }).plays).toBe('home_p3_rain');
+    const save = freshSave('piggy-3');
+    save.seenScenes.push('tutorial_big_brain');
+    expect(arrive(save, { autoScenes: [HUB_TUTORIAL], roomShown: true }).plays).toBe('home_p3_rain');
   });
 
   test('a returning player (no tutorial this session) gets them on the first visit as before', () => {
-    expect(arrive(freshSave('piggy-3'), { autoScenes: [], roomShown: false }).plays).toBe('home_p3_rain');
+    const save = freshSave('piggy-3');
+    save.seenScenes.push('tutorial_big_brain');
+    expect(arrive(save, { autoScenes: [], roomShown: false }).plays).toBe('home_p3_rain');
   });
 
   test('a scene already auto-played this session never plays twice', () => {
-    expect(arrive(freshSave('piggy-3'), { autoScenes: ['home_p3_rain'], roomShown: true }).plays).toBeNull();
+    const save = freshSave('piggy-3');
+    save.seenScenes.push('tutorial_big_brain');
+    expect(arrive(save, { autoScenes: ['home_p3_rain'], roomShown: true }).plays).toBeNull();
     expect(arrivalScene(null, { autoScenes: [], roomShown: true })).toBeNull();
   });
 

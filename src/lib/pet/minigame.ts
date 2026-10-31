@@ -6,7 +6,6 @@ import { MINIGAME, clamp } from './balance';
 import { addBondCapped, bondLevel, bondRoom, heartGateCap } from './bond';
 import { acornMultiplier, omikujiToday } from './daily';
 import { recordSignal } from './signals';
-import { isAsleep } from './sim';
 import { bump, setFlag, setMax, str, today, todayOf } from './state';
 import type { Achievement, DailyTask } from './types';
 
@@ -52,12 +51,8 @@ export function isFirstRunToday(save: SaveData, id: MinigameId, now: number): bo
   return str(save, `pet.mg.${id}`) !== today(now);
 }
 
-/** Needs energy ≥ 20 and an awake pig. */
-export function canPlayMinigame(save: SaveData, pig: PigId, now: number): { ok: boolean; reason?: string } {
-  if (isAsleep(save, pig, now)) return { ok: false, reason: "He's asleep. Let him rest — try again after his bedtime." };
-  if (save.companion === pig && save.pigs[pig].needs.energy < MINIGAME.minEnergy) {
-    return { ok: false, reason: 'Too tired to play (needs ⚡20). A nap or a cafecito would help.' };
-  }
+/** Mini-games are available at any hour, independent of sleep and energy. Care keeps its own rules. */
+export function canPlayMinigame(_save: SaveData, _pig: PigId, _now: number): { ok: boolean; reason?: string } {
   return { ok: true };
 }
 

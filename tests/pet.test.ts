@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { PigId, SaveData } from '../src/lib/types';
 import {
   ACHIEVEMENTS, EDIBLE_IDS, ITEMS, addBondCapped, advance, applyAction, applyMinigameResult, bondLevel, bondProgress,
-  buyItem, catchGoldenPetal, chapter, checkAchievements, claimDaily, completeTask, currentWant, dailyTasks,
+  buyItem, canPlayMinigame, catchGoldenPetal, chapter, checkAchievements, claimDaily, completeTask, currentWant, dailyTasks,
   discoverTaste, doctorsRounds, fulfillWant, getItem, goldenPetalAvailable, heartEventId, heartGateCap, isAsleep,
   knownTaste, minigameReward, moodOf, newSave, nextHeartEvent, omikujiFor, priceOf, recordDayPlayed, recordSignal,
   rollOmikuji, shopStock, stampCard, tasteOf, welcomeBack, wantSlot,
@@ -663,6 +663,41 @@ describe('wants', () => {
 });
 
 describe('mini-game rewards', () => {
+  test('every pig can play at bedtime, during a nap, or with no energy, without changing sleep or care state', () => {
+    for (const pig of ['piggy-1', 'piggy-2', 'piggy-3'] as const) {
+      for (const companion of [pig, null] as const) {
+        for (const [hour, manualSleep, energy] of [[12, true, 80], [3, false, 80], [12, false, 0], [3, true, 0]] as const) {
+          const at = T(2026, 10, 28, hour);
+          const s = fresh(pig, at);
+          s.companion = companion;
+          s.pigs[pig].asleep = manualSleep;
+          s.pigs[pig].needs.energy = energy;
+          if (companion === null && hour === 3) expect(isAsleep(s, pig, at)).toBe(true);
+          const before = JSON.stringify(s);
+          expect(canPlayMinigame(s, pig, at)).toEqual({ ok: true });
+          expect(JSON.stringify(s)).toBe(before);
+          if (manualSleep) expect(applyAction(s, pig, 'play', undefined, at).ok).toBe(false);
+        }
+      }
+    }
+  });
+
+  test('finishing a game while asleep still pays rewards and clamps energy without waking the companion', () => {
+    const at = T(2026, 10, 28, 3);
+    const s = fresh('piggy-3', at);
+    noTasks(s);
+    s.pigs['piggy-3'].asleep = true;
+    s.pigs['piggy-3'].needs.energy = 2;
+    const result = minigameReward(s, 'debug', 'piggy-3', { score: 0, stats: { correct: 0 } }, at);
+    const money = s.money;
+    applyMinigameResult(s, 'piggy-3', result, at);
+    expect(s.money).toBe(money + result.money);
+    expect(s.pigs['piggy-3'].needs.energy).toBe(0);
+    expect(s.pigs['piggy-3'].asleep).toBe(true);
+    expect(s.counters['mg.debug.runs']).toBe(1);
+    expect(canPlayMinigame(s, 'piggy-3', at)).toEqual({ ok: true });
+  });
+
   test('always pays ≥ 5, first run of the day ×2, medals add bond', () => {
     const s = fresh('piggy-3', T(2026, 10, 30, 14));
     openGate(s, 'piggy-3');

@@ -7,7 +7,7 @@
   //
   // The answer is stored per device (src/lib/ai/choice.ts). Yes starts the download in the background (the title
   // shows a progress pill, the brain chip a %); when it's ready the chat brain switches to Big Brain and a toast says
-  // so. No keeps every Big Brain control out of the game; Settings → Brain can change it later.
+  // so. No skips the download; Settings → Brain and the Home/Talk shortcut can change it later.
   // Keys: Tab cycles inside the window, Esc = No thanks. The safe answer has focus first, like ConfirmDialog.
   import { onMount, tick } from 'svelte';
   import './meta.css';

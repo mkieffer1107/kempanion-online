@@ -9,6 +9,7 @@
   import type { Expression, PigId } from '../types';
   import { MOBILE_DATA_TEXT, UNSUPPORTED_TEXT, aiManager as m } from './manager.svelte';
   import { MODELS, MODEL_IDS, availability, formatBytes, isModelId, type ModelId } from './models';
+  import { setBigBrainChoice } from './choice';
 
   let { onClose }: { onClose?: () => void } = $props();
 
@@ -116,14 +117,16 @@
   // ── actions ──
   function start() {
     if (!selAvail.ok || lowSpace) return;
+    // The same explicit opt-in applies from Settings and the always-visible shortcut.
+    setBigBrainChoice('accepted');
+    settings.aiAutoload = true;
+    game.persist();
     showPicker = false;
     void m.load(selected);
   }
   function keepHeuristic() {
-    if (m.status !== 'ready') {
-      settings.aiMode = 'heuristic';
-      game.persist();
-    }
+    settings.aiMode = 'heuristic';
+    game.persist();
     onClose?.();
   }
   function setBrain(mode: 'heuristic' | 'llm') {
@@ -137,6 +140,18 @@
   }
   async function removeSelected(id: ModelId) {
     await m.remove(id);
+    if (!m.busy && m.status !== 'ready' && !MODEL_IDS.some((id) => m.cached[id])) {
+      setBigBrainChoice('declined');
+      settings.aiMode = 'heuristic';
+      settings.aiAutoload = false;
+      game.persist();
+    }
+  }
+  async function unload() {
+    settings.aiMode = 'heuristic';
+    settings.aiAutoload = false;
+    game.persist();
+    await m.unload();
   }
 </script>
 
@@ -237,7 +252,7 @@
       Load Big Brain automatically next time
     </label>
     <div class="actions">
-      <button class="px-btn" onclick={() => m.unload()}>Unload</button>
+      <button class="px-btn" onclick={unload}>Unload</button>
       <button class="px-btn" onclick={() => m.modelId && removeSelected(m.modelId)}>
         Remove model ({m.sizeOf(m.modelId ?? selected).label})
       </button>

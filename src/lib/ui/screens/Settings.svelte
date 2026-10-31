@@ -11,8 +11,7 @@
   import { localDate } from '../../time';
   import { now } from '../../state/clock';
   import { defaultSettings } from '../../pet';
-  import { getBigBrainChoice, onBigBrainChoice, setBigBrainChoice } from '../../ai/choice';
-  import { MODEL_IDS } from '../../ai/models';
+  import ModelPanel from '../../ai/ModelPanel.svelte';
   import { ui, type PetalPref, type TextSize } from '../ui.svelte';
   import { viewport } from '../viewport.svelte';
   import { toast } from '../toasts.svelte';
@@ -173,47 +172,6 @@
     } catch { toast('Fullscreen isn’t available here.', { icon: 'alert', kind: 'warn' }); }
     isFull = !!document.fullscreenElement;
   }
-
-  // ── BRAIN ──
-  // The start menu asks once per device whether to download Big Brain (src/lib/ai/choice.ts); this tab is where the
-  // player changes their mind: starting a download/load here means yes, removing the last downloaded model means no.
-  type Manager = (typeof import('../../ai/manager.svelte'))['aiManager'];
-  let brainChoice = $state(getBigBrainChoice());
-  let brainMgr = $state<Manager | null>(null);
-  $effect(() => onBigBrainChoice((v) => (brainChoice = v)));
-  $effect(() => {
-    if (tab === 'brain' && !brainMgr) void import('../../ai/manager.svelte').then((x) => (brainMgr = x.aiManager)).catch(() => {});
-  });
-  /** Was a model loading/loaded when last looked at (null = the Brain tab isn't open)? */
-  let brainWasActive: boolean | null = null;
-  $effect(() => {
-    const m = brainMgr;
-    if (!m || tab !== 'brain') {
-      brainWasActive = null;
-      return;
-    }
-    const active = m.busy || m.status === 'ready';
-    untrack(() => {
-      const started = brainWasActive === false && active;
-      brainWasActive = active;
-      if (!started || brainChoice === 'accepted') return;
-      // Download / Load pressed in the panel: yes to Big Brain on this device (and load it again next launch).
-      setBigBrainChoice('accepted');
-      game.save.settings.aiAutoload = true;
-      save();
-    });
-  });
-  $effect(() => {
-    const m = brainMgr;
-    if (!m || tab !== 'brain') return;
-    // The manager says "Removed …" (an info notice) after deleting a model's files.
-    return m.onNotice((n) => {
-      if (n.kind !== 'info' || m.busy || m.status === 'ready' || MODEL_IDS.some((id) => m.cached[id])) return;
-      setBigBrainChoice('declined');
-      game.save.settings.aiMode = 'heuristic';
-      save();
-    });
-  });
 
   // ── DATA ──
   let fileEl = $state<HTMLInputElement | null>(null);
@@ -394,21 +352,9 @@
         {/if}
         <p class="hint">Layout: {viewport.mode === 'w' ? 'Wide (letterboxed stage)' : viewport.mode === 't' ? 'Tall (KempaPager)' : 'Short (side rails)'} — rotate or resize to switch.</p>
       {:else if tab === 'brain'}
-        <p class="hint brain-state" role="status">
-          {#if brainChoice === 'accepted'}
-            Big Brain is <b>on</b> for this device: its status chip shows in the game. Remove the model below to turn it off.
-          {:else}
-            Big Brain is <b>off</b> for this device{brainChoice === null ? '' : ' (you said no thanks)'}. Download it below and the
-            piggies can chat about anything; it runs on your GPU and stays in this browser’s cache.
-          {/if}
-        </p>
-        {#await import('../../ai/ModelPanel.svelte')}
-          <p class="hint">Loading the Brain panel…</p>
-        {:then m}
-          <m.default />
-        {:catch}
-          <p class="hint">The Big Brain panel couldn’t load. The Heuristic Brain answers free chat either way.</p>
-        {/await}
+        <p class="hint brain-state">Big Brain is optional. Download or load it below, switch brains, or unload it anytime.
+          The brain shortcut stays at the top of Home and Talk, even when Big Brain is off.</p>
+        <ModelPanel />
       {:else if tab === 'access'}
         {@render toggle('Reduce motion', s.reduceMotion, () => (game.save.settings.reduceMotion = !s.reduceMotion), ui.systemReduce ? 'Your system already asks for reduced motion' : 'Petals off, no shakes, crossfades instead of wipes')}
         {@render toggle('High-contrast text box', ui.highContrast, () => (game.save.flags['ui.highContrast'] = !ui.highContrast))}

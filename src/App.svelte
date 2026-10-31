@@ -193,7 +193,7 @@
   // tutorial_big_brain ends by setting tut.big_brain_coach: the hub points at the brain chip until it is tapped. Not
   // over a window (Roll Call opens with the room right after the tutorial and covers the chip): it waits for it.
   const brainCoach = $derived(
-    shownScreen === 'hub' && curtain === 'off' && !dialogOpen && brainChoice === 'accepted'
+    shownScreen === 'hub' && curtain === 'off' && !dialogOpen
       && !!game.save.flags['tut.big_brain_coach'],
   );
   function coachTap(e: Event) {

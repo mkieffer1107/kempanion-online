@@ -10,7 +10,6 @@
   import CgOverlay from '../../vn/components/CgOverlay.svelte';
   import { pagerInset } from '../../vn/pager.svelte';
   import { brainInset } from '../../vn/brain.svelte';
-  import { bigBrainUiEnabled, getBigBrainChoice, onBigBrainChoice } from '../../ai/choice';
   import { factOf } from '../../vn/effects';
   import { viewport } from '../viewport.svelte';
   import GameLayout from '../layout/GameLayout.svelte';
@@ -26,10 +25,8 @@
   const prologue = id === 'prologue' && !params.replay;
   let menuOpen = $state(false);
   let stageEl = $state<HTMLDivElement>();
-  let brainChoice = $state(getBigBrainChoice());
-  $effect(() => onBigBrainChoice((v) => (brainChoice = v)));
   // Keep this space during HIDE too, so hiding the controls never moves the picture.
-  const topClearance = $derived(pagerInset.keys !== null || (brainInset.on && bigBrainUiEnabled(brainChoice)) ? 64 : 0);
+  const topClearance = $derived(pagerInset.keys !== null || brainInset.on ? 64 : 0);
   let leaving = false;
   let skipped = false;
 
