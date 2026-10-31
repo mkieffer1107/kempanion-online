@@ -1,6 +1,8 @@
 // Regex fact extraction from the player's messages ("What {Pig} knows about you"). Pure: storage goes through a
 // small MemoryStore interface (the AI host wires it to game.remember / game.forget).
 import { PIG_IDS, type PigId } from '../types';
+import { correctedText, isPassionTopic } from './heuristic/intents';
+import { saidMajor, statedMajor } from './heuristic/template';
 
 export type FactKey =
   | 'name' | 'nickname' | 'hometown' | 'major' | 'year' | 'likes' | 'dislikes' | 'favorite' | 'exam' | 'pet';
@@ -29,10 +31,35 @@ export interface MemoryStore {
 export const SECRET_MARK = ' (secret)';
 const MAX_VALUE = 40;
 
+/** A fact told as a secret: only the pig who heard it has it (rememberFacts marks it with SECRET_MARK). */
+export function isSecretFact(fact: string): boolean {
+  return fact.trimEnd().replace(/\.$/, '').endsWith(SECRET_MARK);
+}
+
+/**
+ * "Forget" in a pig's memories window: the pigs share what the player tells one of them, so a shared fact goes from
+ * every pig that has it; a secret only from `pig`. Returns true when anything was removed.
+ */
+export function forgetFact(memories: Partial<Record<PigId, string[]>>, pig: PigId, fact: string): boolean {
+  let changed = false;
+  for (const p of isSecretFact(fact) ? [pig] : PIG_IDS) {
+    const list = memories[p];
+    const i = list ? list.indexOf(fact) : -1;
+    if (list && i >= 0) {
+      list.splice(i, 1);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 /** Values that are clauses or filler, not facts. */
 const BAD_START =
   /^(to|for|at|in|on|with|about|so|really|very|just|it|that|this|them|him|her|you|your|yours|u|ur|me|everything|nothing|anything|something|when|how|what|why|who|because|but|and|or|if|as|like|though|being|having|doing|getting)\b/i;
 const LIKE_BAD_START = /^(how|when|what|why|who|that|it|this|them|him|her|you|your|yours|u|ur|because|if|so|but|and|or|being|having|me)\b/i;
+
+/** In a self-introduction, right after the name: "I'm Jordan, a biology major" (read as "i am a biology major"). */
+const MAJOR_INTRO = /,\s*(?:and )?(an? [^,.!?;]{1,60})/i;
 const PRONOUN_ONLY = /^(it|that|this|them|him|her|you|u|those|these|stuff|things?|everything|nothing|anything|one|ones)$/i;
 
 /** First-person → third-person inside a captured value ("my dog" → "their dog"). */
@@ -170,18 +197,18 @@ export function extractFacts(text: string, now: Date = new Date()): LearnedFact[
       }
     }
 
-    // ── major
-    if (
-      (m = /\b(?:i'?m|i am) (?:an? )?([\p{L}][\p{L} &-]{1,30}?) major\b/iu.exec(s)) ||
-      (intro && (m = /\ban? ([\p{L}][\p{L} &-]{1,30}?) major\b/iu.exec(s))) ||
-      (m = /\bmy major is ([\p{L}][\p{L} &-]{1,30})/iu.exec(s)) ||
-      (m = /\bi(?:'?m| am)? major(?:ing)? in ([\p{L}][\p{L} &-]{1,30})/iu.exec(s)) ||
-      (m = /\bi (?:study|am studying|'m studying) ([\p{L}][\p{L} &-]{1,30})/iu.exec(s))
-    ) {
-      const v = clean(m[1], 4);
-      if (isUsable(v) && !BAD_START.test(v) && !/^(a|an|the|hard|late|a lot|all|every|here|there|now|today|tonight|abroad|together|online|a bit|alone)\b/i.test(v)) {
-        add({ key: 'major', fact: `Player's major is ${v}.`, replaces: prefixRe("Player's major is") });
-      }
+    // ── major: exactly what the pigs read back (heuristic/template.ts statedMajor + saidMajor, on the same corrected
+    // text as classifyIntent), in the player's spelling. "I'm stressed about a major exam", "the drum major", "my major
+    // is terrible", "i'm studying atm" are not; "I study codex" / "i'm studying perfusion" is a pig's topic. "I'm
+    // studying chem" is remembered as just that: it never replaces the stated major ("Player's major is biology.").
+    const major = statedMajor(correctedText(s));
+    if (major?.value && (major.strong || !isPassionTopic(major.value))) {
+      const v = saidMajor(major.value, s);
+      if (v && major.strong) add({ key: 'major', fact: `Player's major is ${v}.`, replaces: /^Player(?:'s major is| studies) / });
+      else if (v) add({ key: 'major', fact: `Player studies ${v}.`, replaces: prefixRe('Player studies ') });
+    } else if (!major && intro && (m = MAJOR_INTRO.exec(s))) {
+      const v = saidMajor(statedMajor(correctedText(`i am ${m[1]}`))?.value, s);
+      if (v) add({ key: 'major', fact: `Player's major is ${v}.`, replaces: /^Player(?:'s major is| studies) / });
     }
 
     // ── year

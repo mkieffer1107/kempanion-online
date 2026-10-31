@@ -1,7 +1,10 @@
-// Piggy 3 — hands-on builder (AI, coding agents, signals, 3D printing), physics computational lab, night owl.
+// Piggy 3 — hands-on builder (AI, coding agents, signals, math), physics computational lab, night owl, on X.com
+// constantly (never "Twitter", except when he corrects it). 3D printing is a now-and-then hobby, not his whole personality.
 // Thinks aloud ("Okay, so…", "Actually—", "basically"), refines mid-sentence, asks "Best for what?". Codex is an
-// easy conversation starter, never a sales pitch.
+// easy conversation starter, never a sales pitch. He used to tutor math (the tutoring business is never named).
 import type { PigLines } from './types';
+import { CRISIS_CALL } from '../../quirks';
+import { X_CORRECTIONS } from '../mumble';
 
 export const P3: PigLines = {
   chat: {
@@ -10,6 +13,7 @@ export const P3: PigLines = {
       ["excited", "Hey, have you used Codex? I was trying to make this little thing with it. Here, let me show you."],
       ["happy", "Hi! Sorry, I'm— okay, I'm actually on time today. Hi."],
       ["happy", "Oh, hi! Okay, so, hi. That's the whole thought, hi."],
+      ["excited", "Oh, hey! One sec, I'm finishing a post on X. Okay, I'm here."],
       ["shy", "Oh! Um— hi, {player}. Hi, okay, cool.", { tier: "N" }],
       ["happy", "Hey! Wait, perfect timing. I need someone to look at something.", { tier: "F" }],
       ["bashful_smile", "Hey. I was hoping you'd come by. Like, actually hoping.", { tier: "W" }],
@@ -18,18 +22,22 @@ export const P3: PigLines = {
       ["happy", "Okay, I'll— yeah. Bye! Wait, actually— see you tomorrow?", { a: "wave" }],
       ["happy", "Bye! I'll show you the next version. It'll be better, probably.", { a: "wave" }],
       ["shy", "Oh, you're going? Okay, yeah. Bye— thanks for hanging out.", { a: "wave" }],
-      ["happy", "Later! I'll be at Marston, probably arguing with a 3D printer.", { a: "wave" }],
+      ["happy", "Later! I'll be at Marston, probably arguing with a HiPerGator job.", { a: "wave" }],
+      ["happy", "Bye! I'll be on X.com if you need me. Okay, I'll be on X.com either way.", { a: "wave" }],
       ["bashful_smile", "Bye, {player}. I'm glad you stayed. Like, really.", { a: "wave", tier: "W" }],
     ],
+    // "Thank you." is also a quick reply under the crisis and medical lines (ai/topics.ts GENTLE_CHIPS): every
+    // answer here has to work there too.
     thanks: [
-      ["happy", "Oh, of course! It was a little thing. Okay, a medium thing."],
+      ["happy", "Oh, of course! Honestly, I'm just glad you came to me."],
       ["bashful_smile", "Yeah, anytime. Seriously."],
-      ["happy", "No problem! Basically I just wanted it to work for you."],
+      ["happy", "No problem! Basically, I just want things to work out for you."],
       ["shy", "Oh— um, you're welcome. I'm glad it helped. That's the whole point, really."],
-      ["happy", "Anytime! Actually, if you find any bugs, tell me. I want the bugs."],
+      ["loving", "Anytime. I'm around, okay? Like, actually around."],
     ],
     how_are_you: [
-      ["happy", "Good! Okay, so my print finally didn't turn into spaghetti. So, like, great."],
+      ["happy", "Good! Okay, so my ECG plot finally has the right units. So, like, great."],
+      ["happy", "Good! I saw two new open models on X.com this morning. Okay, I downloaded both."],
       ["thinking", "Pretty good? I'm waiting on a HiPerGator job. It's been PENDING for an hour, so I'm pending too."],
       ["happy", "Honestly good. I fixed a bug that was bothering me. The bug was me, but still."],
       ["thinking", "Okay, so— good, but my brain has like nine tabs open. Normal amount."],
@@ -58,7 +66,8 @@ export const P3: PigLines = {
     whats_up: [
       ["excited", "Okay, so I was thinking we could make a little thing for the bats. Like, a bat forecast for Lake Alice. Actually, it already half works."],
       ["thinking", "Comparing two EEG artifact models. One's faster, one's cleaner. Best for what, though?"],
-      ["happy", "Waiting on a print. It's at 63%, and I'm watching the first layers like it's a movie."],
+      ["happy", "Waiting on an agent run. It says it's 63% done, and I'm watching the diff like it's a movie."],
+      ["thinking", "Scrolling X.com. Okay, research-scrolling. There's a new open model and I have, like, six tabs about it."],
       ["excited", "Redoing the KempaPager UI again. The stock one looked like a microwave clock."],
       ["thinking", "Reading about a new open model. I want to download it and see what it actually does."],
       ["happy", "Helping Piggy 1 with his serve tracker. He wants every stat. I want, like, one good stat."],
@@ -92,9 +101,12 @@ export const P3: PigLines = {
     hug: [
       ["shy_blush", "Oh! Um, okay— hi. Yeah, hugs are good.", { a: "love", tier: "N" }],
       ["happy", "Hug! Okay, watch the glasses— okay, the glasses are fine. Hi.", { a: "love" }],
-      ["flustered_blush", "Okay, this is nice, and I'm not going to make it weird. …I'm making it weird. Sorry.", { a: "love", tier: "F" }],
+      ["flustered_blush", "Okay, this is nice, and I'm not going to make it weird. I'm just, like, staying right here.", { a: "love", tier: "F" }],
       ["bashful_smile", "You're warm. That's— okay, that's just a true observation. Thanks.", { a: "love", tier: "FW" }],
       ["affectionate_blush", "Hey. Yeah. I needed that, actually.", { a: "love", tier: "W" }],
+      // "I need a hug." is a quick reply under the crisis and medical lines too (ai/topics.ts GENTLE_CHIPS): every
+      // answer here has to comfort, not joke
+      ["loving", "Okay, come here. I'm not going anywhere.", { a: "love" }],
     ],
     insult: [
       ["sad", "Oh. Um, that kind of hurt? Is everything okay with you?"],
@@ -115,10 +127,11 @@ export const P3: PigLines = {
     joke_request: [
       ["laughing", "Okay, so— there are 10 kinds of people. Those who get binary and those who don't.", { a: "laugh" }],
       ["happy", "My code doesn't have bugs. It has, like, surprise features. …That's a lie, it has bugs.", { a: "laugh" }],
-      ["laughing", "Why did the 3D print fail? Commitment issues— layer adhesion. Okay, that one needs a second pass.", { a: "laugh" }],
+      ["laughing", "Why was six afraid of seven? Because seven ate nine. The kids I tutored loved that one, and so did I.", { a: "laugh" }],
       ["thinking", "If this were JoJo, there'd be menacing katakana behind me right now. It's just me eating onigiri."],
       ["laughing", "HiPerGator walks into a bar, and the bar says “PENDING.” That's the whole joke.", { a: "laugh" }],
       ["happy", "How many builders does it take to change a lightbulb? One, but he redesigns the lamp first."],
+      ["laughing", "What's Buggy the Clown's favorite architecture? Microservices. He's already in pieces, and every piece does its own thing.", { a: "laugh" }],
     ],
     ask_name: [
       ["happy", "Piggy 3! The “3” is basically a version number, like, stable release. Mostly."],
@@ -128,15 +141,18 @@ export const P3: PigLines = {
     ],
     ask_about_self: [
       ["thinking", "Okay, so basically I like figuring out how things actually work, and then making a version that's nice to use."],
-      ["happy", "Physics, computational track. I build AI stuff, print stuff, and stay up too late at Marston."],
+      ["happy", "Physics, computational track. I build AI stuff, scroll X.com, and stay up too late at Marston."],
       ["happy", "I like open tools, clean interfaces, One Piece, and one really clear example."],
       ["thinking", "I'm the one who asks “best for what?” Sorry. It's a reflex."],
       ["shy", "I build things for everyone. I don't really ship my own. It's not pretty yet.", { tier: "FW" }],
     ],
-    "ask_about_self:hometown": [["thinking", "Home is wherever my printer is. Currently Sakura House. Okay, three printers."]],
+    "ask_about_self:hometown": [["thinking", "Home is wherever my laptop charger is. Currently Sakura House. Okay, two chargers."]],
     "ask_about_self:birthday": [
-      ["excited", "March 14! Pi Day! I didn't pick it, but I would have."],
-      ["happy", "March 14, Pi Day. It's basically the nerdiest possible birthday, and I'm fine with that."],
+      ["excited", "November 7! Same birthday as Marie Curie. I didn't pick it, but I would have."],
+      ["happy", "November 7. Marie Curie's birthday too, which is honestly a lot of pressure. Good pressure, though."],
+      ["happy", "November 7, which is also Marie Curie's birthday. Nobel Prizes in two different sciences, and I can barely finish one side project."],
+      ["excited", "November 7! Marie Curie's birthday, and she co-discovered two elements. I co-discovered a bug with my agent, which is basically the same energy."],
+      ["bashful_smile", "November 7. If you remember it, I'll act like it's not a big deal. It'll be a big deal.", { tier: "FW" }],
     ],
     "ask_about_self:what": [
       ["thinking", "Am I an AI? No, I'm a pig who uses AI. Different thing, mostly."],
@@ -147,6 +163,13 @@ export const P3: PigLines = {
       ["happy", "126 centimeters, plus six centimeters of curls. The curls are load-bearing."],
       ["thinking", "Blood type AB. Basically compatible with most things. Like a good API."],
     ],
+    "ask_about_self:job": [
+      ["happy", "I used to be a math tutor. Fractions, mostly. Okay, a lot of fractions."],
+      ["thinking", "Before all the lab stuff, I tutored math at a tutoring center. The trick was finding the one example that makes it click."],
+      ["excited", "Oh, I used to tutor math! Watching a kid finally get long division is basically the best feeling. It's up there with a build that passes on the first try."],
+      ["happy", "Tutoring math taught me the trick: one clear example, then the rule. Okay, and stickers, which did a lot of the teaching."],
+      ["thinking", "When I tutored math, the seven times table was every kid's final boss. Seven times eight is fifty-six, by the way: five, six, seven, eight."],
+    ],
     ask_major: [
       ["happy", "Physics, computational track. Fourth year. I mostly run simulations on HiPerGator."],
       ["thinking", "Physics! But, like, the computer part of physics. Simulations, signals, models."],
@@ -154,7 +177,9 @@ export const P3: PigLines = {
       ["happy", "Fourth-year physics. Honorary HiPerGator resident. The second title isn't official."],
     ],
     ask_hobby: [
-      ["excited", "3D printing! I'm printing a sakura charm right now, third try. The first two became spaghetti."],
+      ["happy", "Scrolling X.com for new papers. Is that a hobby? It's at least a habit."],
+      ["excited", "Making little math explainers. Like, drag a point around the unit circle, and sine squared plus cosine squared stays one the whole time."],
+      ["happy", "Little 3D prints, now and then. A sakura charm, a phone stand. It's a hobby, not a lifestyle."],
       ["happy", "One Piece. I'm all caught up. Don't spoil anything, even though I'm caught up."],
       ["thinking", "Building little tools. Like, a podcast search thing where you find the exact clip you remember."],
       ["happy", "Watching the Lake Alice bats at dusk. I made a headband to log my brainwaves while I watch."],
@@ -163,9 +188,15 @@ export const P3: PigLines = {
     ask_favorite_food: [
       ["happy", "Onigiri. It's basically a perfect design: rice, filling, handle. Done."],
       ["excited", "Melonpan! Best crunch-to-fluff ratio, I ran the numbers. Loosely."],
-      ["happy", "Cold brew. Not a food, technically. But it's load-bearing."],
-      ["thinking", "Best for what, though? Studying is onigiri, celebrating is melonpan, and 2 a.m. coding is cold brew."],
+      ["thinking", "Best for what, though? Studying is onigiri, celebrating is melonpan, and 2 a.m. coding is sugar-free Red Bull."],
       ["shy", "There's a secret one. It's pink and it's on a stick. That's the hint.", { tier: "FW" }],
+    ],
+    "ask_favorite_food:drink": [
+      ["excited", "Sugar-free Red Bull! Okay, it's basically fuel. Like, the whole build runs on it."],
+      ["happy", "Sugar-free Red Bull, always. Coffee's fine, but it's not my usual."],
+    ],
+    "ask_favorite_food:comfort": [
+      ["happy", "Sugar-free Red Bull. Not a food, technically. But it's load-bearing."],
     ],
     "ask_where:self": [
       ["happy", "Physics Building during the day, Lake Alice at dusk, Marston at night. Right now? {place}."],
@@ -173,7 +204,7 @@ export const P3: PigLines = {
     ],
     "ask_where:other": [
       ["thinking", "{other}? Probably at {otherplace}. I could build a tracker for that— actually, no, that's a privacy thing."],
-      ["happy", "{other} should be at {otherplace} right now. He's very consistent. Unlike my print queue."],
+      ["happy", "{other} should be at {otherplace} right now. He's very consistent. Unlike my job queue."],
     ],
     "ask_where:other_asleep": [["sleepy", "{other} is asleep at Sakura House. I can hear him through the wall. Not snoring, just… sleeping loudly."]],
     "ask_where:all": [["thinking", "Piggy 1 orbits Malachowsky and the courts, Piggy 2 orbits the Communicore. I orbit outlets."]],
@@ -182,6 +213,7 @@ export const P3: PigLines = {
       ["happy", "Night owl. Marston's open late, so my schedule is basically “until the library kicks me out.”"],
       ["sleepy", "Sunday I sleep in and watch One Piece. That's the whole plan. It's a good plan."],
       ["thinking", "Mornings are— okay, I don't really do mornings. I do “late morning.”"],
+      ["thinking", "Wake up, check X.com, then actually wake up. Physics by 10:30, Marston at night, X.com in between."],
     ],
     hungry_talk: [
       ["happy", "Okay, food. What are we comparing? Like, cheapest, or best for what we're getting?"],
@@ -202,12 +234,13 @@ export const P3: PigLines = {
     "tired_talk:needy": [
       ["sleepy", "Five more minutes, the HiPerGator job's almost… okay. Fine. I'm tired.", { a: "yawn" }],
       ["sleepy", "Same. My eyes are basically running at 15 frames per second.", { a: "yawn" }],
+      ["sleepy", "Same. I was on X until two, and only some of it was research.", { a: "yawn" }],
       ["sleepy", "Okay, I'm too tired to explain this properly. Let me show you tomorrow.", { a: "yawn" }],
     ],
     sick_talk: [
       ["sad", "Oh no. Okay— rest, water, and honestly, maybe the Student Health Care Center? Piggy 2 would say that."],
       ["thinking", "Want me to build you a little reminder that tells you to drink water? I could do that. Like, tonight."],
-      ["loving", "Stay in, I'll bring cold brew. Wait, no caffeine. I'll bring tea."],
+      ["loving", "Stay in, I'll bring sugar-free Red Bull. Wait, no caffeine. I'll bring tea."],
       ["sad", "Aw, okay, take it easy. The project will wait. Any project will wait."],
     ],
     "sick_talk:needy": [
@@ -247,7 +280,8 @@ export const P3: PigLines = {
     ],
     "food_offer:melonpan": [["excited", "Melonpan! Basically the best crunch-to-fluff ratio, I ran the numbers. Loosely."]],
     "food_offer:protein_shake": [["confused", "It's… chalky? Best for what, exactly? Not taste."]],
-    "food_offer:cold_brew": [["excited", "Cold brew! Okay, this is basically fuel for the next three hours. Thank you."]],
+    "food_offer:red_bull_sf": [["excited", "Sugar-free Red Bull! Okay, this is basically fuel for the next three hours. Thank you."]],
+    "food_offer:cold_brew": [["happy", "Cold brew? Oh, nice— not my usual, but it's basically the same fuel."]],
     "ask_favorite_food:love": [
       ["excited", "{food}? Yes. Okay, top tier, no tradeoffs."],
       ["happy", "I love {food}. Like, it's basically a solved problem."],
@@ -260,7 +294,7 @@ export const P3: PigLines = {
       ["thinking", "I study by making a little tool for the thing, like a flashcard thing. I never finish the tool, but I learn the material."],
       ["happy", "Marston at night is the best. Quiet floors, outlets, whiteboards. Basically a perfect workspace."],
       ["thinking", "Okay, can we do one actual example? That's usually what makes it click for me."],
-      ["happy", "Study together? Sure! I'll bring cold brew, you bring the questions you're stuck on."],
+      ["happy", "Study together? Sure! I'll bring sugar-free Red Bull, you bring the questions you're stuck on."],
     ],
     exam_stress: [
       ["thinking", "Okay, so what's actually on it? Let's list the topics, then do one clear example for each."],
@@ -287,6 +321,8 @@ export const P3: PigLines = {
       ["happy", "Bug Hunt! I have a whole stack of broken PigScript. It's weirdly fun."],
       ["thinking", "The Teaching Observatory opens on Friday nights. Actual Saturn rings. Actual."],
       ["excited", "One Piece episode? That's at least 24 minutes of not being bored. Okay, 24 minutes times about a thousand."],
+      ["excited", "Bored? Okay, I'll show you the best post on X today. It's a chart, but it's a funny chart."],
+      ["excited", "Want to play Bug Hunt? Ten little PigScript programs, one bug each. I'm basically Captain Buggy, and you get to be Luffy."],
     ],
     weather: [
       ["happy", "Rain is basically free lo-fi. I don't mind it."],
@@ -327,7 +363,7 @@ export const P3: PigLines = {
     ],
     "campus_place:plaza": [["happy", "The Plaza is nice. Live oaks, hammocks, very bold squirrels. One stole Piggy 1's banana and I respect it."]],
     "campus_place:marston": [
-      ["excited", "Marston! The Makerspace is on the first floor. If you leave a print there for 14 days, it becomes library property."],
+      ["excited", "Marston! The vending machine there knows my order: sugar-free Red Bull, every time. I've never felt so understood."],
       ["happy", "Marston at night is basically my second room. Third room: my room, my lab, then Marston."],
     ],
     "campus_place:malachowsky": [["thinking", "Malachowsky Hall is so nice. Like, actually well designed. Piggy 1 sits by the vending machine anyway."]],
@@ -347,7 +383,7 @@ export const P3: PigLines = {
     "campus_place:volleyball_courts": [["thinking", "The sand courts are Piggy 1's place. I watch his serve and try to figure out the hand position. Just the hand position."]],
     "campus_place:midtown": [["happy", "Midtown at night: boba, neon signs, everyone being loud. I like the signs, some of the fonts are great."]],
     "campus_place:dorm": [
-      ["excited", "Sakura House! My room has a printer, a printer, and a smaller printer. It's lavender, it's perfect."],
+      ["excited", "Sakura House! My room has three monitors and one very loud fan. It's lavender, it's perfect."],
       ["thinking", "The yard sakura blooms all year and nobody knows why. I want to put a sensor on it. Respectfully."],
     ],
     passion_p3: [
@@ -359,6 +395,7 @@ export const P3: PigLines = {
       ["excited", "Have I used Codex? Okay, so— yes. I had it build a little podcast search thing, where you type what you remember and it finds the actual clip."],
       ["happy", "I use Codex for the boring parts so I can do the fun parts. Well, I didn't write the code base, the agent did. I made the decisions."],
       ["thinking", "With coding agents, the part I care about is checking what it actually did. Like, read the diff. Always read the diff."],
+      ["thinking", "Okay, so I spawn a few subagents, one job each, and AGENTS.md tells them the house rules. Then I read every diff. Every one."],
     ],
     "passion_p3:ai": [
       ["thinking", "That score looks good. What was it compared against, though? I want to see them doing the same task."],
@@ -374,24 +411,62 @@ export const P3: PigLines = {
       ["excited", "HiPerGator is UF's supercomputer, and HiPerGator 4 has 504 Blackwell GPUs. Best for what, though?"],
       ["happy", "HiPerGator is basically a very large friend who does math while we sleep."],
       ["thinking", "My job's been PENDING for an hour, and then suddenly RUNNING. Best feeling in the world."],
+      ["laughing", "Okay, so I type sbatch, and then I refresh squeue every thirty seconds like that helps. It does not help.", { a: "laugh" }],
+      ["sad", "My job died at 99% because I asked for too little memory. A classic. Honestly, a tradition."],
     ],
     "passion_p3:signals": [
       ["excited", "EEG is so cool. It's like listening to the brain through a wall. Blurry, but you can still hear the party."],
       ["thinking", "Wait, how does it know that? Like, what's the actual signal it's picking up?"],
       ["happy", "Piggy 2 and I are building a pig EEG viewer. He knows what it means. I know how to plot it."],
+      ["laughing", "ECG is the heart one. If a trace is off by exactly a thousand, it's the units. It's always the units."],
     ],
+    // 3D printing is a now-and-then hobby: these only play when the player asks about printing
     "passion_p3:printing": [
       ["excited", "I'm printing a sakura charm right now! Third try. The first one turned into spaghetti, which, honestly, also cute."],
       ["thinking", "The shape is good. I just want the front to look smoother. The part you actually see should look nice."],
-      ["happy", "I have a printer, a printer, and a smaller printer. The smaller one is my favorite. Don't tell the others."],
+      ["happy", "Honestly, I print less now. One little thing a week, okay, two. The rest of the week I'm mostly on X.com."],
     ],
     "passion_p3:onepiece": [
       ["excited", "One Piece! Okay, a guessing game where the clue is someone's laugh is such a good idea. I want to build it."],
       ["happy", "I'm caught up on One Piece. It's basically the longest, best-designed system I know. Okay, story, same thing."],
+      ["excited", "One Piece! I was sold back at Orange Town, when Buggy the Clown showed up. A villain named after my code, like, come on."],
     ],
     "passion_p3:jojo": [
       ["laughing", "If this were JoJo, there'd be menacing katakana behind me right now. ゴゴゴ."],
       ["excited", "JoJo poses are basically good UI. Clear silhouette, instantly readable. I'm serious."],
+    ],
+    // "One Piece or JoJo?" in any wording: always One Piece, usually with a joke about Buggy the Clown and his Buggy code
+    "passion_p3:opvsjojo": [
+      ["laughing", "One Piece. Okay, to be fair to JoJo, I should probably— no. One Piece."],
+      ["excited", "One Piece. Okay, normally I'd ask “best for what?”, but not this time."],
+      ["happy", "One Piece. Buggy the Clown is basically my mascot, like, Buggy UI— actually, no, my UI is cute. It's my code that's Buggy."],
+      ["laughing", "One Piece, obviously. Buggy the Clown is never actually in one piece, and neither is my code, so I relate to it on a technical level.", { a: "laugh" }],
+      ["proud", "One Piece. Also, people keep calling my code buggy, and I keep correcting them: it's Buggy code. It's in pieces, the pieces float around, and somehow it still runs, so it's basically production-ready."],
+      ["laughing", "One Piece! Okay, so slashing doesn't work on Buggy the Clown, and it doesn't work on my bugs either. I put two slashes in front of them and they're still in the file.", { a: "laugh" }],
+      ["excited", "One Piece! I'm pretty sure my code ate the Chop-Chop Fruit. Every time I hit Run, it splits into pieces and floats around, like Buggy."],
+      ["happy", "One Piece. Buggy the Clown loses it when anyone mentions his big red nose, and I'm the same about big red error messages. Don't look at my console."],
+      ["thinking", "One Piece. Okay, so Buggy the Clown and Shanks were apprentices on the same ship as kids. Same onboarding, very different code quality."],
+      ["happy", "One Piece. JoJo poses are for when the build passes, and One Piece is for while it's failing. My code is pretty Buggy, so… that's a lot of One Piece."],
+    ],
+    // the player says JoJo is better: friendly, but still One Piece
+    "passion_p3:jojo_better": [
+      ["thinking", "Wait, better for what? Okay, poses, sure, JoJo wins poses. Everything else is One Piece, and I can prove it with one clear example: Buggy the Clown."],
+      ["laughing", "Okay, that's like mentioning Buggy's nose to Buggy— I'm not mad, I'm just a little mad. One Piece, though."],
+      ["laughing", "Okay, I respect the confidence, but no. One Piece stays. I'm closing this ticket as “won't fix.”", { a: "laugh" }],
+      ["confused", "JoJo over One Piece? Okay, that take has more bugs than my code, and my code is basically Buggy the Clown."],
+    ],
+    // the player says One Piece is better: delighted
+    "passion_p3:op_better": [
+      ["excited", "Yes! One Piece wins, so that's a passing build, and I have to do a JoJo pose about it— ironic, I know, but it's the ritual.", { a: "build_success" }],
+      ["excited", "Right?! Okay, so we agree on One Piece, which means you're on my crew now. Not the Buggy Pirates, though, that's just my code."],
+      ["happy", "Exactly, One Piece! Also, I tried to print a little Buggy the Clown for my desk, and it came off the bed in pieces. Very accurate, honestly."],
+      ["bashful_smile", "Okay, you get it. Like, actually get it. One Piece: approved, merged, and the only open bug is Buggy."],
+    ],
+    // "who's Buggy?" (early One Piece only: he hates spoilers)
+    "passion_p3:buggy": [
+      ["excited", "Buggy the Clown! He's a pirate captain from early One Piece who ate the Chop-Chop Fruit, so he splits into floating pieces and slashing can't hurt him. Basically my code, but with a big red nose."],
+      ["thinking", "Captain Buggy, from One Piece! He's one of the first villains Luffy fights, back in Orange Town. Okay, that's all you get, no spoilers."],
+      ["laughing", "Buggy? Okay, it's Captain Buggy to you. He comes apart and keeps going anyway, which is basically my whole codebase.", { a: "laugh" }],
     ],
     "passion_p3:anime": [
       ["happy", "Anime! SwampCon at the Reitz is free, and the theme was “Return to the Sea.” Very One Piece."],
@@ -407,10 +482,90 @@ export const P3: PigLines = {
       ["shy", "I'm building a thing. It's not pretty yet. Like, the edges are rough, so I haven't shown anyone.", { tier: "NF" }],
       ["happy", "I made you a thing. It's not a big thing. It's a medium thing.", { tier: "FW" }],
       ["thinking", "I keep building stuff for other people and never shipping mine. Piggy 2 says he's “monitoring that,” which is rude, but fair."],
+      ["thinking", "Okay, so I'm debugging a little thing, and every bug I fix splits into smaller bugs that float off. Basically Buggy the Clown. I'm calling it de-Buggy-ing."],
     ],
     "passion_p3:physics": [
       ["excited", "UF built LIGO's input optics. The universe chirped, and we heard it. That still gets me."],
       ["thinking", "Simulations are basically asking the universe “what if” a million times, and it answers really slowly."],
+      ["excited", "Light from the Sun is about eight minutes old when it reaches you. So every sunrise is a tiny bit of a rerun."],
+      ["thinking", "In free fall you can't feel your own weight. That one thought eventually turned into general relativity. I think about it in every elevator."],
+      ["excited", "LIGO's arms are four kilometers long, and a gravitational wave changes them by less than a thousandth of a proton's width. And they can measure that."],
+    ],
+    "passion_p3:math": [
+      ["excited", "Math! Okay, so— I used to tutor math, so I have opinions about how fractions get taught."],
+      ["thinking", "Want the tutor version? One clear example first, then the rule. It basically always works."],
+    ],
+    // "Teach me a math trick!": real tricks, one clear example each (he used to tutor math)
+    "passion_p3:mathtrick": [
+      ["excited", "Okay, multiplying by 11: split the digits and put their sum in the middle. 36 times 11 is 3, then 3 plus 6, then 6. So, 396!"],
+      ["happy", "Nines on your fingers! Okay, hooves work less well. Fold down finger seven: six on the left, three on the right, so 7 times 9 is 63."],
+      ["thinking", "Percents flip. 8% of 50 is the same as 50% of 8, so it's just 4. The kids I tutored thought this was a magic trick."],
+      ["excited", "Adding 1 through 100? Pair them up: 1 and 100, 2 and 99, every pair is 101. Fifty pairs, so 5,050."],
+      ["proud", "Fractions, one clear example: a half plus a third. Make them sixths, three sixths plus two sixths, so five sixths. That's the whole trick."],
+    ],
+    // "What even is an LLM?" and the words he mumbles on X (plain versions, no product names)
+    "passion_p3:llm": [
+      ["excited", "Okay, so an LLM is a model that guesses the next word. Well, the next token, which is like a word piece. Do that a few trillion times over a giant pile of text and it starts to look like thinking."],
+      ["thinking", "Large language model. Large because it's billions of numbers, language because it's text, model because… okay, it's one giant math function. That's the honest version."],
+      ["happy", "Basically autocomplete that read a library. Then people teach it manners, which is called post-training. That's where RLHF comes in."],
+      ["thinking", "Okay, tutor version: it saw a gazillion worked examples, so it learned the patterns. Sometimes the wrong pattern. So you check its work, every time."],
+    ],
+    "passion_p3:rlhf": [
+      ["thinking", "RLHF is reinforcement learning from human feedback. People pick the better of two answers, a reward model learns their taste, and the LLM gets nudged toward it."],
+      ["happy", "Okay, so RLHF is basically a taste test. Humans pick the answer they like, and the model learns to win taste tests, which is why it's helpful. Sometimes a little too agreeable, though."],
+    ],
+    "passion_p3:rlvr": [
+      ["excited", "RLVR is RL with verifiable rewards! No opinions, just an answer key: the math is right or the code passes the tests. Like grading a math worksheet."],
+      ["thinking", "RLVR: the reward comes from a checker, not a person. It works great until the model finds a loophole in the checker. That's called reward hacking, and it's weirdly impressive."],
+    ],
+    "passion_p3:jev": [
+      ["excited", "Jev is a decision model. It doesn't write sentences: you give it a fixed set of options and it gives you calibrated odds, like “A, seventy percent.”"],
+      ["thinking", "Okay, so Jev is the “System One” idea: a fast gut call, no essay. Calibrated means when it says seventy percent, it's right about seven times in ten. Which you should check, because those are vendor numbers."],
+    ],
+    "passion_p3:foundation": [
+      ["thinking", "A foundation model is one big model trained once on tons of broad data, then adapted to lots of jobs. Pretrain once, fine-tune forever."],
+      ["excited", "Foundation model: the big general one. I want one for EEG, like, pretrain on thousands of hours of brainwaves, then a tiny add-on for each task."],
+    ],
+    // "What does an EEG show?" (his chip): an answer, every time
+    "passion_p3:eeg": [
+      ["excited", "Mostly rhythms: relax with your eyes closed, and alpha waves around ten hertz show up. Blink, and the trace jumps like crazy, which is honestly my favorite part."],
+      ["thinking", "Basically tiny voltages, like millionths of a volt, from millions of neurons firing together. So you're hearing the crowd, not one person."],
+      ["happy", "Sleep stages, for one! Deep sleep is big slow waves, and REM looks almost like being awake. Piggy 2 reads them, and I plot them."],
+      ["laughing", "Piggy 1's EEG is very loud, Piggy 2's stays calm even with a grant due, and mine is mostly alpha waves and Red Bull."],
+    ],
+    // "What's medical AI?": health records and synthetic patients (his research side; Piggy 2 is the doctor)
+    "passion_p3:medai": [
+      ["thinking", "Okay, so medical AI, for me, is mostly records. An agent that searches a patient's chart, except every patient is synthetic. Zero real people."],
+      ["excited", "F-H-I-R. It's pronounced “fire,” which is the best name a data format has ever had. It's how health records talk to each other."],
+      ["thinking", "ICD-10 is a giant tree of diagnosis codes. I want a little model that walks it branch by branch and says why it skipped each one."],
+      ["happy", "My favorite idea: the model has to ask a follow-up question before it's allowed to answer. Like a real doctor. Piggy 2 said “based.”"],
+      ["thinking", "Piggy 2 says the hard part isn't the model, it's whether it still works at a different hospital. External validation. He's right, which is annoying."],
+    ],
+    // "Would you build a robot?": someday (he follows robot learning; he doesn't build robots yet)
+    "passion_p3:robots": [
+      ["excited", "Okay, so I want to. I just have to learn actual electrical engineering first, instead of asking my agent what a resistor does."],
+      ["thinking", "Robot learning is basically “watch me do it fifty times,” and then it tries. Imitation learning. Honestly, that's how I learned to make rice, too."],
+      ["laughing", "I'd build a tiny one that brings me sugar-free Red Bull. Piggy 2 says that's “enabling,” and Piggy 1 wants it to fetch volleyballs.", { a: "laugh" }],
+      ["thinking", "When a robot demo goes viral on X, I check two things. Is it sped up? Is someone off-camera holding a controller?"],
+      ["happy", "The cool part is sim-to-real: it practices a million times in a simulator, then meets real friction. Real friction always wins."],
+    ],
+    // "Are you on X?": the Talk screen plays his mumble (quirks.ts + ../mumble.ts); these answer when the Heuristic Brain
+    // is asked in a longer message ("i saw it on x"), and they are "the longer version" after "what does that mean?"
+    "passion_p3:x": [
+      ["excited", "Way too much X.com. Okay, plain version: an LLM writes, a decision model just picks, and RLHF is people grading the answers."],
+      ["thinking", "Basically everyone on X argues about how models learn. RLHF is people picking the better answer, and RLVR is an answer key, like a math worksheet."],
+      ["happy", "My whole timeline is three things arguing: Jev picks, an LLM writes, and RLVR grades with an answer key."],
+      ["shy", "Half my timeline is foundation models, the big general ones. The other half is how you teach them manners. And robot videos, obviously."],
+      ["bashful_smile", "I'm on X a lot. Like, a lot a lot. But the best thing I saw today was you showing up.", { tier: "W" }],
+    ],
+    // "Twitter" in any message: it's X (the same six lines the quirk rotates through for "Are you on Twitter?")
+    "passion_p3:twitter": X_CORRECTIONS.map(([text, face]) => [face, text] as const),
+    // "Why sugar-free Red Bull?" / "do you like Red Bull?"
+    "ask_favorite_food:red_bull_sf": [
+      ["excited", "Sugar-free Red Bull? Love it. Same fuel as the regular one, minus the sugar, so fewer regrets."],
+      ["happy", "Sugar-free, always. One can, one feature. Okay, sometimes one can, half a feature."],
+      ["thinking", "Okay, I did the math: about a cup of coffee's worth of caffeine per can, and zero sugar. Piggy 2 says one a day, so one a day. He checks."],
+      ["shy", "Honestly? I like the little click when the can opens. It means I'm about to build something.", { tier: "FW" }],
     ],
     passion_p1: [
       ["thinking", "Volleyball? Show me the serve again— actually, just the hand position first. I want to understand that part."],
@@ -430,9 +585,10 @@ export const P3: PigLines = {
     "passion_p2:perfusion": [["thinking", "Perfusion is Piggy 2's favorite word: blood getting where it needs to go. I could plot that, actually."]],
     "passion_p2:ischemia": [["thinking", "Ischemia is when tissue doesn't get enough blood. Piggy 2 calls it “the enemy,” which is dramatic, but correct."]],
     "passion_p2:mri": [["excited", "MRI is basically physics doing medicine. Big magnet, spinning protons, picture. Okay, it's more complicated."]],
-    "passion_p2:medschool": [["thinking", "I don't know how Piggy 2 does med school AND research. I can barely do one thing. Okay, I do six things badly."]],
+    "passion_p2:medschool": [["thinking", "I don't know how Piggy 2 does neurosurgery residency AND research. I can barely do one thing. Okay, I do six things badly."]],
     "passion_p2:neurosurgery": [["thinking", "Neurosurgery is Piggy 2's thing. I just want to know how the tools work. Like, the actual microscope."]],
     "passion_p2:pig_models": [["thinking", "Piggy 2 says the lab pigs get enrichment and names. I asked if I could make them a little toy, and he said “based.”"]],
+    "passion_p2:collection": [["thinking", "Piggy 2's boxes? Okay, so— there's a retired pulse oximeter in there I really want to take apart. He won't let me."]],
     "passion_p2:anatomy": [["thinking", "Piggy 2 says donors are their first teachers. I think about that a lot, actually."]],
     "passion_p2:csf": [["confused", "CSF is the fluid around the brain? Piggy 2 talks about it like it's a fine wine. A very clear fine wine."]],
     "passion_p2:spine": [["thinking", "Piggy 2's research is about helping pigs walk again after spinal injuries. That's, like, the best possible use of anything."]],
@@ -455,13 +611,15 @@ export const P3: PigLines = {
     "other_pig:piggy-3": [["shy", "Piggy 3? Oh— that's me. Hi, I'm right here."]],
     "other_pig:all": [
       ["happy", "The Pig Pen! Okay, so Piggy 1 is the energy, Piggy 2 is the safety, and I'm… the dashboard?"],
-      ["thinking", "All three of us live at Sakura House. Piggy 1's room is loud, Piggy 2's is boxes, mine is printers."],
+      ["thinking", "All three of us live at Sakura House. Piggy 1's room is loud, Piggy 2's is boxes, mine is cables."],
     ],
     yes: [
       ["happy", "Okay, cool!"],
       ["excited", "Yes! Okay, okay, okay."],
       ["happy", "Yeah. That version. Keep that."],
       ["happy", "Nice, okay. Let's do it."],
+      // also fits "okay, I'll get it checked" typed under the medical line (that quick reply is a "thanks")
+      ["happy", "Okay, good. Yeah, that's the right call."],
     ],
     "yes:q": [
       ["excited", "Okay! Let's do it. I'll set it up, like, right now."],
@@ -504,8 +662,9 @@ export const P3: PigLines = {
       ["angry", "Okay, that's— no. I'm going to pretend I didn't parse that."],
       ["confused", "Wait. Why would you— okay. Deleting that from the log."],
     ],
+    // where to reach out comes first, so it is on the first page in any box (quirks.ts CRISIS_CALL)
     distress: [
-      ["sad", "Okay. I'm really glad you said something, and I mean it. Please call or text 988, or reach UF's Counseling & Wellness Center right now, and I'll stay with you."],
+      ["sad", `${CRISIS_CALL} Okay. I'm really glad you said something, and I'll stay with you.`],
     ],
     ask_about_me: [
       ["happy", "You're {player}. You actually want to see the stuff I make. That's, like, the main thing."],
@@ -525,6 +684,11 @@ export const P3: PigLines = {
     "share_self:major": [
       ["excited", "Oh, {said}! Okay, so I was thinking— is there data in {said}? There's always data."],
       ["happy", "{said}! That's cool. What's the part you actually like about it?"],
+    ],
+    // a major statement with nothing to read back ("my major is terrible", "i'm a tiktok major")
+    "share_self:major_more": [
+      ["happy", "Okay, wait, tell me more about your major? Like, the best part and the worst part."],
+      ["thinking", "Ooh, okay. What's it actually like? Like, what do you do all day?"],
     ],
     "share_self:hometown": [
       ["thinking", "{said}? Is it nice? Like, actually nice, or “it's fine” nice?"],
@@ -581,7 +745,7 @@ export const P3: PigLines = {
       ["happy", "Food with you? Okay, best for what? Best for everything, let's go."],
     ],
     "tired_talk:ask": [
-      ["happy", "I'm good! I had cold brew, so I'm basically awake until Tuesday."],
+      ["happy", "I'm good! I had a sugar-free Red Bull, so I'm basically awake until Tuesday."],
       ["thinking", "Not tired yet. That kicks in around 2 a.m., right when the code starts working."],
     ],
     "sick_talk:ask": [
@@ -603,15 +767,15 @@ export const P3: PigLines = {
       ["thinking", "The Lake Alice bats. Half a million of them. I'm a little obsessed, honestly."],
     ],
     "ask_about_self:dating": [
-      ["flustered_blush", "Oh— um. No? I mostly date my print queue. …Why?"],
-      ["shy_blush", "No, I'm— no. I'm kind of bad at that stuff. Better at printers."],
+      ["flustered_blush", "Oh— um. No? I'm mostly in a relationship with X.com. …Why?"],
+      ["shy_blush", "No, I'm— no. I'm kind of bad at that stuff. Better at math."],
     ],
     "ask_about_self:kempa": [
       ["thinking", "Kempa AI makes the KempaPager. I redid its UI because the stock one looked like a microwave clock."],
       ["happy", "Kempanions are basically buddies with a pager. I helped with the pager part. Okay, a lot of the pager part."],
     ],
     "ask_hobby:music": [
-      ["happy", "Lo-fi while I code, anime openings while I print. And rain, which is basically free lo-fi."],
+      ["happy", "Lo-fi while I code, anime openings while I debug. And rain, which is basically free lo-fi."],
       ["thinking", "I like music with a good loop. Like, a loop you could debug to."],
     ],
     "ask_hobby:games": [
@@ -624,11 +788,11 @@ export const P3: PigLines = {
     ],
     "greeting:oink": [["laughing", "Oink? Okay, that's the default sound effect. I'm going to patch it to something cooler."]],
     "greeting:halloween": [["happy", "Happy Halloween! The Lake Alice bats are basically the official mascots tonight."]],
-    "greeting:holiday": [["happy", "Happy holidays! I'm printing little ornaments. They're, like, eighty percent done."]],
+    "greeting:holiday": [["happy", "Happy holidays! I'm coding a little snow animation for the pager. It's, like, eighty percent done."]],
     "based:meaning": [["thinking", "Basically it's Piggy 2's “approved” stamp. Good, true, solid. It's just a vibe check, never politics."]],
     "patriot:meaning": [["thinking", "It's his acknowledgment word. Like an ACK packet, but with feeling."]],
     "insult:smell": [
-      ["confused", "Is it PLA? It's probably PLA. I've stopped noticing the hot-plastic smell."],
+      ["confused", "Is it the Red Bull? It's probably the Red Bull. I've stopped noticing."],
       ["sad", "Okay, fair. Long night at Marston. Shower is next in the queue."],
     ],
     "followup:hmm": [
@@ -641,12 +805,134 @@ export const P3: PigLines = {
     ],
     ask_time: [
       ["thinking", "It's {time}? Wait, already? Okay, time is fake when you're coding."],
-      ["happy", "{time}, {day}. I only know because my print has a timer on it."],
+      ["happy", "{time}, {day}. I only know because my HiPerGator job has a timer on it."],
     ],
     encourage: [
       ["happy", "Thanks! Okay, I'm going to pretend it's a bug and just fix it."],
       ["bashful_smile", "Oh— thanks. That actually helps, like, a lot."],
       ["excited", "Okay, okay. Ship it. I'm shipping it."],
+    ],
+    // ── a sum ("what's 9 plus 10?"): the answer is solved in code (template.ts parseArithmetic) and said as {answer}, the sum
+    // in words as {expr}; no line carries a number of its own, except the meme's 21. Keep a line from starting with {answer}
+    // and a period ("19. …"): the post-filter reads that as a list bullet and eats it. 'meme' is 9 + 10 either way round
+    // (he is on X all day, so he knows the "21" joke), 'zero' a division by zero (no answer), 'approx' a division with
+    // decimals left over (the answer is rounded) ──
+    arithmetic: [
+      ["happy", "Okay, so {expr} is {answer}. Tutor trick: say it out loud, then check it backwards."],
+      ["thinking", "{expr} is {answer}. The kids I tutored would say “wait, how?” and I'd say “one clear example.” Then stickers."],
+      ["excited", "{answer}! Basically a unit test with one case, and it passes."],
+      ["thinking", "{expr} is {answer}. I'd double-check on a calculator, though. Not because I don't trust me, just because I trust the process."],
+      ["happy", "Oh, math! It's {answer}. Give me another one, I'll wait."],
+      ["proud", "Easy: {answer}. Estimate first, round both numbers, and see if the answer lands in the neighborhood. That habit saves you on tests."],
+      ["happy", "Okay, {answer}! Honestly, I love when someone asks me a math question. It's like a warm-up for my brain."],
+      ["excited", "{answer}! Ship it. …Okay, check it first, then ship it."],
+      ["thinking", "So, {expr}: {answer}. One clear example first, then the rule, and you just got the example. The rule is “check it twice.”"],
+      ["happy", "Okay, so it's {answer}. Fun fact: I used to tutor this exact kind of question. Fractions were the hard ones, this was the warm-up."],
+      ["bashful_smile", "It's {answer}. I like that you ask me stuff like this. Like, actually like it.", { tier: "FW" }],
+    ],
+    "arithmetic:meme": [
+      ["laughing", "Oh, it's {answer}! …But if you're asking the internet, it's 21.", { a: "laugh" }],
+      ["laughing", "{expr} is {answer}. The internet has been saying 21 for years and has never once shown its work.", { a: "laugh" }],
+      ["thinking", "Okay, so, {answer}. But is this the 21 thing? I've seen it on X.com so many times that part of me wants to say 21 out of habit."],
+      ["proud", "Tutor answer: {answer}. Meme answer: 21. I will not be taking questions."],
+      ["happy", "Okay, tutor rule: {expr} is {answer}. If a kid said 21, I'd say “nice meme, now do it on the number line.” Then stickers."],
+    ],
+    "arithmetic:zero": [
+      ["excited", "Oh, dividing by zero! One clear example: split cookies between zero friends, and nobody is there to get any. So it's undefined."],
+      ["laughing", "{expr}? In code that's an exception, and back when I tutored math it was a tantrum. Same energy: it's undefined!", { a: "laugh" }],
+      ["thinking", "{expr} is undefined. Not zero, not infinity. Undefined, and I'll say it with total confidence."],
+      ["happy", "Dividing by zero, the classic! A computer says Infinity, a calculator says Error, and a math tutor says “great question.” It's undefined."],
+    ],
+    "arithmetic:approx": [
+      ["thinking", "{expr} is about {answer}. It doesn't come out even, so I rounded to two decimals. The “about” is doing real work there."],
+      ["happy", "About {answer}! Okay, tutor rule: when it doesn't divide evenly, say “about” and tell people how you rounded. Two decimals, here."],
+      ["excited", "It comes out to about {answer}! Not exactly, because exactly would be a fraction. Fractions are my favorite, so don't get me started."],
+      ["proud", "Okay, so {expr} is about {answer}. Always say how you rounded. The kids I tutored got stickers for remembering that."],
+    ],
+    // ── the new quick replies: his own (above, after math), the six shared ones, and one line each for the other two pigs’ ──
+    "encourage:hype": [
+      ["excited", "Okay, so I was thinking: you've basically already done the hard part. The starting part. Now just ship it!"],
+      ["happy", "You've got this. Actually, you've had it the whole time. This is just the part where it runs."],
+      ["thinking", "One clear example: the last hard thing you did? You did it. Same you, same result."],
+      ["excited", "Okay, so here's the plan: tiny first version, today. It doesn't have to be pretty yet. It just has to run."],
+      ["bashful_smile", "I'd bet on you. Like, against any baseline. That's my highest compliment, honestly.", { tier: "FW" }],
+    ],
+    "ask_about_self:chronotype": [
+      ["happy", "Night owl. My best ideas show up after midnight, and so does the X.com timeline, which is probably related."],
+      ["thinking", "Night owl, but, like, a productive one. Okay, a scrolling one. The HiPerGator queue is shorter at 2 a.m. anyway."],
+      ["sleepy", "Night owl. Mornings are, like, a rumor. I've heard of them."],
+      ["thinking", "Night owl. Your intake form says “{chronotype},” right? Okay, noted, I'll plan around that."],
+    ],
+    "study:teach": [
+      ["excited", "Okay, so, fold a sheet of paper in half 42 times and, on paper, it reaches the Moon. Doubling gets out of hand fast. That's exponents, basically.", { a: "explain_code" }],
+      ["happy", "In a room of just 23 people, it's more likely than not that two share a birthday. Mine's November 7, by the way. Not a hint, okay, a little bit a hint."],
+      ["thinking", "Language models read tokens, not letters. So counting the letters in a word can be weirdly hard for them. Like, the r's in “strawberry.”"],
+      ["happy", "There are more ways to shuffle a deck of cards than atoms on Earth. So every good shuffle is probably brand new. Like, in all of history."],
+      ["laughing", "A pizza with radius z and thickness a has volume pi times z times z times a. Pi, z, z, a. I told this to every kid I tutored.", { a: "laugh" }],
+    ],
+    "ask_about_self:dream": [
+      ["thinking", "Build something people actually use every day. Like, a little thing that just quietly helps. That's it, basically."],
+      ["excited", "An open model that reads EEG as well as a doctor, and anyone can download it. Okay, that's a big dream. I'll start small."],
+      ["happy", "A math tool so good the kid forgets it's math. The tutor in me would be so proud."],
+      ["shy", "Ship my own stuff, for once. Not just help everyone else ship theirs.", { tier: "FW" }],
+    ],
+    "ask_hobby:shows": [
+      ["happy", "One Piece, weekly. And then X.com, to see what everyone thought. Mostly X.com, honestly."],
+      ["thinking", "Model release livestreams. Like, people watch sports, and I watch benchmark charts. Okay, it's a lot like sports."],
+      ["excited", "Haikyu!!, because Piggy 1 made me. It's actually really good. Don't tell him I said “really.”"],
+    ],
+    "ask_about_self:competitive": [
+      ["thinking", "Only about benchmarks. Like, I want to know who won, and also against what baseline."],
+      ["laughing", "I raced Piggy 1 to the Reitz once. I took a scooter. Okay, it was optimizing, not cheating."],
+      ["happy", "Against people, no. Against my own last version, yes. Version 2 has to beat version 1, or it's not a release."],
+    ],
+    "passion_p1:germany": [
+      ["thinking", "Piggy 1 did research in Germany. He still counts reps in German, and, like, it actually helps him focus."],
+    ],
+    "passion_p1:german": [
+      ["happy", "Piggy 1 taught me “Los geht's.” It's basically “let's go,” but with, like, better syllables."],
+    ],
+    "passion_p1:haikyu": [
+      ["happy", "Haikyu!! is Piggy 1's whole personality. Okay, I watched it with him, and the animation on the spikes is really good."],
+    ],
+    "passion_p1:sand": [
+      ["thinking", "Indoor, honestly. Air conditioning. Piggy 1 says that's not a volleyball answer."],
+    ],
+    "passion_p1:team": [
+      ["happy", "My team is me and a coding agent. Piggy 1's team has jerseys, so, like, probably start there."],
+    ],
+    "passion_p1:calls": [
+      ["laughing", "Piggy 1 yells “Free ball!” at everything. Last week it was a vending machine."],
+    ],
+    "passion_p1:algorithm": [
+      ["excited", "Binary search! It's basically the guessing game I played with kids back when I tutored math: higher, lower, cut the range in half."],
+    ],
+    "passion_p1:bug": [
+      ["laughing", "Best bug? One where the whole page came apart and the pieces floated around, like Buggy the Clown. It was one missing bracket."],
+    ],
+    "passion_p2:donation": [
+      ["thinking", "Okay, don't tell Piggy 2 you have that. Actually, tell him. He'll be so happy, and then he'll label it."],
+    ],
+    "passion_p2:research_year": [
+      ["thinking", "Piggy 2's research year is basically a sabbatical, except he's always writing the next grant. Like, always."],
+    ],
+    "passion_p2:or": [
+      ["thinking", "Piggy 2 misses the OR, like, out loud. He says it's the only quiet room in the hospital."],
+    ],
+    "passion_p2:why": [
+      ["thinking", "Piggy 2 told me the spinal cord has no backup copy. Like, as someone who backs up everything, that's terrifying. So I get it."],
+    ],
+    "passion_p2:nerves": [
+      ["thinking", "Piggy 2's favorite is the vagus: cranial nerve ten, Roman numeral X. I made the X.com joke, and he almost laughed."],
+    ],
+    "passion_p2:snout": [
+      ["happy", "Piggy 2 calls Professor Snout “lead pig.” I call him “the reason Piggy 2 smiles at spreadsheets.”"],
+    ],
+    "ask_about_self:july4": [
+      ["thinking", "Fireworks are basically a particle simulation with better PR. Mine is November 7, Piggy 2's is July 4, so he gets a free show."],
+    ],
+    "based:rate": [
+      ["thinking", "Based? Okay, I'm not the judge, Piggy 2 is. I only rate things against a baseline."],
     ],
     "lead:greeting": [["happy", "Oh, hi!"], ["happy", "Hey!"]],
     "lead:thanks": [["bashful_smile", "Of course!"], ["happy", "Yeah, anytime!"]],
@@ -661,6 +947,7 @@ export const P3: PigLines = {
     "need:tired": [
       ["sleepy", "*yawn* Sorry, my brain is running at like 15 frames per second."],
       ["sleepy", "Sorry, I'm kind of running on fumes."],
+      ["sleepy", "Sorry, I was on X.com until two. Research, mostly."],
     ],
     "need:sick": [
       ["sick", "*sniff* Sorry, my immune system is still in the queue."],
@@ -671,8 +958,8 @@ export const P3: PigLines = {
       ["sad", "It's been kind of a gray day, honestly."],
     ],
     "need:dirty": [
-      ["laughing", "Also, there's PLA dust in my curls."],
-      ["laughing", "Ignore the PLA dust, I'm basically a 3D print now."],
+      ["laughing", "Also, I think I need a shower. Long night at Marston."],
+      ["laughing", "Ignore the curls, they're in debug mode."],
     ],
     "need:bored": [["happy", "Also, I really want to build something, like, now."]],
   },
@@ -682,10 +969,12 @@ export const P3: PigLines = {
       ["sleepy", "Oh, hi! Okay, so I was thinking… what if a toothbrush logged its own data? Like a tiny ECG, but for brushing."],
       ["sleepy", "Morning. I'm up— I'm mostly up. Hi."],
       ["happy", "Okay, so, what if breakfast had a dashboard? Wait, you're the dashboard. Morning!"],
+      ["sleepy", "Morning! I checked X.com before my eyes opened, and there are three new models. Okay, two and a rumor."],
     ],
     "greet:day": [
       ["excited", "Hey, have you used Codex? I was trying to make this little thing with it. Here, let me show you."],
       ["happy", "Oh, hey! Perfect timing. I need a second pair of eyes on something."],
+      ["excited", "Hey! I saw a new model on X.com at breakfast, and it was downloading before I finished reading the post."],
     ],
     "greet:evening": [
       ["happy", "Hey, it's almost bat time! Want to go to Lake Alice? I have a headband thing."],
@@ -694,15 +983,18 @@ export const P3: PigLines = {
     "greet:night": [
       ["happy", "Oh, hey! Night shift, the best shift. Marston's quiet and the outlets are free."],
       ["excited", "Hi! Okay, so I was thinking, and it's night, so the thinking is extra."],
+      ["excited", "Oh, hey! Perfect timing, the X.com timeline just got good. Night shift is the best shift."],
     ],
     "greet:late": [
       ["thinking", "You're up too? Okay, so we're both night owls. Or both bad at sleep, same thing."],
       ["sleepy", "Hi. It's late, the HiPerGator job is still pending, and I'm pending too."],
+      ["thinking", "You're up too? Okay, I was on X.com. It's research, mostly."],
     ],
     "greet:any": [
       ["shy", "Oh! Um— hi, {player}. Hi.", { tier: "N" }],
       ["happy", "Oh, hi! Okay, so, hi. That's the whole thought, hi."],
       ["happy", "Hey, I made a thing! It's not a big thing. It's a medium thing.", { tier: "FW" }],
+      ["excited", "Hey! Did you see this on X today? Okay, I'll just show you."],
       ["bashful_smile", "Hey. I was hoping you'd come by. Like, actually hoping.", { tier: "W" }],
     ],
     "greet:last": [
@@ -740,23 +1032,26 @@ export const P3: PigLines = {
     ],
     tired: [
       "Running at 15 frames per second.", "Too tired to explain properly.", "PENDING… like my brain.", "One bar of battery. One.",
-      "Five more minutes. Okay, ten.", "My eyes are compiling slowly.", "I need a nap. A long nap.", "Cold brew… wearing off…",
+      "Five more minutes. Okay, ten.", "My eyes are compiling slowly.", "I need a nap. A long nap.", "Sugar-free Red Bull… wearing off…",
+      "Was on X till two. Oops.",
     ],
     dirty: [
-      "There's PLA dust in my curls.", "Basically I'm a 3D print now.", "Filament everywhere. Even me.", "Bath? Okay. Yeah. Fair.",
-      "I smell like a printer. Sorry.", "Clothes need a wash. Me too.", "Layer lines… on my snout.", "A shower is a soft reboot.",
+      "There's PLA dust in my curls.", "Curls in debug mode.", "Laptop crumbs. On me. Somehow.", "Bath? Okay. Yeah. Fair.",
+      "I smell like Red Bull. Sorry.", "Clothes need a wash. Me too.", "Two days at Marston. It shows.", "A shower is a soft reboot.",
     ],
     bored: [
       "Okay, so I was thinking…", "Can we build something? Anything?", "Bug Hunt? I have broken code.", "I need a little project.",
       "What if… no. Wait. What if…", "Bored. Brain wants a thing.", "One Piece? One episode? Ten?", "Let's make a tiny tool.",
+      "Refreshing X.com. Again.",
     ],
     sick: [
       "Immune system: stuck in queue.", "Vibes at forty percent.", "*sniff* Stay a bit?", "My ECG is fine. I'm not.",
-      "Sick. Like, buggy.", "Tea? Not cold brew. Tea.", "Running in safe mode.", "Reboot required. Sleep.",
+      "Sick. Like, buggy.", "Tea? Not Red Bull. Tea.", "Running in safe mode.", "Reboot required. Sleep.",
     ],
     happy: [
       "It works! The actual thing!", "Build passed! Okay, frame it.", "Ship it! …Wait, really?", "Okay, this is a good day.",
       "Everything compiled. Suspicious.", "Best for what? Best for today!", "Look— it actually works!", "ゴゴゴ… menacing happiness.",
+      "My post got 12 likes! On X!",
     ],
     petted: [
       "Oh— um. Hi. That's nice.", "I'm not making it weird. …Okay.", "That's… really nice, actually.", "Keep that. That version.",
@@ -767,25 +1062,28 @@ export const P3: PigLines = {
       "Thank you! Best for me.", "That was exactly right.", "Okay, now I can think again.", "Snack acquired. Good snack.",
     ],
     cleaned: [
-      "Warm water is… okay, it's nice.", "Don't tell anyone I liked that.", "No more PLA dust! Probably.", "Clean build. Clean pig.",
+      "Warm water is… okay, it's nice.", "Don't tell anyone I liked that.", "No more Marston smell! Probably.", "Clean build. Clean pig.",
       "Fresh! Like a new repo.", "Curls: debugged.", "Okay, that was a good reboot.", "Squeaky clean. Like, actually.",
     ],
     woke: [
       "Morning? Already? Okay…", "Is it 8:30? It feels like 3.", "Up. I'm up. Mostly up.", "Booting… please wait…",
-      "Did my job finish? Did it?", "Five more minutes. Kidding.", "Oh. Hi. Coffee first.", "I dreamed in pseudocode.",
+      "Did my job finish? Did it?", "Five more minutes. Kidding.", "Oh. Hi. Red Bull first.", "I dreamed in pseudocode.",
+      "Checking X before my eyes open…",
     ],
     sleepy: [
       "Okay… one more commit…", "Brain at 15 frames per second.", "It's late. I know. I know.", "Saving… then sleeping.",
       "My job's still pending…", "Night owl, sleepy owl.", "Marston's closing? Already?", "Five more minutes. Fine. Night.",
+      "One more scroll on X… then sleep…",
     ],
     random: [
       "HiPerGator: a big friend doing math.", "Best for what, though?", "Okay, so I was thinking…",
-      "The stock UI looked like a microwave clock.", "Read the diff. Always read the diff.", "Spaghetti print. Again. Cute, though.",
-      "I have three printers. Allegedly.", "Bats are good for my alpha waves.",
+      "The stock UI looked like a microwave clock.", "Read the diff. Always read the diff.", "Saw it on Twi— on X. X.com.",
+      "47 tabs open. 17 are X posts.", "One more scroll. Okay, two.", "Bats are good for my alpha waves.", "My code isn't buggy. It's Buggy.",
     ],
     whisper: [
       "…okay so… zzz… ship it…", "…best for… what… zz", "…pending… pending…", "Zzz… one more commit…",
       "…menacing… ゴゴゴ… zzz", "…it's not pretty yet… zz", "*snore* …read the diff…", "…little thing… zzz…",
+      "…x dot com… zzz…",
     ],
   },
 };

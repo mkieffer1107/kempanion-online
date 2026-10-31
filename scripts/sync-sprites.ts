@@ -6,6 +6,14 @@
  * downsamples everything to 0.5×, hard-thresholds alpha, color-quantizes, packs atlases into
  * public/assets/sprites/, and writes src/generated/sprites.json for the renderer.
  *
+ * Art made for the game rides along in the same atlases (committed with the rest of art-src):
+ *   art-src/sprites-extra/<pig>/<outfit>/<clip>/NN.png + meta.json   extra clips (extra-0.png: 'held', 'phone')
+ *   art-src/portraits-extra/<pig>/<outfit>/<pose>.png                 extra portrait cells, 384×512 like the pack's,
+ *                                                                     after the pack's cells in portraits.png (Piggy
+ *                                                                     3's 'phone' and 'phone_mumble'; types.ts
+ *                                                                     PortraitPose)
+ *
+ *   bun run sync-sprites                      (the pack lives in art-src/sprite-pack, git-ignored)
  *   bun scripts/sync-sprites.ts /path/to/piggy-sprite-pack
  *   SPRITE_PACK=/path/to/piggy-sprite-pack bun run sync-sprites
  */
@@ -28,9 +36,10 @@ const ANIM_COLORS = 128;
 
 const OUTFIT_OF_ALT: Record<string, string> = { volleyball: 'volleyball', scrubs: 'scrubs', hoodie: 'hoodie' };
 
-const pack = resolve(process.argv.slice(2).find((a) => a !== '--') ?? process.env.SPRITE_PACK ?? '');
+const packArg = process.argv.slice(2).find((a) => a !== '--') ?? process.env.SPRITE_PACK;
+const pack = packArg ? resolve(packArg) : resolve(import.meta.dir, '../art-src/sprite-pack');
 if (!pack || !existsSync(join(pack, 'manifest.json'))) {
-  console.error('usage: bun scripts/sync-sprites.ts <piggy-sprite-pack dir containing manifest.json>');
+  console.error('usage: bun scripts/sync-sprites.ts [piggy-sprite-pack dir containing manifest.json] (default: art-src/sprite-pack)');
   process.exit(1);
 }
 const root = resolve(import.meta.dir, '..');
@@ -82,13 +91,26 @@ async function processSet(pigId: string, outfit: string, set: SrcSet) {
   await mkdir(dir, { recursive: true });
   const rel = (f: string) => `sprites/${pigId}/${outfit}/${f}`;
 
-  // ── portraits ──
+  // ── portraits: the pack's, then poses made for the game (art-src/portraits-extra/<pig>/<outfit>/<pose>.png) ──
+  // The extra cells go after the pack's in the same atlas (same pixelate, same 128-colour quantize), so the pack's
+  // cells keep their places and a pose costs no extra download.
   const exprs = Object.keys(set.portraits);
-  const rows = Math.ceil(exprs.length / PORTRAIT_COLS);
+  const extraPDir = join(root, 'art-src/portraits-extra', pigId, outfit);
+  const extraP = existsSync(extraPDir) ? readdirSync(extraPDir).filter((f) => /^[a-z_]+\.png$/.test(f)).sort() : [];
+  const pSrc: [string, string][] = [
+    ...exprs.map((ex): [string, string] => [ex, join(pack, set.portraits[ex].image)]),
+    ...extraP.map((f): [string, string] => [f.slice(0, -4), join(extraPDir, f)]),
+  ];
+  const rows = Math.ceil(pSrc.length / PORTRAIT_COLS);
   const pParts = [] as { buf: Buffer; w: number; h: number; x: number; y: number }[];
   const cells: Record<string, [number, number]> = {};
-  for (const [i, ex] of exprs.entries()) {
-    const buf = await pixelate(join(pack, set.portraits[ex].image), PORTRAIT.w, PORTRAIT.h);
+  for (const [i, [ex, file]] of pSrc.entries()) {
+    if (cells[ex]) throw new Error(`${key}: portrait "${ex}" is in the pack and in art-src/portraits-extra`);
+    const meta = await sharp(file).metadata();
+    if (meta.width !== SRC_PORTRAIT.w || meta.height !== SRC_PORTRAIT.h) {
+      throw new Error(`${file}: ${meta.width}×${meta.height}, portraits are ${SRC_PORTRAIT.w}×${SRC_PORTRAIT.h}`);
+    }
+    const buf = await pixelate(file, PORTRAIT.w, PORTRAIT.h);
     const x = (i % PORTRAIT_COLS) * PORTRAIT.w, y = Math.floor(i / PORTRAIT_COLS) * PORTRAIT.h;
     pParts.push({ buf, w: PORTRAIT.w, h: PORTRAIT.h, x, y });
     cells[ex] = [x, y];
@@ -165,7 +187,8 @@ async function processSet(pigId: string, outfit: string, set: SrcSet) {
     face: neutral ? rel('face.png') : null,
     anims,
   };
-  console.log(`✓ ${key}: ${exprs.length} portraits, ${clips.length} clips`);
+  const extras = [...extraP.map((f) => f.slice(0, -4)), ...extraClips.map((c) => `${c} clip`)];
+  console.log(`✓ ${key}: ${pSrc.length} portraits, ${clips.length + extraClips.length} clips${extras.length ? ` (game-made: ${extras.join(', ')})` : ''}`);
 }
 
 for (const c of manifest.characters) {

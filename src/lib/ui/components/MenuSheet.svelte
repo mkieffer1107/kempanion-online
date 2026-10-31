@@ -65,7 +65,7 @@
     onCancel={() => (confirmEnd = false)}
   />
 {:else}
-<Modal title="Menu" icon="menu" size="sm" {onclose}>
+<Modal title="Menu" icon="menu" size={viewport.mode === 's' ? 'md' : 'sm'} {onclose}>
   <ul class="menu">
     {#each items as item (item.label)}
       <li>
@@ -90,5 +90,11 @@
     padding: 0 6px;
     border: 2px solid currentColor;
     opacity: 0.7;
+  }
+  /* Phone landscape: one column of 48 px rows showed 4 of the 7 items, so use two columns of 44 px rows
+     (the window is 'md' wide in S mode to fit them). */
+  @media (max-height: 499px) and (min-aspect-ratio: 5/4) {
+    .menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .item { min-height: 44px; }
   }
 </style>

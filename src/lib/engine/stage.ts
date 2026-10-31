@@ -104,11 +104,27 @@ export interface ImpactInfo {
 }
 
 export interface ReleaseOptions {
-  /** Throw velocity in logical px/s (default: measured from the last ~80 ms of moveHeld, see heldThrow()). Capped. */
+  /**
+   * Launch velocity in logical px/s (default: heldThrow(), the hand's throw plus his own swing). Capped. Pass 0, 0 to
+   * set him down gently (no throw, no spin). By default the landing is judged on the hand's throw plus only the part
+   * of his swing beyond a dangling sway (a put-down mid-sway is still gentle); a velocity passed here is judged as is.
+   */
   vx?: number;
   vy?: number;
   /** Called (from the frame loop) on every floor / wall / ceiling contact — landing sounds, shakes. */
   onImpact?: (hit: ImpactInfo) => void;
+}
+
+/** The held actor's swing round the hand (the same object is reused: read it right away). */
+export interface HeldSwing {
+  /** String angle (rad, (−π, π]): 0 = hanging straight down, ±π = upside down above the hand. */
+  angle: number;
+  /** Swing rate (rad/s, + = clockwise on screen). */
+  spin: number;
+  /** 0..1: how hard the hand is circling (whirling him round, not rubbing back and forth). */
+  whirl: number;
+  /** Full turns round the hand since the pick-up (signed, fractional). */
+  turns: number;
 }
 
 export interface StageApi {
@@ -162,6 +178,7 @@ export interface StageApi {
   moveActor(id: string, x: number, speedPxPerSec?: number): Promise<void>;
   /** Swap an actor's outfit behind a small petal puff. */
   setActorOutfit(id: string, outfit: OutfitId, puff?: boolean): void;
+  /** Remove an actor: a hold or throw in progress ends ('gone'), its clip/walk promises resolve, its bubbles go. */
   removeActor(id: string): void;
   clearActors(): void;
   /** Feet position of an actor in logical px. */
@@ -175,22 +192,38 @@ export interface StageApi {
   /** Viewport client coordinates → logical stage coordinates, or null when outside the canvas. */
   clientToLogical(clientX: number, clientY: number): { x: number; y: number } | null;
 
-  // Pick up & toss (hub). The actor hangs by its grab point (top-center of the 'held' frame, ≈ (64, 6)), swings
-  // like a damped pendulum while dragged, then flies with gravity, bounces off the stage edges and lands.
+  // Pick up & toss (hub). The actor hangs by its grab point (top-center of the 'held' frame, ≈ (64, 6)) on a short,
+  // slightly elastic string (physics.ts stepSwing): drags tilt him, whirling the hand spins him round it (feet out),
+  // and once let go he flies with gravity, bounces off the stage edges and lands. 2D only (no depth scaling).
   /**
    * Pick an actor up at a pointer position (also catches one in mid-air). Stops its walk/idle; plays 'held'
-   * (or a posed fallback with a procedural wiggle when the set has no 'held' clip). True when it is now held.
+   * (or a posed fallback with a procedural wiggle when the set has no 'held' clip). True when it is now held. The
+   * pointer keeps hold of him where it pressed him, for the whole hold: the grab point keeps that offset from it (a
+   * press anywhere on his art below and beside the grab point; one off his art eases him into the hand instead).
    */
   holdActor(id: string, clientX: number, clientY: number): boolean;
-  /** Move the held actor's grab point to a pointer position (outside the canvas is clamped to the stage). */
+  /**
+   * Move the held actor with the pointer: its grab point follows at the offset where the pick-up pressed him (outside
+   * the canvas is clamped to the stage, and he never goes through the floor).
+   */
   moveHeld(clientX: number, clientY: number, timeStamp?: number): void;
   /** Rubbing while held: faster wiggle for a moment (0..1, decays by itself). */
   tickleHeld(amount?: number): void;
-  /** Velocity a release would throw with right now (logical px/s, from the last ~80 ms of moveHeld, capped). */
+  /**
+   * Velocity a release would launch him with right now (logical px/s, capped): the hand's (last ~80 ms of moveHeld)
+   * plus his own swing round it — let go mid-whirl and he flies off along the tangent.
+   */
   heldThrow(): { vx: number; vy: number };
   /**
-   * Let go: the actor keeps the throw velocity, falls (~900 px/s²), bounces off the walls/floor and lands,
-   * then returns to normal (idle behavior resumes). Resolves when it comes to rest on the floor.
+   * How hard letting go right now would count as a throw (logical px/s): the hand's throw plus only the part of his own
+   * swing beyond a dangling sway — what a release's landing is judged on, so a put-down mid-sway is no throw.
+   */
+  heldToss(): { vx: number; vy: number };
+  /** The held actor's swing (angle, spin, whirl, turns), or null when nothing is held. */
+  heldSwing(): HeldSwing | null;
+  /**
+   * Let go: the actor keeps the launch velocity (and the swing's spin), falls (~900 px/s²), bounces off the
+   * walls/floor and lands, then returns to normal (idle behavior resumes). Resolves when it comes to rest on the floor.
    */
   releaseHeld(opts?: ReleaseOptions): Promise<DropResult>;
   /** Id of the actor currently held, or null. */
@@ -222,6 +255,8 @@ export interface StageApi {
   burst(kind: BurstKind, x?: number, y?: number): void;
   /** Burst anchored to an actor (hearts over the head, crumbs at the mouth, …). */
   burstOn(id: string, kind: BurstKind): void;
+  /** Remove every burst particle still on the stage (a screen that leaves mid-reaction takes its hearts with it). */
+  clearBursts(): void;
   /** A golden petal drifts down; tapping it (Stage.svelte handles taps) or handle.catch() calls onCatch. */
   spawnGoldenPetal(onCatch: () => void, opts?: GoldenPetalOptions): GoldenPetalHandle;
   /** Try to catch a golden petal under a viewport point; true when one was caught. */

@@ -162,6 +162,10 @@
   .mode-t .stage > .bezel { inset: 0; }
   /* very tall screens: keep the LCD at most ~square, centered in its bezel */
   .mode-t .stage { max-height: 100cqw; width: 100%; align-self: center; height: 100%; }
+  /* Story / talk / place screens: the picture sits right on top of the text box (spare height goes above it), so
+     it doesn't drift when the rows below change. The spare band (tall phones) shows the sakura wall, not bare night. */
+  .chrome-vn.mode-t .stage { align-self: end; }
+  .chrome-vn.mode-t .frame::before { content: ''; grid-area: stage; background: var(--wall) 0 0 / 128px 128px, var(--night); }
   /* keyboard open / tiny heights: the stage collapses to a chat strip */
   @media (max-height: 420px) and (max-aspect-ratio: 5/4) {
     .mode-t .stage { min-height: 0; }
@@ -192,6 +196,9 @@
   .chrome-pager.mode-s .frame { background: linear-gradient(180deg, #ffc9d6, #e98aa6); }
   .mode-s .stage { grid-area: 1 / 2 / 4 / 3; z-index: 0; }
   .mode-s .status { grid-area: 1 / 2 / 2 / 3; padding: 4px 6px; align-items: flex-start; --dir: row; }
+  /* The status row is drawn over the stage's top edge (44px with a place's bar): speech bubbles stay below it
+     (engine/Stage.svelte). */
+  .mode-s .status ~ .stage { --bubble-top: 44px; }
   .mode-s .info { grid-area: 2 / 2 / 3 / 3; justify-content: flex-end; padding: 0 6px; align-items: flex-start; --dir: row; }
   .mode-s .menu { grid-area: 2 / 2 / 3 / 3; justify-content: flex-end; align-items: center; padding: 0 6px; --dir: column; }
   .mode-s .text { grid-area: 3 / 2 / 4 / 3; flex-direction: column; justify-content: flex-end; padding: 0 6px 6px; --dir: column; }

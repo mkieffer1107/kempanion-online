@@ -1,5 +1,6 @@
-// Wants (GAME_DESIGN.md §6): thought bubbles roughly every 3 h of the waking day, each open for 2 h.
+// Wants (GAME_DESIGN.md §6): solid want bubbles roughly every 3 h of the waking day, each open for 2 h.
 // Fulfil in time → +8 bond, +5 fun. Unfilled wants simply expire. Fully deterministic per time slot.
+// (The lilac thought clouds are flavor, not wants: see thoughts.ts.)
 import type { LocationId, PigId, SaveData } from '../types';
 import { LOCATIONS } from '../content/locations';
 import { WANT, clamp } from './balance';
@@ -40,10 +41,15 @@ const TOPICS: Record<PigId, [string, string][]> = {
 };
 
 const GAME_OF: Record<PigId, string> = { 'piggy-1': 'volley', 'piggy-2': 'perfusion', 'piggy-3': 'debug' };
-const GAME_LABEL: Record<string, string> = { volley: 'Sakura Spike', perfusion: 'Perfusion!', debug: 'Bug Hunt' };
+const GAME_LABEL: Record<string, string> = { volley: 'Sakura Spike', perfusion: 'Swinus Rhythms', debug: 'Bug Hunt' };
 const GAME_ICON: Record<string, string> = { volley: 'ball', perfusion: 'ecg', debug: 'bug' };
 
 interface Slot { key: string; start: number; end: number }
+
+/** The want bubble's accessible name, "Piggy 3 wants: Boba Milk Tea" (a thought cloud reads "Piggy 3’s thought: …"). */
+export function wantName(name: string, w: Pick<Want, 'label'>): string {
+  return `${name} wants: ${w.label}`;
+}
 
 /** The want slot covering `now`, if any (06:00–24:00 in 3-hour blocks). */
 export function wantSlot(now: number): Slot | null {

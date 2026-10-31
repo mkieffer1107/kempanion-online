@@ -202,7 +202,7 @@ piggy-2 neutral: Then you walked here, in this heat, without water.
 piggy-2 neutral: Mild dehydration. Probable.
 [give water_bottle 1]
 narrator: He slides a water bottle across the table. It has a label that says WATER, in his handwriting.
-piggy-2 neutral: Drink this. Doctor's orders— future doctor's orders.
+piggy-2 neutral: Drink this. Doctor's orders— resident's orders. An attending would co-sign.
 ? Drink it right now.
   [bond piggy-2 +5]
   [sfx drink]
@@ -211,8 +211,9 @@ piggy-2 neutral: Drink this. Doctor's orders— future doctor's orders.
   [bond piggy-2 +5]
   piggy-2 neutral: Delayed compliance. Acceptable if finished by 1600.
   piggy-2 neutral: That's four o'clock. I'll know.
-piggy-2 neutral: I'm Piggy 2. MD/PhD student, neuro track.
-piggy-2 happy: I volunteer here. The scrubs are for authority.
+piggy-2 neutral: I'm Piggy 2. MD, fourth-year neurosurgery resident.
+piggy-2 neutral: Research year: fewer surgeries, more lab pigs. So I volunteer here.
+piggy-2 happy: The scrubs are for authority.
 piggy-2 neutral: Your KempaPager is on its way. Piggy 3 is bringing them.
 piggy-2 neutral: He's nine minutes late. That's within his normal range.
 [sfx step]
@@ -263,6 +264,14 @@ piggy-2 neutral: Off duty. Mostly.
 [show piggy-3 happy right]
 piggy-3 happy: Hi again! Is the pager working?
 piggy-3 happy: It's working. Okay, good.
+# Piggy 3 and his phone. He's already on stage at right, so the face sets the pose: "phone" (holding it out), then
+# "phone_mumble" (muttering at it, quiet and fast), then the snap-out. Piggy 1 and Piggy 2 react to the video.
+piggy-3 phone: Oh— hey, did you see this on X today?
+narrator: He holds his phone out at arm's length. On the screen, a robot hand folds one sock, very slowly.
+piggy-1 excited: Whoa! Can it set a volleyball?
+piggy-2 neutral: Is it autonomous, or is someone off-camera holding a controller?
+piggy-3 phone_mumble: ...wait, is it sped up? Where's the 1x label? Is that a controller in the corner of the—
+piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
 piggy-3 thinking: Did you read the Kempa brochure? There's a legend about the big sakura by the tower.
 piggy-1 excited: The promise thing!
 piggy-3 happy: If two people make a promise under the sakura by Century Tower while the carillon plays at dusk...
@@ -273,7 +282,7 @@ piggy-3 thinking: I want to count them. Not tonight, but I want to.
 [sfx notify]
 narrator: 【KEMPA STAFF】Kempanions, introduce yourselves! Thirty seconds each!
 piggy-1 excited: Piggy 1! Computer science, club volleyball, outside hitter— I bring snacks, sunrises and hype!
-piggy-2 neutral: Piggy 2, medicine, neurosurgery track. I bring hydration and perfusion facts, daily.
+piggy-2 neutral: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
 piggy-3 bashful_smile: Okay, that's— yeah. That's my pitch.
 piggy-1 happy: That was great!

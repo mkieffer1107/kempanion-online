@@ -13,18 +13,19 @@ import { ditherStep } from './dither';
 import { Bursts, GoldenPetals, Rain, type Golden } from './fx';
 import {
   bgCropX, clamp, clientToLogical, clientToStage, DEFAULT_GROUND_Y, featuredPortrait, LOGICAL_H, MAX_LOGICAL_W, NARROW_W,
-  PORTRAIT_TOP, portraitCenterX, portraitEnterDir, stepped, type StageFit,
+  lineupScale, PORTRAIT_TOP, portraitCenterX, portraitEnterDir, portraitY, stepped, type StageFit,
 } from './layout';
 import { PetalSystem } from './petals';
 import {
-  capSpeed, classifyDrop, DANGLE, FLIGHT, FLIGHT_REDUCED, HIT_CEILING, HIT_FLOOR, HIT_WALL, LANDED, launchBody, MAX_THROW,
-  newFlightBody, PointerTrail, SETTLED, stepDangle, stepFlight, stepSpring, throwVelocity, wrapAngle,
-  type Dangle, type DropKind, type FlightBody, type FlightBounds, type Spring,
+  capSpeed, classifyDrop, FLIGHT, FLIGHT_REDUCED, HIT_CEILING, HIT_FLOOR, HIT_WALL, holdHand, LANDED, launchBody, MAX_FLING,
+  newFlightBody, newHand, newSwing, PointerTrail, resetHand, resetSwing, sampleHand, SETTLED, stepFlight, stepSpring,
+  stepSwing, SWING, swingEnergy, swingVelocity, throwVelocity, tossVelocity, trackWhirl, wrapAngle,
+  type DropKind, type FlightBody, type FlightBounds, type HandTrack, type Spring, type Swing, type SwingRoom,
 } from './physics';
 import { FRAME, outfitHasClip, PORTRAIT, preloadPig, resolveClip, resolvePortrait, type ClipRef, type PortraitRef } from './sprites';
 import type {
-  BackgroundOptions, BurstKind, DropResult, GoldenPetalHandle, GoldenPetalOptions, IdleOptions, ImpactInfo, PetalLevel,
-  PortraitPos, PushInOptions, ReleaseOptions, StageApi, StageHooks, StageLayout, Transition, Weather,
+  BackgroundOptions, BurstKind, DropResult, GoldenPetalHandle, GoldenPetalOptions, HeldSwing, IdleOptions, ImpactInfo,
+  PetalLevel, PortraitPos, PushInOptions, ReleaseOptions, StageApi, StageHooks, StageLayout, Transition, Weather,
 } from './stage';
 import { ditherComposite, ditherFill, drawIris, drawSakuraWipe, irisMaxRadius } from './transitions';
 import type { StageView } from './view';
@@ -70,8 +71,36 @@ const GRAB_Y_HELD = 6;
 const GRAB_Y_POSE = 8;
 /** The 'held' clip's first frame (startled) plays once, then frames 1..n-1 loop. */
 const HELD_LOOP_FROM = 1;
-/** Clamp for the pointer's acceleration feeding the dangle (px/s²): lively, not floppy. */
-const PIVOT_ACC = 9000;
+/** Fastest flight spin after a release from a whirl (rad/s). */
+const MAX_LAUNCH_SPIN = 12;
+/**
+ * A held pig's art (the 'held' frames) fits two discs on the string, of this radius: his head, centered this far out
+ * from the grab point, and his body, further out (logical px, before the string's give). Nothing of it reaches back
+ * past the grab point (the frames start there): the head disc is cut off there, at a chord HELD_CHORD to either side.
+ */
+const HELD_DISC = 36;
+const HELD_HEAD = 30;
+const HELD_BODY = 67;
+const HELD_CHORD = Math.sqrt(HELD_DISC * HELD_DISC - HELD_HEAD * HELD_HEAD);
+/** So his art reaches this far out along the string from the grab point (logical px, before the string's give). */
+const HELD_REACH = HELD_BODY + HELD_DISC;
+/** Half his width (logical px): a press this far beside the grab point is still on him (pick-up). */
+const PRESS_X = 34;
+/**
+ * Whirled near the stage's edges, his whole orbit moves in (keepOnStage). From the hand's reach over about the last
+ * turn it plans a steady path for the drawn grab point: squash along the string first, up to ORBIT_SQUASH; then a
+ * steady offset from the hand; past that more squash, up to FIT_SQUASH; and an orbit too big for the stage even then
+ * rides a narrower copy of the hand's path (the offset eases from one end of the reach to the other, so both ends just
+ * fit) instead of being yanked back at the bottom of every turn. The planned squash holds over the turn. The reach is
+ * held for about a turn (ORBIT_HOLD ms, longer for a slow whirl, up to ORBIT_HOLD_MAX) before it eases back; the plan
+ * rises and eases back over these (ms). Whatever the plan misses gives way per frame.
+ */
+const ORBIT_HOLD = 700;
+const ORBIT_HOLD_MAX = 2000;
+const ORBIT_RISE = 80;
+const ORBIT_EASE = 600;
+const ORBIT_SQUASH = 0.15;
+const FIT_SQUASH = 0.3;
 /** Drawn rotation steps: 1° (keeps nearest-neighbor rotation from shimmering on tiny sways). */
 const ANGLE_STEP = Math.PI / 180;
 const SHADOW = 'rgba(27,18,41,0.28)';
@@ -80,19 +109,34 @@ interface AirState {
   mode: number;
   /** Body center (world px), velocity and rotation — the source of truth in the air. */
   body: FlightBody;
-  dangle: Dangle;
-  /** Pointer target for the grab point (world px, clamped) and the pick-up offset that eases to 0. */
+  /** While held: the string swing around the grab point, full turns round the hand since the pick-up (signed), and
+   *  the string's give drawn as a stretch around the grab point (squash units, ≤ 0 when stretched). */
+  swing: Swing;
+  turns: number;
+  stretch: number;
+  /**
+   * Pointer target for the grab point (world px, clamped); where the pointer holds him, from the grab point (kept for
+   * the whole hold: where it pressed him at the pick-up); and the pick-up offset that eases to 0 (what the clamps left).
+   */
   tx: number;
   ty: number;
+  kx: number;
+  ky: number;
   ox: number;
   oy: number;
-  /** Drawn grab point and its smoothed velocity / acceleration (they drive the dangle). */
+  /** Grab point (world px) and its smoothed velocity / acceleration (they drive the swing). */
+  hand: HandTrack;
+  /**
+   * Keeping him on stage (keepOnStage): how far the drawn grab point gives way from the hand (px) and its rate (px/s,
+   * smoothed over a couple of frames); the hand's reach over about the last turn and his orbit's steady path; and the
+   * squash that fits his art on stage, drawn on top of the string's give (squash units, ≥ 0).
+   */
   gx: number;
   gy: number;
-  pvx: number;
-  pvy: number;
-  pax: number;
-  pay: number;
+  gvx: number;
+  gvy: number;
+  reach: Reach;
+  fit: number;
   /** Frame-local y of the grab point for the current pose. */
   grabY: number;
   /** ms since pick-up; sway clock (s); tickle 0..1; fallback kick clock (ms). */
@@ -104,14 +148,105 @@ interface AirState {
   fallback: boolean;
   startle: ClipRef | null;
   kick: ClipRef | null;
+  /** Pointer samples (moveHeld), and how many of them the hand has been fed (trail.total when it is caught up). */
   trail: PointerTrail;
-  /** Throw velocity used at release (logical px/s). */
+  fed: number;
+  /** Throw velocity used at release (logical px/s), and how hard it counts as a throw for the landing (tossVelocity). */
   rvx: number;
   rvy: number;
+  tvx: number;
+  tvy: number;
   /** Next floor contact is the first of this throw. */
   first: boolean;
   onImpact: ((hit: ImpactInfo) => void) | null;
   done: ((r: DropResult) => void) | null;
+}
+
+/**
+ * How far the hand reached over about the last turn (world px: highest, lowest, leftmost, rightmost y / x) and when each
+ * was last reached (heldT, ms); the steady path that keeps his orbit on stage: the drawn grab point's offset from the
+ * hand (px) where the hand is at the top and at the bottom of its reach (yLo, yHi), at its left and right (xLo, xHi),
+ * and the squash it is planned with; and the squash beyond the plan that fitted him lately (held while it eases back).
+ */
+interface Reach {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+  topT: number;
+  bottomT: number;
+  leftT: number;
+  rightT: number;
+  yLo: number;
+  yHi: number;
+  xLo: number;
+  xHi: number;
+  q: number;
+  extra: number;
+}
+
+function resetReach(r: Reach, x: number, y: number): void {
+  r.top = r.bottom = y;
+  r.left = r.right = x;
+  r.topT = r.bottomT = r.leftT = r.rightT = 0;
+  r.yLo = r.yHi = r.xLo = r.xHi = r.q = r.extra = 0;
+}
+
+/**
+ * How far a held pig's art reaches from the grab point in the screen direction (dx, dy) (a unit vector), turned by the
+ * string's angle (sin sn, cos c) and squashed by q around the grab point (wider across the string, shorter along it).
+ */
+function heldReach(sn: number, c: number, q: number, dx: number, dy: number): number {
+  const across = 1 + q * 0.5;
+  const along = 1 - q;
+  // the direction across the string and along it (toward his feet)
+  const vc = dx * c + dy * sn;
+  const va = dy * c - dx * sn;
+  const r = HELD_DISC * Math.hypot(across * vc, along * va);
+  const body = HELD_BODY * along * va + r;
+  // the head disc's farthest point lies behind the grab point: his art ends there, at the chord's ends
+  const head = va < 0 && HELD_HEAD * r < HELD_DISC * HELD_DISC * along * -va ? HELD_CHORD * across * Math.abs(vc) : HELD_HEAD * along * va + r;
+  return body > head ? body : head;
+}
+
+/** The drawn grab point's offset from the hand (fitGrab). */
+const FIT = { x: 0, y: 0 };
+
+/**
+ * Where the drawn grab point must sit, offset from the hand at (hx, hy), to keep his art (squashed by q, at the angle
+ * sin sn, cos c) on a stage lw wide with its floor at `floor`: as near the planned offset (ox, oy) as it can, the floor
+ * winning over the top; the sides only while he goes round (`round`: dragged to the edge he stays on the hand). Writes
+ * FIT; returns how far that is from the plan (px).
+ */
+function fitGrab(q: number, sn: number, c: number, hx: number, hy: number, ox: number, oy: number, round: number, lw: number, floor: number): number {
+  const up = heldReach(sn, c, q, 0, -1) + 1;
+  const down = heldReach(sn, c, q, 0, 1);
+  const y = Math.min(Math.max(oy, up - hy), Math.max(0, floor - 2 - hy - down));
+  let x = ox;
+  if (round > 0) {
+    const left = heldReach(sn, c, q, -1, 0) + 1 - hx;
+    const right = lw - 1 - hx - heldReach(sn, c, q, 1, 0);
+    x = ox + ((left <= right ? clamp(ox, left, right) : (left + right) / 2) - ox) * round;
+  }
+  FIT.x = x;
+  FIT.y = y;
+  return Math.abs(y - oy) + Math.abs(x - ox);
+}
+
+/**
+ * The squash a whirl's orbit is planned with along one axis: the hand reaches from lo to hi over a turn, his art points
+ * out at either end (HELD_REACH, squashed) and must stay within [min, max]. With no offset, the least squash that fits
+ * (up to ORBIT_SQUASH); past that, the least with which a steady offset fits (up to FIT_SQUASH).
+ */
+function orbitSquash(lo: number, hi: number, min: number, max: number): number {
+  const q = Math.max(0, 1 - (lo - min) / HELD_REACH, 1 - (max - hi) / HELD_REACH);
+  if (q <= ORBIT_SQUASH) return q;
+  return clamp(1 - (max - min - (hi - lo)) / (2 * HELD_REACH), ORBIT_SQUASH, FIT_SQUASH);
+}
+
+/** Ease the planned squash toward `to` over `ms`: on at once (ORBIT_RISE), off slowly (ORBIT_EASE). */
+function easeOrbit(v: number, to: number, ms: number): number {
+  return v + (to - v) * (1 - Math.exp(-ms / (to > v ? ORBIT_RISE : ORBIT_EASE)));
 }
 
 /** Start loading the 'held' atlas page early so the first pick-up never shows a stale frame. */
@@ -121,11 +256,13 @@ function warmHeld(pig: PigId, outfit: OutfitId) {
 
 function newAir(): AirState {
   return {
-    mode: AIR_NONE, body: newFlightBody(), dangle: { angle: 0, vel: 0 },
-    tx: 0, ty: 0, ox: 0, oy: 0, gx: 0, gy: 0, pvx: 0, pvy: 0, pax: 0, pay: 0,
+    mode: AIR_NONE, body: newFlightBody(), swing: newSwing(), turns: 0, stretch: 0,
+    tx: 0, ty: 0, kx: 0, ky: 0, ox: 0, oy: 0, hand: newHand(), gx: 0, gy: 0, gvx: 0, gvy: 0,
+    reach: { top: 0, bottom: 0, left: 0, right: 0, topT: 0, bottomT: 0, leftT: 0, rightT: 0, yLo: 0, yHi: 0, xLo: 0, xHi: 0, q: 0, extra: 0 },
+    fit: 0,
     grabY: GRAB_Y_HELD, heldT: 0, phase: 0, tickle: 0, kickT: 0,
-    fallback: false, startle: null, kick: null, trail: new PointerTrail(16),
-    rvx: 0, rvy: 0, first: true, onImpact: null, done: null,
+    fallback: false, startle: null, kick: null, trail: new PointerTrail(16), fed: 0,
+    rvx: 0, rvy: 0, tvx: 0, tvy: 0, first: true, onImpact: null, done: null,
   };
 }
 
@@ -267,6 +404,13 @@ export class StageWorld implements StageApi {
   private portraits = new Map<PigId, PortraitState>();
   private portraitList: PortraitState[] = [];
   private portraitSeq = 0;
+  /** Draw scale shared by the portraits on stage (layout.ts lineupScale), stepping from `lineupFrom` to `lineupTo`. */
+  private lineupK = 1;
+  private lineupFrom = 1;
+  private lineupTo = 1;
+  private lineupT = 1;
+  private lineupLw = 0;
+  private lineupPos: PortraitPos[] = [];
   private talking: PigId | null = null;
   private lastTalking: PigId | null = null;
   private featured: PigId | null = null;
@@ -282,6 +426,10 @@ export class StageWorld implements StageApi {
   private readonly impact: ImpactInfo = { surface: 'floor', speed: 0, first: true };
   private readonly pt = { x: 0, y: 0 };
   private readonly vel = { vx: 0, vy: 0 };
+  private readonly toss = { vx: 0, vy: 0 };
+  private readonly swingVel = { vx: 0, vy: 0 };
+  private readonly room: SwingRoom = { floor: 0, feet: 0, squash: 0 };
+  private readonly swingInfo: HeldSwing = { angle: 0, spin: 0, whirl: 0, turns: 0 };
 
   private petals = new PetalSystem();
   private rain = new Rain();
@@ -313,6 +461,8 @@ export class StageWorld implements StageApi {
   private cgTarget = 0;
   private cgToken = 0;
   private cgDone: Done | null = null;
+  /** DOM overlays drawing the whole CG over this stage (coverCG): while one is up, the canvas leaves its copy out. */
+  private cgCovers = 0;
 
   private bubbleSeq = 0;
   private description: string | null = null;
@@ -394,6 +544,9 @@ export class StageWorld implements StageApi {
       if (p.leaving) this.removePortraitNow(p.id);
       else p.enter = 1;
     }
+    this.updateLineup(0);
+    this.lineupK = this.lineupFrom = this.lineupTo;
+    this.lineupT = 1;
     for (const a of this.actorList) {
       this.stopMove(a, true);
       if (a.air && a.air.mode !== AIR_NONE) this.endAir(a, a.air.mode === AIR_HELD ? 'gone' : 'drop');
@@ -511,7 +664,7 @@ export class StageWorld implements StageApi {
   /** Where the camera / iris should center: the speaker, else the first actor, else the middle. */
   private focusPoint(): { x: number; y: number } {
     const p = this.talking ? this.portraits.get(this.talking) : undefined;
-    if (p && !p.leaving) return { x: this.portraitX(p), y: 110 };
+    if (p && !p.leaving) return { x: this.portraitX(p), y: portraitY(88, this.lineupK) };
     const a = this.actorList[0];
     if (a) return { x: Math.round(a.x), y: this.actorY(a) - 60 };
     return { x: Math.round(this.lw / 2), y: 135 };
@@ -652,7 +805,7 @@ export class StageWorld implements StageApi {
   }
 
   private portraitX(p: PortraitState): number {
-    const target = portraitCenterX(p.pos, this.lw);
+    const target = portraitCenterX(p.pos, this.lw, this.lineupK);
     if (p.moveT >= 1) return target;
     return Math.round(p.fromX + (target - p.fromX) * stepped(p.moveT, 4));
   }
@@ -968,9 +1121,9 @@ export class StageWorld implements StageApi {
   private hitActor(view: StageView, a: Actor, wx: number, wy: number): boolean {
     const img = a.img;
     if (!img) return false;
-    const q = this.reduceMotion ? 0 : a.squash.value;
-    const ang = this.reduceMotion ? 0 : a.angle;
     const air = a.air && a.air.mode !== AIR_NONE ? a.air : null;
+    const q = this.reduceMotion ? 0 : a.squash.value + (air ? air.stretch + air.fit : 0);
+    const ang = this.reduceMotion ? 0 : a.angle;
     let lx: number, ly: number;
     if (!air && ang === 0 && Math.abs(q) < 0.004) {
       lx = Math.floor(wx - (Math.round(a.x) - FRAME.pivotX));
@@ -1010,11 +1163,14 @@ export class StageWorld implements StageApi {
     return true;
   }
 
-  /** Grab point target from a world point: inside the stage, never low enough to push the feet through the floor. */
+  /**
+   * Grab point target from the pointer at a world point (it holds him where it pressed him: the grab point keeps that
+   * offset from it): inside the stage, never low enough to push the feet through the floor.
+   */
   private aimGrab(a: Actor, air: AirState, x: number, y: number) {
     const m = FLIGHT.halfW - 4;
-    air.tx = clamp(x, m, Math.max(m, this.lw - m));
-    air.ty = clamp(y, 2, Math.max(2, this.floorOf(a) - (FRAME.pivotY - air.grabY)));
+    air.tx = clamp(x - air.kx, m, Math.max(m, this.lw - m));
+    air.ty = clamp(y - air.ky, 2, Math.max(2, this.floorOf(a) - (FRAME.pivotY - air.grabY)));
   }
 
   heldActor(): string | null {
@@ -1041,34 +1197,42 @@ export class StageWorld implements StageApi {
     this.settle(a);
     a.idle.token++;
     a.idle.running = false;
-    const startAngle = from === AIR_NONE ? 0 : clamp(wrapAngle(air.body.angle), -DANGLE.maxAngle, DANGLE.maxAngle);
+    // caught in mid-air: he keeps hanging the way he was turned (head toward the hand) and his spin
+    const startAngle = from === AIR_NONE ? 0 : wrapAngle(air.body.angle);
     const startSpin = from === AIR_NONE ? 0 : clamp(air.body.spin, -8, 8);
     const prevGrab = air.grabY;
     this.setHeldPose(a, air);
+    // (the hand's clock is the hold's: heldT, from 0)
     if (from === AIR_NONE) {
       // grab him where his head is: the swap to the dangling frame lines up with the standing one
-      air.gx = a.x;
-      air.gy = this.floorOf(a) - (FRAME.pivotY - air.grabY);
+      resetHand(air.hand, a.x, this.floorOf(a) - (FRAME.pivotY - air.grabY), 0);
     } else {
       // caught in mid-air (or while righting himself): the grab point is wherever the body has it now
       const L = BODY_CY - prevGrab;
-      air.gx = air.body.x + L * Math.sin(air.body.angle);
-      air.gy = air.body.y - L * Math.cos(air.body.angle);
+      resetHand(air.hand, air.body.x + L * Math.sin(air.body.angle), air.body.y - L * Math.cos(air.body.angle), 0);
       this.resolveAir(a, air, 'caught');
     }
     air.mode = AIR_HELD;
-    air.dangle.angle = this.reduceMotion ? 0 : startAngle;
-    air.dangle.vel = this.reduceMotion ? 0 : startSpin;
+    resetSwing(air.swing, this.reduceMotion ? 0 : startAngle, this.reduceMotion ? 0 : startSpin);
+    air.turns = 0;
+    air.stretch = air.fit = 0;
+    air.gx = air.gy = air.gvx = air.gvy = 0;
+    resetReach(air.reach, air.hand.x, air.hand.y);
+    // the pointer holds him where it pressed him, for the whole hold: grabbed by the tummy he rises with the first pixel
+    // of a drag, and a flick from anywhere on him tosses him (a press beyond his art below and beside the grab point
+    // eases in instead, as does one above it)
+    air.kx = clamp(this.pt.x - air.hand.x, -PRESS_X, PRESS_X);
+    air.ky = clamp(this.pt.y - air.hand.y, 0, FRAME.pivotY - air.grabY);
     this.aimGrab(a, air, this.pt.x, this.pt.y);
-    air.ox = air.gx - air.tx;
-    air.oy = air.gy - air.ty;
-    air.pvx = air.pvy = air.pax = air.pay = 0;
+    air.ox = air.hand.x - air.tx;
+    air.oy = air.hand.y - air.ty;
     air.heldT = 0;
     air.tickle = 0;
     air.kickT = 0;
     air.trail.clear();
     air.trail.push(performance.now(), air.tx, air.ty);
-    a.angle = air.dangle.angle;
+    air.fed = air.trail.total;
+    a.angle = air.swing.angle;
     a.squashY = air.grabY;
     if (!this.reduceMotion) a.squash.vel -= 2.2; // a little stretch as he is yanked up
     this.heldId = id;
@@ -1095,7 +1259,44 @@ export class StageWorld implements StageApi {
   heldThrow(): { vx: number; vy: number } {
     const out = { vx: 0, vy: 0 };
     const air = this.heldAir();
-    return air ? throwVelocity(air.trail, performance.now(), out) : out;
+    return air ? this.flingVelocity(air, out) : out;
+  }
+
+  heldToss(): { vx: number; vy: number } {
+    const out = { vx: 0, vy: 0 };
+    const air = this.heldAir();
+    if (air) this.flingVelocity(air, this.vel, out);
+    return out;
+  }
+
+  heldSwing(): HeldSwing | null {
+    const air = this.heldAir();
+    if (!air) return null;
+    const o = this.swingInfo;
+    o.angle = air.swing.angle;
+    o.spin = air.swing.vel;
+    o.whirl = air.swing.whirl;
+    o.turns = air.turns;
+    return o;
+  }
+
+  /**
+   * The body's own velocity right now: the hand's (last ~80 ms of moveHeld) plus his swing round it, so letting go
+   * mid-whirl flings him off along the tangent. Capped at MAX_FLING. With `toss`, also how hard that counts as a throw
+   * when he lands: his own dangling sway doesn't (tossVelocity).
+   */
+  private flingVelocity<T extends { vx: number; vy: number }>(air: AirState, out: T, toss?: { vx: number; vy: number }): T {
+    throwVelocity(air.trail, performance.now(), out);
+    if (this.reduceMotion) {
+      if (toss) capSpeed(out.vx, out.vy, MAX_FLING, toss);
+      return out;
+    }
+    const sv = swingVelocity(air.swing, this.swingVel);
+    // the grab point giving way near the stage edges moves him too (at its smoothed rate)
+    sv.vx += air.gvx;
+    sv.vy += air.gvy;
+    if (toss) tossVelocity(out.vx, out.vy, sv.vx, sv.vy, toss);
+    return capSpeed(out.vx + sv.vx, out.vy + sv.vy, MAX_FLING, out);
   }
 
   releaseHeld(opts: ReleaseOptions = {}): Promise<DropResult> {
@@ -1107,17 +1308,25 @@ export class StageWorld implements StageApi {
     }
     this.heldId = null;
     const v = this.vel;
-    if (opts.vx !== undefined || opts.vy !== undefined) capSpeed(opts.vx ?? 0, opts.vy ?? 0, MAX_THROW, v);
-    else throwVelocity(air.trail, performance.now(), v);
+    const t = this.toss;
+    if (opts.vx !== undefined || opts.vy !== undefined) {
+      capSpeed(opts.vx ?? 0, opts.vy ?? 0, MAX_FLING, v);
+      t.vx = v.vx;
+      t.vy = v.vy;
+    } else this.flingVelocity(air, v, t);
     const still = this.reduceMotion;
     air.rvx = still ? 0 : v.vx;
     air.rvy = still ? 0 : v.vy;
-    // the body keeps the hand's velocity plus its own swing around the grab point
-    const L = BODY_CY - air.grabY;
-    const w = still ? 0 : air.dangle.vel;
+    air.tvx = still ? 0 : t.vx;
+    air.tvy = still ? 0 : t.vy;
+    // he leaves from where he hangs, at his own speed, still turning at the swing's rate (set down gently: no spin)
     const ang = still ? 0 : a.angle;
-    const spin = still ? 0 : clamp(w + air.rvx * 0.004, -9, 9);
-    launchBody(air.body, air.body.x, air.body.y, air.rvx - w * L * Math.cos(ang), air.rvy - w * L * Math.sin(ang), ang, spin);
+    const moving = air.rvx !== 0 || air.rvy !== 0;
+    const spin = moving ? clamp(air.swing.vel + air.rvx * 0.004, -MAX_LAUNCH_SPIN, MAX_LAUNCH_SPIN) : 0;
+    // the string's give (and any squash that fitted him on stage) becomes ordinary squash that springs back in the air
+    if (!still) a.squash.value = clamp(a.squash.value + air.stretch + air.fit, -0.3, 0.3);
+    air.stretch = air.fit = 0;
+    launchBody(air.body, air.body.x, air.body.y, air.rvx, air.rvy, ang, spin);
     air.mode = AIR_FLY;
     air.first = true;
     air.onImpact = opts.onImpact ?? null;
@@ -1166,12 +1375,182 @@ export class StageWorld implements StageApi {
     }
   }
 
-  /** Body center from the grab point and the swing angle. */
+  /** Body center from the drawn grab point and the swing angle (at rest length: the string's give is drawn as a stretch). */
   private placeHeld(a: Actor, air: AirState) {
     const L = BODY_CY - air.grabY;
-    air.body.x = air.gx - L * Math.sin(a.angle);
-    air.body.y = air.gy + L * Math.cos(a.angle);
+    air.body.x = air.hand.x + air.gx - L * Math.sin(a.angle);
+    air.body.y = air.hand.y + air.gy + L * Math.cos(a.angle);
     a.x = air.body.x;
+  }
+
+  /** Room for his feet below the drawn grab point right now: stepSwing keeps them above the floor as he swings. */
+  private swingRoom(a: Actor, air: AirState): SwingRoom {
+    const r = this.room;
+    r.floor = this.floorOf(a) - (air.hand.y + air.gy);
+    r.feet = FRAME.pivotY - air.grabY;
+    r.squash = a.squash.value;
+    return r;
+  }
+
+  /**
+   * Keep his art on stage. While he goes round (whirled, or still going over the top after the hand stopped) his whole
+   * orbit moves in: from how far the hand reached over about the last turn, the drawn grab point rides a steady path
+   * against the hand (a narrower copy of the hand's path when even a steady offset doesn't fit), squashed along the
+   * string as the plan needs and held so over the turn: he rides a smooth orbit instead of being yanked in at one end of
+   * every turn, and the squash doesn't pop on at the top and bottom of each one. Each frame, while he goes round or is
+   * swung up over the hand, the least squash on top of that which fits his art at its angle (up to FIT_SQUASH) comes in
+   * at once and eases back off; whatever is still left gives way (the floor wins over the top). Dragged to the edge, or
+   * hanging at the top, he stays on the hand as he always has (his art starts at the grab point: lifted to the top he
+   * gives only what a sway tips past it, no squash). Updates air.gx / gy and their (smoothed) rate, air.reach, air.fit.
+   */
+  private keepOnStage(a: Actor, air: AirState, s: number) {
+    const h = air.hand;
+    const r = air.reach;
+    const t = air.heldT;
+    const lw = this.lw;
+    const floor = this.floorOf(a);
+    const ms = s * 1000;
+    // how much he goes round: whirled, or still going over the top on his own
+    const sw = air.swing;
+    const round = this.reduceMotion ? 0 : Math.max(clamp((sw.whirl - 0.3) / 0.4, 0, 1), clamp((swingEnergy(sw) - 0.9) / 0.2, 0, 1));
+    if (round > 0) {
+      // the hand's reach over about a turn (a slow whirl's turn is longer): pushed out at once, held while the hand
+      // keeps coming back to it (near enough: frames catch each turn's end at a slightly different point), eased back
+      // once a turn has gone by without
+      const back = 1 - Math.exp(-ms / ORBIT_EASE);
+      const hold = clamp(Math.abs(sw.turn) > 0.5 ? (1250 * TAU) / Math.abs(sw.turn) : ORBIT_HOLD_MAX, ORBIT_HOLD, ORBIT_HOLD_MAX);
+      const ny = Math.max(1, (r.bottom - r.top) * 0.05);
+      const nx = Math.max(1, (r.right - r.left) * 0.05);
+      if (h.y <= r.top + ny) {
+        r.top = Math.min(r.top, h.y);
+        r.topT = t;
+      } else if (t - r.topT > hold) r.top += (h.y - r.top) * back;
+      if (h.y >= r.bottom - ny) {
+        r.bottom = Math.max(r.bottom, h.y);
+        r.bottomT = t;
+      } else if (t - r.bottomT > hold) r.bottom += (h.y - r.bottom) * back;
+      if (h.x <= r.left + nx) {
+        r.left = Math.min(r.left, h.x);
+        r.leftT = t;
+      } else if (t - r.leftT > hold) r.left += (h.x - r.left) * back;
+      if (h.x >= r.right - nx) {
+        r.right = Math.max(r.right, h.x);
+        r.rightT = t;
+      } else if (t - r.rightT > hold) r.right += (h.x - r.right) * back;
+    } else {
+      // not going round: the path eases out as the one offset it has him at now, and the reach is just the hand
+      const uy = r.bottom - r.top > 1e-3 ? clamp((h.y - r.top) / (r.bottom - r.top), 0, 1) : 0.5;
+      const ux = r.right - r.left > 1e-3 ? clamp((h.x - r.left) / (r.right - r.left), 0, 1) : 0.5;
+      r.yLo = r.yHi = r.yLo + (r.yHi - r.yLo) * uy;
+      r.xLo = r.xHi = r.xLo + (r.xHi - r.xLo) * ux;
+      r.top = r.bottom = h.y;
+      r.left = r.right = h.x;
+      r.topT = r.bottomT = r.leftT = r.rightT = t;
+    }
+    // the plan: his art points out along the radius at each end of the hand's reach (up at its top, down at its bottom,
+    // out at its sides), so squashed by q it needs HELD_REACH·(1 − q) beyond the grab point there
+    let q = 0;
+    let yLo = 0;
+    let yHi = 0;
+    let xLo = 0;
+    let xHi = 0;
+    let ky = ORBIT_EASE;
+    let kx = ORBIT_EASE;
+    if (round > 0) {
+      q = Math.max(orbitSquash(r.top, r.bottom, 1, floor - 2), orbitSquash(r.left, r.right, 1, lw - 1));
+      const e = HELD_REACH * (1 - q);
+      // down: the least offset its top needs and the most its bottom allows; one steady offset when that leaves room,
+      // else easing from one to the other as the hand goes from the top of its reach to the bottom
+      const need = 1 + e - r.top;
+      const room = floor - 2 - e - r.bottom;
+      yLo = yHi = clamp(0, need, room);
+      if (need > room) {
+        yLo = need;
+        yHi = room;
+      }
+      // across, the same between its left and right
+      const left = 1 + e - r.left;
+      const right = lw - 1 - e - r.right;
+      xLo = xHi = clamp(0, left, right);
+      if (left > right) {
+        xLo = left;
+        xHi = right;
+      }
+      // the path comes in at once where it has his orbit off the stage, and eases back where that has room to spare
+      if (r.yLo < need * round - 0.5 || r.yHi > room + 0.5) ky = ORBIT_RISE;
+      if (r.xLo < left * round - 0.5 || r.xHi > right + 0.5) kx = ORBIT_RISE;
+    }
+    r.q = easeOrbit(r.q, q * round, ms);
+    ky = 1 - Math.exp(-ms / ky);
+    kx = 1 - Math.exp(-ms / kx);
+    r.yLo += (yLo * round - r.yLo) * ky;
+    r.yHi += (yHi * round - r.yHi) * ky;
+    r.xLo += (xLo * round - r.xLo) * kx;
+    r.xHi += (xHi * round - r.xHi) * kx;
+    // the planned offset where the hand is now
+    const uy = r.bottom - r.top > 1e-3 ? clamp((h.y - r.top) / (r.bottom - r.top), 0, 1) : 0.5;
+    const ux = r.right - r.left > 1e-3 ? clamp((h.x - r.left) / (r.right - r.left), 0, 1) : 0.5;
+    const oy = r.yLo + (r.yHi - r.yLo) * uy;
+    const ox = r.xLo + (r.xHi - r.xLo) * ux;
+    // his own squash and the string's give, held up to the planned squash (blended in while that is slight)
+    const q0 = a.squash.value + air.stretch;
+    const base = q0 + Math.max(0, r.q - q0) * Math.min(1, r.q / 0.05);
+    // this frame: the least squash on top of that which fits his art at its angle round the grab point at hand +
+    // offset, while he goes round or is swung up over the hand
+    const sn = Math.sin(a.angle);
+    const c = Math.cos(a.angle);
+    const steps = this.reduceMotion || base >= FIT_SQUASH || (round === 0 && c >= 0) ? 0 : 12;
+    let need = base;
+    let miss = Infinity;
+    for (let i = 0; i <= steps; i++) {
+      const qi = steps ? base + ((FIT_SQUASH - base) * i) / steps : base;
+      const m = fitGrab(qi, sn, c, h.x, h.y, ox, oy, round, lw, floor);
+      if (m < miss - 0.25) {
+        miss = m;
+        need = qi;
+      }
+      if (m < 0.25) break;
+    }
+    // it comes in at once and eases back off (so it doesn't pulse at the top and bottom of every turn); held squash that
+    // would only make him stick out more (wider across the string) goes
+    r.extra = Math.max(need - base, r.extra * Math.exp(-ms / ORBIT_EASE));
+    let fitQ = Math.max(base, Math.min(FIT_SQUASH, base + r.extra));
+    if (fitQ > need && fitGrab(fitQ, sn, c, h.x, h.y, ox, oy, round, lw, floor) > miss + 0.5) {
+      fitQ = need;
+      r.extra = need - base;
+    }
+    fitGrab(fitQ, sn, c, h.x, h.y, ox, oy, round, lw, floor);
+    const gx = FIT.x;
+    const gy = FIT.y;
+    air.fit = fitQ - q0;
+    // the rate that moves him at (a release flings him with it), over a couple of frames: one frame's jump is no throw
+    const k = 1 - Math.exp(-ms / 30);
+    air.gvx += ((s > 0 ? (gx - air.gx) / s : 0) - air.gvx) * k;
+    air.gvy += ((s > 0 ? (gy - air.gy) / s : 0) - air.gvy) * k;
+    air.gx = gx;
+    air.gy = gy;
+  }
+
+  /**
+   * Feed the hand the pointer samples that came in since the last frame, each at its own time on the hold's clock
+   * (heldT): a sample `age` ms old was made at heldT − age, and came in now. A pointer slower than the display leaves
+   * frames with none; the hand holds through them (holdHand) instead of reading them as stops.
+   */
+  private feedHand(air: AirState) {
+    const trail = air.trail;
+    const hand = air.hand;
+    const fresh = Math.min(trail.total - air.fed, trail.length);
+    air.fed = trail.total;
+    const now = performance.now();
+    const at = (i: number) => Math.max(hand.t, air.heldT - clamp(now - trail.t[trail.index(i)], 0, 1000));
+    for (let i = fresh - 1; i >= 0; i--) {
+      // samples less than 1 ms apart: the newer stands for both
+      if (i > 0 && at(i - 1) - at(i) < 1) continue;
+      const j = trail.index(i);
+      sampleHand(hand, at(i), trail.x[j] + air.ox, trail.y[j] + air.oy, air.heldT);
+    }
+    // the pick-up offset easing out moves the hand too, reported or not
+    if (air.ox !== 0 || air.oy !== 0) sampleHand(hand, air.heldT, air.tx + air.ox, air.ty + air.oy);
   }
 
   private updateHeld(a: Actor, air: AirState, dt: number) {
@@ -1184,35 +1563,37 @@ export class StageWorld implements StageApi {
     air.oy *= k;
     if (Math.abs(air.ox) < 0.05) air.ox = 0;
     if (Math.abs(air.oy) < 0.05) air.oy = 0;
-    const gx = air.tx + air.ox;
-    const gy = air.ty + air.oy;
-    if (s > 0) {
-      const f = 1 - Math.exp(-dt / 28);
-      const pvx = air.pvx, pvy = air.pvy;
-      air.pvx += ((gx - air.gx) / s - air.pvx) * f;
-      air.pvy += ((gy - air.gy) / s - air.pvy) * f;
-      air.pax += (clamp((air.pvx - pvx) / s, -PIVOT_ACC, PIVOT_ACC) - air.pax) * f;
-      air.pay += (clamp((air.pvy - pvy) / s, -PIVOT_ACC, PIVOT_ACC) - air.pay) * f;
-    }
-    air.gx = gx;
-    air.gy = gy;
+    const hand = air.hand;
+    this.feedHand(air);
+    holdHand(hand, air.heldT);
+    const sw = air.swing;
     if (this.reduceMotion) {
-      air.dangle.angle = air.dangle.vel = 0;
+      // he hangs straight; the hand's circling is still followed so a whirl is never taken for a rub (tickle)
+      trackWhirl(sw, dt, hand);
+      sw.angle = sw.vel = sw.lenVel = 0;
+      sw.len = SWING.length;
       air.tickle = 0;
+      air.stretch = 0;
       a.angle = 0;
       a.squash.value = a.squash.vel = 0;
     } else {
-      stepDangle(air.dangle, dt, air.pax, air.pay);
+      const before = sw.angle;
+      stepSwing(sw, dt, hand, SWING, this.swingRoom(a, air));
+      air.turns += wrapAngle(sw.angle - before) / TAU;
       air.tickle *= Math.exp(-2.2 * s);
-      // gentle idle sway + a quick wiggle while tickled, on top of the pendulum
-      a.angle = air.dangle.angle + 0.045 * Math.sin(air.phase * 2.3) + air.tickle * 0.1 * Math.sin(air.phase * 24);
+      // gentle idle sway + a quick wiggle while tickled, on top of the swing (both give way while he is whirled)
+      const calm = 1 - sw.whirl;
+      a.angle = sw.angle + calm * (0.045 * Math.sin(air.phase * 2.3) + air.tickle * 0.1 * Math.sin(air.phase * 24));
+      // the string's give: he stretches out from the hand (head stays in the pinch, feet fly out)
+      air.stretch = clamp(1 - sw.len / SWING.length, -SWING.maxStretch, SWING.maxStretch);
       // stretch a little when yanked upward, springy when the hand stops
-      stepSpring(a.squash, dt, clamp(air.pvy / 2600, -0.07, 0.015), 700, 18);
+      stepSpring(a.squash, dt, clamp(hand.vy / 2600, -0.07, 0.015) * calm, 700, 18);
     }
     a.squashY = air.grabY;
+    this.keepOnStage(a, air, s);
     this.placeHeld(a, air);
-    // wiggle faster when swung around or tickled
-    a.rate = 1 + Math.min(0.8, Math.hypot(air.pvx, air.pvy) / 600) + air.tickle * 1.3;
+    // wiggle faster when swung around, spun or tickled
+    a.rate = 1 + Math.min(0.8, Math.hypot(hand.vx, hand.vy) / 600 + Math.abs(sw.vel) / 25) + air.tickle * 1.3;
     if (air.fallback) {
       air.kickT += dt * a.rate;
       this.poseFallback(a, air);
@@ -1274,7 +1655,7 @@ export class StageWorld implements StageApi {
   /** Came to rest on the floor: report the landing; righting / sliding finishes in AIR_SETTLE while clips play. */
   private land(a: Actor, air: AirState) {
     const body = air.body;
-    const kind = classifyDrop({ vx: air.rvx, vy: air.rvy, impact: body.impact, wallImpact: body.wallImpact, ceiling: body.ceiling });
+    const kind = classifyDrop({ vx: air.tvx, vy: air.tvy, impact: body.impact, wallImpact: body.wallImpact, ceiling: body.ceiling });
     air.mode = AIR_SETTLE;
     a.rate = 1;
     this.setClip(a, 'idle', true, 1, true);
@@ -1305,6 +1686,7 @@ export class StageWorld implements StageApi {
     else a.x = air.body.x;
     const wasHeld = air.mode === AIR_HELD;
     air.mode = AIR_NONE;
+    air.stretch = air.fit = 0;
     a.angle = 0;
     a.squash.value = a.squash.vel = 0;
     a.squashY = FRAME.pivotY;
@@ -1353,7 +1735,7 @@ export class StageWorld implements StageApi {
     const p = isPig(b.target) ? this.portraits.get(b.target) : undefined;
     if (p && !p.leaving) {
       b.x = this.lw < NARROW_W ? this.lw / 2 : this.portraitX(p);
-      b.y = PORTRAIT_TOP + 12;
+      b.y = portraitY(12, this.lineupK);
       return;
     }
     b.x = this.lw / 2;
@@ -1470,6 +1852,22 @@ export class StageWorld implements StageApi {
     d?.();
   }
 
+  /**
+   * A DOM overlay draws the whole CG over a stage too narrow for it (vn/components/CgOverlay.svelte, while the stage
+   * would crop the picture): until the returned release is called, the canvas leaves its own cropped copy out, which
+   * otherwise showed through the overlay's backdrop as a second picture. The CG state, its fades (showCG still
+   * resolves when the fade is done) and the shake and flash all run as before.
+   */
+  coverCG(): () => void {
+    this.cgCovers++;
+    let held = true;
+    return () => {
+      if (!held) return;
+      held = false;
+      this.cgCovers--;
+    };
+  }
+
   setPetals(level: PetalLevel): void {
     this.petals.configure({ level });
   }
@@ -1493,7 +1891,7 @@ export class StageWorld implements StageApi {
       if (a) return this.burstOn(a.id, kind);
       const p = this.talking ? this.portraits.get(this.talking) : this.portraitList[this.portraitList.length - 1];
       if (p) {
-        this.bursts.spawn(kind, this.lw < NARROW_W ? this.lw / 2 : this.portraitX(p), PORTRAIT_TOP + 30);
+        this.bursts.spawn(kind, this.lw < NARROW_W ? this.lw / 2 : this.portraitX(p), portraitY(30, this.lineupK));
         return;
       }
     }
@@ -1510,6 +1908,10 @@ export class StageWorld implements StageApi {
     const [ox, oy] = BURST_ANCHOR[kind];
     // bursts draw in screen space: map the actor's world position through the camera
     this.bursts.spawn(kind, (a.x + ox - c.fx) * c.z + c.fx, (feet - oy - c.fy) * c.z + c.fy, (feet - c.fy) * c.z + c.fy);
+  }
+
+  clearBursts(): void {
+    this.bursts.clear();
   }
 
   spawnGoldenPetal(onCatch: () => void, opts: GoldenPetalOptions = {}): GoldenPetalHandle {
@@ -1602,6 +2004,7 @@ export class StageWorld implements StageApi {
   reset(): void {
     this.portraits.clear();
     this.portraitList.length = 0;
+    this.lineupPos.length = 0;
     this.talking = this.lastTalking = this.featured = null;
     this.clearActors();
     this.clearBubbles();
@@ -1712,12 +2115,34 @@ export class StageWorld implements StageApi {
         p.enter = Math.min(1, p.enter + dt / PORTRAIT_FADE);
       }
     }
+    this.updateLineup(dt);
     const f = featuredPortrait(this.portraitList, this.talking, this.lastTalking);
     if (f !== this.featured) {
       this.featured = f;
       const p = f ? this.portraits.get(f) : undefined;
       if (p) p.featuredAt = this.time;
     }
+  }
+
+  /**
+   * Portraits standing together shrink to fit a narrow stage (lineupScale). A lineup change steps the size like a
+   * slide; the first portrait on an empty stage and a resize size at once, and portraits all leaving keep theirs.
+   */
+  private updateLineup(dt: number) {
+    const pos = this.lineupPos;
+    const had = pos.length;
+    pos.length = 0;
+    for (const p of this.portraitList) if (!p.leaving) pos.push(p.pos);
+    const k = lineupScale(pos, this.lw);
+    if (pos.length > 0 && k !== this.lineupTo) {
+      const snap = had === 0 || this.lw !== this.lineupLw || !this.view || this.reduceMotion;
+      this.lineupFrom = snap ? k : this.lineupK;
+      this.lineupTo = k;
+      this.lineupT = snap ? 1 : 0;
+    }
+    this.lineupLw = this.lw;
+    if (this.lineupT < 1) this.lineupT = Math.min(1, this.lineupT + dt / PORTRAIT_FADE);
+    this.lineupK = this.lineupFrom + (this.lineupTo - this.lineupFrom) * stepped(this.lineupT, 4);
   }
 
   private updateOverlays(dt: number) {
@@ -1859,9 +2284,9 @@ export class StageWorld implements StageApi {
     }
     if (!a.img) return;
     const reduce = this.reduceMotion;
-    const q = reduce ? 0 : a.squash.value;
-    const ang = reduce ? 0 : Math.round(a.angle / ANGLE_STEP) * ANGLE_STEP;
     const body = airborne && a.air ? a.air.body : null;
+    const q = reduce ? 0 : a.squash.value + (body && a.air ? a.air.stretch + a.air.fit : 0);
+    const ang = reduce ? 0 : Math.round(a.angle / ANGLE_STEP) * ANGLE_STEP;
     // shadow on the floor, smaller and fainter the higher he is
     const floor = this.floorOf(a);
     const sx = Math.round(body ? body.x : a.x);
@@ -1941,15 +2366,18 @@ export class StageWorld implements StageApi {
     }
     if (narrow) alpha = Math.min(alpha, stepped((this.time - p.featuredAt) / 100, 2));
     if (alpha <= 0) return;
-    let w = PORTRAIT.w, hh = PORTRAIT.h;
-    if (!still && p.pop < 100) {
-      const k = p.pop < 33 ? 1.02 : p.pop < 66 ? 1.04 : 1.02;
-      w = Math.round(PORTRAIT.w * k);
-      hh = Math.round(PORTRAIT.h * k);
-    }
+    let k = narrow ? 1 : this.lineupK;
+    if (!still && p.pop < 100) k *= p.pop < 33 ? 1.02 : p.pop < 66 ? 1.04 : 1.02;
+    const w = Math.round(PORTRAIT.w * k), hh = Math.round(PORTRAIT.h * k);
     const dx = cx - (w >> 1) + sx;
     const dy = y + PORTRAIT.h - hh + sy;
     ctx.globalAlpha = alpha;
+    // a lineup shrunk to fit resamples the art: smooth it, or nearest-neighbour drops whole rows of glasses and outline
+    const smooth = w < PORTRAIT.w;
+    if (smooth) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    }
     if (dim) {
       if (p.dimRef !== p.ref || !p.dimCell) {
         p.dimCell = this.dimmed(img, p.ref);
@@ -1959,6 +2387,7 @@ export class StageWorld implements StageApi {
     } else {
       ctx.drawImage(img, p.ref.x, p.ref.y, PORTRAIT.w, PORTRAIT.h, dx, dy, w, hh);
     }
+    if (smooth) ctx.imageSmoothingEnabled = false;
     ctx.globalAlpha = 1;
   }
 
@@ -1979,7 +2408,7 @@ export class StageWorld implements StageApi {
   }
 
   private drawCG(ctx: CanvasRenderingContext2D, scratch: CanvasRenderingContext2D, sx: number, sy: number) {
-    if (!this.cg && !this.cgPrev) return;
+    if ((!this.cg && !this.cgPrev) || this.cgCovers > 0) return;
     const lw = this.lw, h = LOGICAL_H;
     const crop = bgCropX(lw, 240);
     if (this.cgPrev) ctx.drawImage(this.cgPrev.canvas, crop, 0, lw, h, sx, sy, lw, h);

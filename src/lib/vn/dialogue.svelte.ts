@@ -48,6 +48,11 @@ export interface SayOptions {
   voice?: VoiceId;
   /** Whispered blips (asleep / late night): quieter and low-passed. */
   whisper?: boolean;
+  /**
+   * Typewriter speed × this (default 1): letters and punctuation pauses both go `rate` times faster, and blips come
+   * every `rate` × as many letters, so the voice keeps its pace. Piggy 3's mumble runs at 2.
+   */
+  rate?: number;
 }
 
 const LOG_CAP = 200;
@@ -59,8 +64,13 @@ function voiceStyle(voice: VoiceId): { cps: number; every: number } {
   return { cps: v?.cps || base.cps, every: Math.max(1, Math.round(v?.everyN || base.every)) };
 }
 
-/** `?debug`: skip also passes unread lines. */
-const SKIP_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+/** `?debug`: skip always passes unread lines, whatever the setting says. */
+const DEBUG_SKIP_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+
+/** SKIP / Ctrl fast-forward unread lines too, unless Settings → "Skip only text I've read" is on. */
+function skipAll(): boolean {
+  return DEBUG_SKIP_ALL || game.save.flags['ui.skipReadOnly'] !== true;
+}
 
 const raf: (cb: (t: number) => void) => number = typeof requestAnimationFrame === 'function'
   ? (cb) => requestAnimationFrame(cb)
@@ -81,6 +91,8 @@ interface LineRun {
   voice: VoiceId;
   whisper: boolean;
   msPer: number;
+  /** SayOptions.rate: punctuation pauses are divided by it too. */
+  rate: number;
   every: number;
   letters: number;
   budget: number;
@@ -166,14 +178,16 @@ class DialogueController {
     const pig = isPig(speaker) ? speaker : null;
     const voice = opts.voice ?? speaker;
     const style = voiceStyle(voice);
+    const rate = opts.rate !== undefined && opts.rate > 0 ? opts.rate : 1;
     const L: LineRun = {
-      pig, voice, whisper: !!opts.whisper,
-      msPer: opts.instant ? 0 : msPerChar(style.cps, game.save.settings.textSpeed), every: style.every,
+      pig, voice, whisper: !!opts.whisper, rate,
+      msPer: opts.instant ? 0 : msPerChar(style.cps, game.save.settings.textSpeed) / rate,
+      every: Math.max(1, Math.round(style.every * rate)),
       letters: 0, budget: 0, last: 0, delay: 0, streamDone: false, instant: !!opts.instant, wait: true, read: !!opts.read,
       done: false, log: true, announced: false, release: null, timer: null,
     };
     this.#line = L;
-    if (this.skip && !L.read && !SKIP_ALL) this.skip = false;
+    if (this.skip && !L.read && !skipAll()) this.skip = false;
     this.visible = true;
     this.speaker = speaker;
     this.name = speakerName(speaker, game.save.player.name);
@@ -244,7 +258,7 @@ class DialogueController {
     if (L && !L.done) this.advance();
     this.visible = true;
     this.waiting = false;
-    this.skip = false;
+    this.stopSkip();
     this.choices = options.slice();
     return new Promise((resolve) => { this.#choice = resolve; });
   }
@@ -267,7 +281,7 @@ class DialogueController {
     const L = this.#line;
     if (L && L.done && this.waiting) this.#continue(L);
     this.visible = true;
-    this.skip = false;
+    this.stopSkip();
     this.input = { ...opts };
     return new Promise((resolve) => { this.#ask = resolve; });
   }
@@ -361,6 +375,7 @@ class DialogueController {
   cancel(): void {
     this.#gen++;
     this.onLeave?.();
+    this.backlogOpen = false; // leaving with LOG open must not reopen it in the next chat or scene
     this.#closeLine();
     if (this.#choice) { const r = this.#choice; this.#choice = null; this.choices = null; r(0); }
     if (this.#ask) { const r = this.#ask; this.#ask = null; this.input = null; r(null); }
@@ -399,6 +414,16 @@ class DialogueController {
     this.#kick();
   }
 
+  /**
+   * SKIP mode off. Every player decision calls this: choices, [input], and the scene runner's name window,
+   * companion pick and mini-games, so what follows the decision is not skipped past.
+   */
+  stopSkip(): void {
+    if (!this.skip) return;
+    this.skip = false;
+    this.#reschedule();
+  }
+
   setSkipHeld(on: boolean): void {
     if (this.skipHeld === on) return;
     this.skipHeld = on;
@@ -411,16 +436,19 @@ class DialogueController {
     this.uiHidden = !this.uiHidden;
   }
 
+  /** AUTO and SKIP wait while the LOG is open (nothing moves on behind it) and go on when it closes. */
   openBacklog(): void {
     if (this.backlogOpen || !this.log.length) return;
     this.backlogOpen = true;
     audio.sfx('ui_open');
+    this.#reschedule();
   }
 
   closeBacklog(): void {
     if (!this.backlogOpen) return;
     this.backlogOpen = false;
     audio.sfx('ui_close');
+    this.#reschedule();
   }
 
   /**
@@ -469,7 +497,7 @@ class DialogueController {
     const L = this.#line;
     if (!L || L.done) return;
     const text = this.text;
-    if (L.instant || L.msPer === 0 || (this.skipping && (L.read || SKIP_ALL))) {
+    if (L.instant || L.msPer === 0 || (this.skipping && (L.read || skipAll()))) {
       this.shown = text.length;
     } else {
       L.budget += L.last ? Math.min(100, t - L.last) : 1000 / 60;
@@ -484,7 +512,7 @@ class DialogueController {
           L.letters++;
         }
         i += ch.length;
-        L.delay = L.msPer + pauseAfter(text, i - 1);
+        L.delay = L.msPer + pauseAfter(text, i - 1) / L.rate;
       }
       if (blipAt >= 0) {
         const ch = String.fromCodePoint(text.codePointAt(blipAt)!);
@@ -518,11 +546,11 @@ class DialogueController {
     }
   }
 
-  /** Auto mode / skip mode continue a waiting line on their own. */
+  /** Auto mode / skip mode continue a waiting line on their own (not while the LOG is open). */
   #schedule(L: LineRun): void {
     if (L.timer) { clearTimeout(L.timer); L.timer = null; }
-    if (this.#line !== L || !this.waiting) return;
-    if (this.skip || (this.skipHeld && (L.read || SKIP_ALL))) {
+    if (this.#line !== L || !this.waiting || this.backlogOpen) return;
+    if (this.skip || (this.skipHeld && (L.read || skipAll()))) {
       L.timer = setTimeout(() => this.#continue(L), 50);
     } else if (this.auto) {
       const delay = game.save.settings.autoDelay * 1000 + 25 * this.text.length;

@@ -21,6 +21,10 @@
 //             [fade black 400] [fade clear]       black|white|clear (also out = black, in = clear)
 //             [shake 0.6 300] [flash #ffffff 200] optional intensity/colour and ms
 //             [weather storm] [petals light] [time auto]
+//             [pager feed drink] [pager top] [pager off]  the KempaPager's care keys over the scene, those keys lit
+//                                                  (top|bottom|all = whole rows; no keys = shown, none lit)
+//             [brain] / [brain off]               the hub's Big Brain chip over the scene, where the hub has it, ringed
+//                                                  (live: HEUR, % while installing, BIG); nothing for a "no" to Big Brain
 //             [set score += 1] [set score -= 1]   numeric flags
 //             [chat piggy-2 "prompt" 4]           optional max turns
 //             [input key "prompt" "default"]      default used when the player submits nothing
@@ -53,12 +57,15 @@ export const PETAL_LEVELS = ['off', 'light', 'normal', 'heavy'] as const satisfi
 export const WEATHERS = ['clear', 'rain', 'storm'] as const satisfies readonly Weather[];
 export const BURSTS = ['hearts', 'sparkles', 'zzz', 'notes', 'crumbs', 'bubbles', 'sweat', 'anger'] as const satisfies readonly BurstKind[];
 export const OUTFITS = ['everyday', 'volleyball', 'scrubs', 'hoodie'] as const satisfies readonly OutfitId[];
+/** The hub's care keys in pager order: top row, then bottom row. */
+export const PAGER_KEYS = ['feed', 'drink', 'play', 'wash', 'light', 'care', 'talk', 'stats'] as const;
+export type PagerKey = (typeof PAGER_KEYS)[number];
 
 export const META_KEYS = ['title', 'pig', 'heart', 'chapter', 'trio', 'ending', 'trigger', 'priority', 'cg', 'repeat', 'replayable', 'summary'] as const;
 
 export const COMMANDS = [
   'bg', 'bgm', 'show', 'hide', 'expr', 'sfx', 'jingle', 'wait', 'shake', 'flash', 'fade', 'burst', 'petals', 'weather', 'time',
-  'cg', 'bond', 'money', 'give', 'take', 'need', 'set', 'unset', 'chat', 'minigame', 'outfit', 'name', 'input', 'companion',
+  'pager', 'brain', 'cg', 'bond', 'money', 'give', 'take', 'need', 'set', 'unset', 'chat', 'minigame', 'outfit', 'name', 'input', 'companion',
   'remember', 'call', 'goto', 'end', 'if', 'elif', 'else', 'endif',
 ] as const;
 
@@ -80,6 +87,8 @@ export type Command =
   | { kind: 'petals'; level: PetalLevel }
   | { kind: 'weather'; weather: Weather }
   | { kind: 'time'; time: TimeOfDay | 'auto' }
+  | { kind: 'pager'; keys: PagerKey[] | null }
+  | { kind: 'brain'; on: boolean }
   | { kind: 'cg'; id: string | null }
   | { kind: 'bond'; pig: PigId; n: number }
   | { kind: 'money'; n: number }
@@ -436,6 +445,21 @@ function parseCommand(inner: string): Command {
       arity(1, 1, '[time morning|day|evening|night|auto]');
       return { kind: 'time', time: oneOf(a[0].toLowerCase(), [...TIMES, 'auto'] as const, 'time') };
     }
+    case 'pager': {
+      if (a.length === 1 && a[0].toLowerCase() === 'off') return { kind: 'pager', keys: null };
+      const keys: PagerKey[] = [];
+      for (const t of a.map((x) => x.toLowerCase())) {
+        if (t === 'top') keys.push(...PAGER_KEYS.slice(0, 4));
+        else if (t === 'bottom') keys.push(...PAGER_KEYS.slice(4));
+        else if (t === 'all') keys.push(...PAGER_KEYS);
+        else keys.push(oneOf(t, PAGER_KEYS, 'pager key'));
+      }
+      return { kind: 'pager', keys: [...new Set(keys)] };
+    }
+    case 'brain': {
+      arity(0, 1, '[brain] or [brain off]');
+      return { kind: 'brain', on: oneOf((a[0] ?? 'on').toLowerCase(), ['off', 'on'] as const, '[brain]') === 'on' };
+    }
     case 'cg': {
       arity(1, 1, '[cg id] or [cg off]');
       const id = a[0].toLowerCase();
@@ -467,7 +491,7 @@ function parseCommand(inner: string): Command {
       }
       return { kind: 'chat', pig: needPig(a[0], 'chat'), prompt, maxTurns };
     }
-    case 'minigame': arity(1, 1, '[minigame volley|perfusion|debug|petals]'); return { kind: 'minigame', id: needId(a[0].toLowerCase(), 'mini-game id') };
+    case 'minigame': arity(1, 1, '[minigame volley|perfusion|debug|petals|surgery|xfeed]'); return { kind: 'minigame', id: needId(a[0].toLowerCase(), 'mini-game id') };
     case 'outfit': {
       arity(2, 2, '[outfit pig outfit]');
       return { kind: 'outfit', pig: needPig(a[0], 'outfit'), outfit: oneOf(a[1].toLowerCase(), OUTFITS, 'outfit') };

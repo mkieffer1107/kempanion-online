@@ -9,7 +9,8 @@
 <script lang="ts">
   // The pixel stage: a canvas that fills its parent box (the parent must be positioned) and binds to
   // the `stage` singleton. Speech bubbles and `children` overlays live in stage coordinates:
-  // position them with calc(N * var(--u)).
+  // position them with calc(N * var(--u)). A layout that draws a bar over the box's top edge sets
+  // --bubble-top (px from the box's top) to keep speech bubbles below it.
   import { onMount, type Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
   import { CHARACTERS } from '../content/characters';
@@ -45,11 +46,14 @@
   const placed = new Map<number, Placed>();
   let lastAnnounced = 0;
   let suppressClickUntil = 0;
+  /** --bubble-top: px of the box's top that a status bar covers. */
+  let barInset = 0;
 
   onMount(() => {
     const view = new StageView(world, canvas, root, {
       layout: (f) => {
         fit = f;
+        barInset = parseFloat(getComputedStyle(root).getPropertyValue('--bubble-top')) || 0;
         for (const p of placed.values()) p.w = -1; // font size follows --u: re-measure bubbles
       },
       frame: placeBubbles,
@@ -79,10 +83,11 @@
     }
   }
 
-  /** Per frame: follow the anchors (actors walk), clamp inside the stage, aim the tail. */
+  /** Per frame: follow the anchors (actors walk), clamp inside the stage (and below a status bar), aim the tail. */
   function placeBubbles() {
     const f = fit;
     if (!f) return;
+    const minTop = Math.max(0, barInset - f.top) + 2; // the view can sit lower in the box (letterboxed)
     for (const b of world.bubbles) {
       const el = bubbleEls.get(b.key);
       const p = placed.get(b.key);
@@ -94,7 +99,7 @@
       const half = p.w / 2;
       const ax = b.x * f.u;
       const x = Math.round(f.cssW - half - 2 < half + 2 ? f.cssW / 2 : clamp(ax, half + 2, f.cssW - half - 2));
-      const y = Math.round(Math.max(p.h + 2, b.y * f.u));
+      const y = Math.round(Math.max(p.h + minTop, b.y * f.u));
       const tail = Math.round(clamp(ax - x, 8 - half, half - 8));
       if (x === p.x && y === p.y && tail === p.tail) continue;
       p.x = x;

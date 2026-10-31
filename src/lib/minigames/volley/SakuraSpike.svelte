@@ -217,7 +217,7 @@
   .box { position: absolute; inset: 0; display: grid; place-items: center; }
   canvas { display: block; image-rendering: pixelated; cursor: pointer; }
   .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-size: 1.1rem; }
-  .stat small { font-size: 0.6rem; opacity: 0.7; letter-spacing: 0.08em; }
+  .stat small { font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.08em; }
   .stat.hot { color: var(--gold); }
   .tapbtn { width: min(420px, 100%); min-height: 56px; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: 0.1em; touch-action: none; }
   .tapbtn.block { --btn-bg: var(--bad); --btn-ink: #fff; --btn-hi: #ff8a8f; --btn-lo: #a3262b; }

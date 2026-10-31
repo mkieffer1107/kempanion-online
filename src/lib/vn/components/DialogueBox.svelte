@@ -1,11 +1,13 @@
 <script lang="ts">
   // PC-98 ADV text window: name plate in the speaker's colour, 3–4 visible lines, typewriter, ▼ / ▶▶ / "…",
-  // LOG · AUTO · SKIP · HIDE (+ MENU snippet), choices above the box (scene choices, or free-chat replies as
-  // ChatChoices), the [input] row below, backlog overlay.
+  // LOG · AUTO · SKIP · HIDE (+ MENU snippet), answers above the box (scene choices, free-chat replies as
+  // ChatChoices, or a scene's [input] question), backlog overlay.
   //
   //   layout="overlay"  absolutely positioned at the bottom of its (positioned) parent: W and S layouts.
   //                     Text scales with the box width (container query units), never below 16 px.
-  //   layout="docked"   a block in the normal flow: T layout (phone portrait).
+  //   layout="docked"   a block in the normal flow: T layout (phone portrait). Only the box takes up space, and it
+  //                     keeps it between lines; the plate, the controls and the answers float over the bottom of
+  //                     whatever sits above (the stage), so that never moves while lines come and go.
   //
   // `input={false}` keeps every answer control out of the box (the talk screen places ChatChoices itself);
   // `bind:height` reports the box's rendered height so a parent can place things right above it.
@@ -20,7 +22,6 @@
   import ChatInput from './ChatInput.svelte';
   import ChoiceMenu from './ChoiceMenu.svelte';
   import DialogueControls from './DialogueControls.svelte';
-  import { liftAboveKeyboard } from './keyboard';
 
   let {
     layout = 'overlay',
@@ -44,7 +45,7 @@
     /** Render the choice menu above the box. */
     choices?: boolean;
     /**
-     * Render the answer controls: free-chat replies (ChatChoices, above the box) and the [input] row (below it).
+     * Render the answer controls above the box: free-chat replies (ChatChoices) and a scene's [input] question.
      * false = none at all (the parent shows ChatChoices elsewhere).
      */
     input?: boolean;
@@ -59,7 +60,7 @@
 
   const rows = $derived(lines ?? (layout === 'docked' ? 4 : 3));
   const reduce = $derived(game.save.settings.reduceMotion);
-  // Free chat answers through ChatChoices; the row below the box is only for a scene's [input] question.
+  // Free chat answers through ChatChoices; the text field is only for a scene's [input] question.
   const showInput = $derived(input && !dialogue.chatOpen && dialogue.input !== null);
   const promptInBox = $derived(!dialogue.text && !dialogue.thinking ? (dialogue.input?.prompt ?? '') : '');
   const cursor = $derived(
@@ -121,28 +122,33 @@
   class:gone={dialogue.uiHidden}
   style:--rows={rows}
   onclick={(e) => e.stopPropagation()}
-  use:liftAboveKeyboard={showInput}
   bind:offsetHeight={height}
 >
   <div class="inner">
-    {#if choices && dialogue.choices}
-      <div class="choices-slot"><ChoiceMenu /></div>
-    {:else if input && dialogue.chatOpen}
-      <div class="choices-slot"><ChatChoices /></div>
-    {/if}
+    <div class="above">
+      {#if choices && dialogue.choices}
+        <div class="choices-slot"><ChoiceMenu /></div>
+      {:else if input && dialogue.chatOpen}
+        <div class="choices-slot"><ChatChoices /></div>
+      {:else if showInput}
+        <div class="choices-slot ask"><ChatInput showPrompt={!promptInBox} /></div>
+      {/if}
+
+      {#if dialogue.visible}
+        <div class="head">
+          {#if dialogue.name}
+            {#key dialogue.name}
+              <div class="plate" style:--plate={dialogue.color}>{dialogue.name}</div>
+            {/key}
+          {/if}
+          {#if controls}
+            <DialogueControls class="strip" {menu} />
+          {/if}
+        </div>
+      {/if}
+    </div>
 
     {#if dialogue.visible}
-      <div class="head">
-        {#if dialogue.name}
-          {#key dialogue.name}
-            <div class="plate" style:--plate={dialogue.color}>{dialogue.name}</div>
-          {/key}
-        {/if}
-        {#if controls}
-          <DialogueControls class="strip" {menu} />
-        {/if}
-      </div>
-
       <div
         class="box vn-box"
         class:narration={dialogue.speaker === 'narrator'}
@@ -165,10 +171,6 @@
           <span class="cursor" class:auto={dialogue.auto} style:color={dialogue.color || 'var(--sakura-2)'} aria-hidden="true">{cursor}</span>
         {/if}
       </div>
-    {/if}
-
-    {#if showInput}
-      <div class="input-slot"><ChatInput lift={false} showPrompt={!promptInBox} /></div>
     {/if}
   </div>
 
@@ -210,6 +212,20 @@
     font-size: clamp(calc(16px * var(--fs-k, 1)), calc(2.15cqi * var(--fs-k, 1)), calc(40px * var(--fs-k, 1)));
   }
   .vn.gone .inner { visibility: hidden; }
+  /* Docked: the box's height is reserved even between lines (no box), so the stage above stays put. */
+  .vn.docked .inner { min-height: calc(var(--rows) * 1.45em + 1.05em + var(--px) * 2); }
+
+  /* Overlay: no box of its own (the answers float above, the plate row stays in the flow). Docked: one column
+     floating over the bottom of the stage: answers, then the plate and the controls right on the box's edge. */
+  .above { display: contents; }
+  .vn.docked .above {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 
   .choices-slot {
     position: absolute;
@@ -220,6 +236,21 @@
     justify-content: center;
     pointer-events: auto;
   }
+  .vn.docked .choices-slot {
+    position: static;
+    margin: 0 calc(var(--px) * 3) 0.6em;
+  }
+  /* A scene's [input] question: the same navy window as the choices, prompt + field + SEND. */
+  .ask > :global(.chat) {
+    width: min(100%, 30em);
+    padding: 0.45em 0.6em 0.6em;
+    background: var(--box-bg);
+    border: var(--px) solid var(--box-edge);
+    outline: var(--px) solid var(--ink);
+    box-shadow: 0 0 0 calc(var(--px) * 2) rgba(0, 0, 0, 0.35);
+  }
+  .vn.overlay .ask { font-size: max(16px, 0.8em); }
+  .vn.docked .ask { font-size: 16px; }
 
   .head {
     position: relative;
@@ -259,6 +290,7 @@
     margin-left: auto;
     margin-bottom: calc(var(--px) * 3);
   }
+  .vn.docked .head :global(.strip) { margin-right: 0.6em; }
 
   .box {
     position: relative;
@@ -310,13 +342,6 @@
     animation: bob 0.5s steps(2) infinite;
   }
   .cursor.auto { animation-duration: 0.35s; }
-
-  .input-slot {
-    margin-top: 0.4em;
-    pointer-events: auto;
-  }
-  .vn.overlay .input-slot { font-size: max(16px, 0.8em); }
-  .vn.docked .input-slot { font-size: 16px; }
 
   .unhide {
     position: fixed;

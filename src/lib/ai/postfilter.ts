@@ -87,7 +87,7 @@ function stripActions(s: string): string {
   });
 }
 
-/** (smiles), (adjusts glasses), (happy), [laughs] → removed; "(Student doctor.)" stays. */
+/** (smiles), (adjusts glasses), (happy), [laughs] → removed; "(Terrible patient.)" stays. */
 function stripStageDirections(s: string): string {
   return s
     .replace(/\(\s*([^()]{1,60})\)/g, (m, inner: string) => {

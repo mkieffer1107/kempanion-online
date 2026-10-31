@@ -40,6 +40,11 @@ export const OWN_PASSION: Record<PigId, Intent> = {
   'piggy-3': 'passion_p3',
 };
 
+/** A player's major that is also his ("share_self:major_same"): Piggy 1 is a computer science major (not engineering). */
+export const OWN_MAJOR: Partial<Record<PigId, RegExp>> = {
+  'piggy-1': /\b(?:computer science|comp sci|compsci|cs|cise)\b/i,
+};
+
 export type { Taste };
 
 /** "Betsubara": a full pig still has room for one of these. */
@@ -60,13 +65,32 @@ export const TOPIC_LABEL: Readonly<Record<string, string>> = {
   'passion_p2:neurosurgery': 'neurosurgery', 'passion_p2:ischemia': 'ischemia', 'passion_p2:perfusion': 'perfusion',
   'passion_p2:csf': 'CSF', 'passion_p2:spine': 'the spinal cord', 'passion_p2:electrodes': 'brain chips',
   'passion_p2:pig_models': 'the lab pigs', 'passion_p2:mri': 'MRIs', 'passion_p2:anatomy': 'the anatomy lab',
-  'passion_p2:medschool': 'med school', passion_p2: 'perfusion',
+  // the topic id is from his med school days; he is past that (an MD, a resident), so it is "medicine"
+  'passion_p2:medschool': 'medicine', 'passion_p2:collection': 'his equipment collection', passion_p2: 'perfusion',
   'passion_p3:codex': 'Codex', 'passion_p3:ai': 'AI models', 'passion_p3:opensource': 'open source',
   'passion_p3:hipergator': 'HiPerGator', 'passion_p3:signals': 'EEG signals', 'passion_p3:printing': '3D printing',
-  'passion_p3:onepiece': 'One Piece', 'passion_p3:jojo': 'JoJo', 'passion_p3:anime': 'anime', 'passion_p3:ui': 'UI design',
-  'passion_p3:building': 'building stuff', 'passion_p3:physics': 'physics', passion_p3: 'building stuff',
+  'passion_p3:onepiece': 'One Piece', 'passion_p3:jojo': 'JoJo', 'passion_p3:opvsjojo': 'One Piece versus JoJo',
+  'passion_p3:jojo_better': 'One Piece versus JoJo', 'passion_p3:op_better': 'One Piece versus JoJo',
+  'passion_p3:buggy': 'Buggy the Clown', 'passion_p3:anime': 'anime', 'passion_p3:ui': 'UI design',
+  'passion_p3:building': 'building stuff', 'passion_p3:physics': 'physics', 'passion_p3:math': 'math',
+  // "Hey! So, X.com: I had another idea about it." ("X" alone reads like a placeholder; "Twitter" is his correction)
+  'passion_p3:x': 'X.com', 'passion_p3:twitter': 'X.com', 'passion_p3:mathtrick': 'math tricks',
+  'passion_p3:llm': 'how LLMs work', 'passion_p3:rlhf': 'RLHF', 'passion_p3:rlvr': 'RLVR', 'passion_p3:jev': 'decision models',
+  'passion_p3:foundation': 'foundation models', 'passion_p3:medai': 'medical AI', 'passion_p3:robots': 'robots',
+  'passion_p3:eeg': 'EEG',
+  passion_p3: 'building stuff',
   ask_best: '“what\'s best”', study: 'studying', weather: 'the weather', gators_football: 'the Gators',
   go_gators: 'the Gator Chomp', bored: 'being bored', joke_request: 'jokes', ask_hobby: 'hobbies',
-  ask_favorite_food: 'food', food_offer: 'snacks', hungry_talk: 'food', tired_talk: 'sleep', player_happy: 'your good news',
+  ask_favorite_food: 'food', 'ask_favorite_food:drink': 'drinks', 'ask_favorite_food:comfort': 'comfort food',
+  'ask_favorite_food:places': 'places to eat', food_offer: 'snacks', hungry_talk: 'food', tired_talk: 'sleep', player_happy: 'your good news',
   ask_schedule: 'schedules', ask_major: 'majors',
+  // Piggy 1's and Piggy 2's new chips, and the six shared ones
+  'passion_p1:germany': 'Germany', 'passion_p1:german': 'German', 'passion_p1:haikyu': 'Haikyu!!',
+  'passion_p1:sand': 'sand volleyball', 'passion_p1:team': 'the team', 'passion_p1:calls': 'volleyball lingo',
+  'passion_p1:algorithm': 'algorithms', 'passion_p1:bug': 'debugging',
+  'passion_p2:donation': 'old equipment', 'passion_p2:research_year': 'the research year', 'passion_p2:or': 'the OR',
+  'passion_p2:why': 'neurosurgery', 'passion_p2:nerves': 'cranial nerves', 'passion_p2:snout': 'Professor Snout',
+  'ask_about_self:july4': 'July 4th', 'ask_about_self:competitive': 'competing', 'ask_about_self:chronotype': 'sleep schedules',
+  'ask_about_self:dream': 'dreams', 'study:teach': 'fun facts', 'ask_hobby:shows': 'shows', 'encourage:hype': 'a pep talk',
+  'based:rate': 'the based scale',
 };

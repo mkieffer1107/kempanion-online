@@ -3,7 +3,9 @@ import type { AnimId, CareAction, LocationId, NeedId, Needs, PigId, PigState, Sf
 import { NEED_IDS } from '../../types';
 import type { IdleKind } from '../../ai/heuristic';
 import type { BurstKind, DropKind } from '../../engine/stage';
+import type { MinigameId } from '../../minigames/types';
 import { LOCATIONS } from '../../content/locations';
+import { THOUGHT, type ThoughtPref } from '../../pet/thoughts';
 
 /** Below this a need shows its status clip / lights its LCD key (GAME_DESIGN §6 "needs you"). */
 export const LOW = 30;
@@ -38,6 +40,24 @@ export function idleKind(p: PigState, roll: number): IdleKind {
   const avg = NEED_IDS.reduce((s, n) => s + p.needs[n], 0) / NEED_IDS.length;
   if (avg >= 80 && roll < 0.35) return 'happy';
   return 'random';
+}
+
+/**
+ * Does an ambient hub beat show a thought cloud or speak a line (thoughts final.md §5.1)? Speech when thoughts are
+ * off, a want is live or he's asleep (today's whispers). The first beat of a visit is a thought. Sick, or a need under
+ * LOW: a thought below hubShare.sick / .low, else the spoken need cue. Fine: a thought below hubShare.fine (+0.15
+ * with 'lots'). When no thought is eligible the beat speaks anyway (the caller falls back).
+ */
+export function ambientKind(
+  p: PigState,
+  o: { wantLive: boolean; pref: ThoughtPref; first: boolean },
+  roll: number,
+): 'thought' | 'speech' {
+  if (o.pref === 'off' || o.wantLive || p.asleep) return 'speech';
+  if (o.first) return 'thought';
+  if (p.sick) return roll < THOUGHT.hubShare.sick ? 'thought' : 'speech';
+  if (lowestNeed(p.needs).value < LOW) return roll < THOUGHT.hubShare.low ? 'thought' : 'speech';
+  return roll < THOUGHT.hubShare.fine + (o.pref === 'lots' ? 0.15 : 0) ? 'thought' : 'speech';
 }
 
 export function needsAttention(p: PigState): boolean {
@@ -209,4 +229,48 @@ export const TICKLE_LINES: Record<PigId, readonly string[]> = {
   'piggy-2': ['Hah— that is— not a validated— exam. Hehe.', 'Pfft— cutaneous stimulus— okay— okay!'],
   'piggy-3': ['Hehe— wait— okay, ticklish. Noted.', 'Pfft— that’s, haha, that’s not a fair test!'],
 };
+
+// ── arrival: does a triggered scene take over the room? ──
+
+/** The KempaPager tutorial (content/scenes/home.ks): the first visit to the room plays it. */
+export const HUB_TUTORIAL = 'tutorial_hub';
+
+/** The scene the trigger roll picked for the room: its id, and whether its trigger rolls dice (a chance= clause). */
+export interface ArrivalPick { id: string; chance: boolean }
+
+/** game.session: the scenes auto-played this session, and whether the room itself has been shown yet. */
+export interface ArrivalSession { autoScenes: readonly string[]; roomShown: boolean }
+
+/** True when a scene's trigger has a chance= clause (the random home scenes). */
+export function chanceGated(trigger: readonly { k: string }[] | undefined): boolean {
+  return !!trigger?.some((c) => c.k === 'chance');
+}
+
+/**
+ * The scene the room hands over to on arrival, or null to show the room. A triggered scene auto-plays once per
+ * session. Right after the tutorial the room comes first: until it has been shown once this session, a chance-gated
+ * scene (a random home scene) waits for a later visit, while the tutorial's own follow-ups, which have no chance=
+ * (tutorial_big_brain), still play.
+ */
+export function arrivalScene(pick: ArrivalPick | null, session: ArrivalSession): string | null {
+  if (!pick || session.autoScenes.includes(pick.id)) return null;
+  if (pick.chance && !session.roomShown && session.autoScenes.includes(HUB_TUTORIAL)) return null;
+  return pick.id;
+}
+
+// ── PLAY sheet ──
+
+/** PLAY-sheet icon per mini-game: the ones the places' action buttons use (Location.svelte). */
+export const GAME_ICON: Partial<Record<MinigameId, string>> = {
+  volley: 'play', perfusion: 'ecg', debug: 'bug', petals: 'petal_gold', surgery: 'suture', xfeed: 'phone',
+};
+
+export function gameIcon(id: MinigameId): string {
+  return GAME_ICON[id] ?? 'play';
+}
+
+/** The mini-games in a pig's PLAY sheet: his own first (registry order), then the ones any pig can play. */
+export function playGames<G extends { pig: PigId; anyPig: boolean }>(games: readonly G[], pig: PigId): G[] {
+  return [...games.filter((g) => !g.anyPig && g.pig === pig), ...games.filter((g) => g.anyPig)];
+}
 

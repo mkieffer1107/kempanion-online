@@ -71,7 +71,7 @@
   .glyph :global(img) { width: 100%; height: 100%; }
   .lbl {
     font-family: var(--font-display);
-    font-size: var(--lcd-font, 10px);
+    font-size: var(--lcd-font, 11px);
     letter-spacing: 0.08em;
     line-height: 1;
     text-transform: uppercase;

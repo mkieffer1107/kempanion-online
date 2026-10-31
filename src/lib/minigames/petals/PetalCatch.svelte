@@ -233,7 +233,8 @@
     >▶</button>
   {/snippet}
   {#snippet stats(r)}
-    <p>Petals {r.stats?.pink ?? 0} · Golden {r.stats?.golden ?? 0} · Snacks {r.stats?.snacks ?? 0} · Acorn bonks {r.stats?.acorns ?? 0}</p>
+    <!-- "Petals" is petal points (golden = 10), the same number as the HUD and the "Catch 150 petals" goals -->
+    <p>Petals {r.stats?.petals ?? 0} · Golden {r.stats?.golden ?? 0} · Snacks {r.stats?.snacks ?? 0} · Acorn bonks {r.stats?.acorns ?? 0}</p>
   {/snippet}
 </MinigameShell>
 
@@ -241,7 +242,7 @@
   .box { position: absolute; inset: 0; display: grid; place-items: center; }
   canvas { display: block; image-rendering: pixelated; touch-action: none; cursor: crosshair; }
   .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-size: 1.1rem; }
-  .stat small { font-size: 0.6rem; opacity: 0.7; letter-spacing: 0.08em; }
+  .stat small { font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.08em; }
   .move { flex: 1; max-width: 200px; min-height: 56px; font-size: 1.4rem; touch-action: none; }
   @media (max-height: 460px) {
     .move { min-height: 44px; }

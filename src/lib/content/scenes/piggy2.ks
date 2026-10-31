@@ -64,8 +64,8 @@ narrator: Even the boba line goes quiet. Nobody wants to interrupt a neurologica
   piggy-2 bashful_smile: Call and response: intact. Rare finding.
 ? Are you a doctor?
   [bond piggy-2 +15]
-  piggy-2 neutral: Almost. Spiritually, yes.
-  piggy-2 confused: Legally, no. Hence the folding table.
+  piggy-2 neutral: Yes. Fourth-year neurosurgery resident. Legally and spiritually.
+  piggy-2 confused: The folding table undermines both. I'm aware.
 narrator: The penlight clicks on. A tiny sun crosses one eye, then the other.
 piggy-2 neutral: Pupils equal, round, reactive to light.
 piggy-2 happy: PERRL. The most beautiful acronym in medicine.
@@ -209,7 +209,7 @@ heart: 3
 trigger: location=shands; slot=dawn,morning,midday,afternoon
 priority: 50
 cg: cg_p2_scrubbed_in
-summary: The sim lab before rounds, a lumbar drain on a mannequin named Gerald, and his scrubs.
+summary: Research-year practice in the sim lab, a lumbar drain on a mannequin named Gerald, and his scrubs.
 ---
 [unset p2_h3_banana]
 [bg shands fade]
@@ -223,7 +223,8 @@ piggy-2 surprised: You came.
 [else]
   piggy-2 neutral: I've had the sim lab since six. I'm not tired; my coffee is tired.
 [endif]
-piggy-2 thinking: I'm practicing a lumbar drain before rounds. You can observe.
+piggy-2 thinking: Research year means fewer OR days. Surgical skills fade without reps. Mine won't.
+piggy-2 neutral: Lumbar drain today. You can observe.
 piggy-2 neutral: Give me thirty seconds.
 [hide piggy-2]
 [bg or_suite fade]
@@ -297,7 +298,7 @@ piggy-2 happy: You were a good scrub tech today, {player}.
 piggy-2 bashful_smile: Come back sometime. Gerald liked you.
 [bond piggy-2 +30]
 narrator: Unlocked: Piggy 2's scrubs.
-narrator: ♥ Memory: Scrubbed In. The sim lab before rounds, hooves held high, and a mannequin named Gerald.
+narrator: ♥ Memory: Scrubbed In. Sim lab practice, hooves held high, and a mannequin named Gerald.
 
 # ───────────────────────── ♥4 ─────────────────────────
 
@@ -308,7 +309,7 @@ heart: 4
 trigger: location=communicore; slot=afternoon,dusk,night
 priority: 50
 cg: cg_p2_light_box
-summary: Spine scans after class, why pigs are the model, and three lab pigs with excellent names.
+summary: Spine scans after hours, why pigs are the model, and three lab pigs with excellent names.
 ---
 [bg communicore fade]
 [bgm lab]
@@ -364,7 +365,7 @@ piggy-2 neutral: We take care of them. They take care of everyone after them.
 piggy-2 proud: Porcine solidarity.
 narrator: On the screen, the slices of Professor Snout's spine glow quietly, one after another.
 piggy-2 thinking: If he walks normally at his twelve-week assessment, it means something. For pigs, then for people.
-piggy-2 sad: It would be the first thing I've done that really mattered.
+piggy-2 sad: It would be the first thing I've done that's really mine.
 narrator: He says it to the screen, not to you. Then he clears his throat and turns around.
 piggy-2 neutral: You've been on rounds with me four times now.
 piggy-2 thinking: Rounds teams have titles, and you need one. Pick.
@@ -374,7 +375,7 @@ piggy-2 thinking: Rounds teams have titles, and you need one. Pick.
   piggy-2 proud: Based.
 ? Resident.
   [set p2_nickname = resident]
-  piggy-2 surprised: Resident. Bold, since you haven't even matched.
+  piggy-2 surprised: Resident. Same as me. Bold, since you haven't even matched.
   piggy-2 happy: ...I'll allow it.
 ? Partner.
   [set p2_nickname = partner]
@@ -462,7 +463,7 @@ piggy-2 sleepy: You're a very good attending.
 [cg off]
 narrator: For a while there's only the hum of the mini-fridge. You think he's asleep.
 piggy-2 sleepy: Can I tell you something unscientific?
-piggy-2 sad: Everyone in my class is brilliant. They publish, they present, and they don't sleep either.
+piggy-2 sad: Everyone in my program is brilliant. They publish, they present, and they don't sleep either.
 piggy-2 sad: If I stop for one day, I'm just... a pig in scrubs.
 piggy-2 crying: Ordinary. I'm scared of being ordinary.
 [wait 700]
@@ -584,23 +585,25 @@ heart: 7
 trigger: location=marston,hub; time=day,evening,night
 priority: 50
 cg: cg_p2_discharge_summary
-summary: Finals week, three days of surgical focus, and a chart note waiting for you at dawn.
+summary: His biggest grant deadline yet lands in finals week: three days of surgical focus, and a chart note at dawn.
 ---
 [bg marston fade]
 [time evening]
 [bgm library]
 narrator: Finals week. Marston stays open all night, and so, apparently, does Piggy 2.
-narrator: You find him on the third floor behind a fortress of textbooks, in what he calls surgical focus.
+narrator: You find him on the third floor behind a fortress of textbooks and printed drafts, in what he calls surgical focus.
 [show piggy-2 thinking center]
-piggy-2 thinking: Neuroanatomy, pharmacology, pathology. Triaged by threat level.
-piggy-2 neutral: Day one. Vitals stable, coffee adequate.
+piggy-2 thinking: Specific aims, approach, budget. Triaged by threat level.
+piggy-2 neutral: Grant due in three days. My biggest yet.
+piggy-2 neutral: I'm already PI on a small one. Principal investigator: the pig in charge.
+piggy-2 neutral: Day one: vitals stable, coffee adequate.
 narrator: You set a warm guava-and-cheese pastelito on his notes. He eats it without looking up, and then he looks up.
 piggy-2 happy: Guava and cheese. Based.
 [fade black 500]
 [time night]
 [fade clear 500]
 narrator: Day two, 2:14 a.m. The fortress has grown a second tower.
-piggy-2 neutral: Brachial plexus. Roots, trunks, divisions, cords, branches.
+piggy-2 neutral: Figure one: Professor Snout, walking. Figure two: his perfusion data. Both based.
 player: Have you slept?
 piggy-2 thinking: I'm in a state of focus. Surgeons call it flow.
 player: You're in a state of 2 a.m.
@@ -609,10 +612,10 @@ narrator: You bring him water, then a veggie wrap, then more water. He accepts e
 [fade black 500]
 [fade clear 500]
 narrator: Day three, 3:47 a.m. His pen is still moving; his eyes are not.
-piggy-2 sleepy: The circle of Willis connects the anterior and posterior circula— circula—
+piggy-2 sleepy: Aim two: keep the injured cord perfused. Perfused. Perfu—
 [burst zzz]
 [sfx zzz]
-narrator: He folds onto his notes like a closing book, snout on the pharmacology chapter. Out cold.
+narrator: He folds onto his notes like a closing book, snout on the budget justification. Out cold.
 [hide piggy-2]
 ? (Let him sleep.)
   [bond piggy-2 +45]
@@ -645,9 +648,10 @@ narrator: Attending: {player}. Unlicensed, but highly effective.
 [sfx step]
 [show piggy-2 neutral center]
 piggy-2 neutral: You're awake. Good.
-narrator: He's holding two coffees. The fur on one side of his face is flat from sleeping on pharmacology.
+narrator: He's holding two coffees. The fur on one side of his face is flat from sleeping on the budget.
 piggy-2 neutral: Black for me, milk for you. I observed your preferences.
-piggy-2 happy: I slept and I ate. My exam is at nine, and I'm going to destroy it.
+piggy-2 happy: I slept and I ate. The grant goes in at nine. Eight hours early.
+piggy-2 thinking: The next one is due in six weeks. I've scheduled sleep for it. Tentatively.
 player: You wrote me a discharge summary.
 piggy-2 shy_blush: Standard practice. When a patient leaves your care.
 piggy-2 affectionate_blush: That's the original. I kept a copy for my records.
@@ -657,7 +661,7 @@ piggy-2 bashful_smile: Incurable. I checked the literature: no known treatment.
 piggy-2 thinking: One more thing. There's a legend about the big sakura by Century Tower.
 piggy-2 neutral: Make a promise under it at dusk, and it blooms forever. Zero peer-reviewed evidence.
 piggy-2 shy_blush: ...I'd like to test it sometime. With you.
-[remember piggy-2 "{player} kept me fed and made me sleep during finals week."]
+[remember piggy-2 "{player} kept me fed and made me sleep the week my big grant was due."]
 [bond piggy-2 +50]
 narrator: ♥ Memory: Discharge Summary. Three days of surgical focus, five hours of sleep, and one very official note.
 
@@ -698,7 +702,7 @@ narrator: Beside the tower, the oldest sakura on campus is in full bloom, as alw
 [sfx surprise]
 piggy-2 surprised: You're early.
 piggy-2 bashful_smile: Based.
-narrator: He's still in scrubs, his Shands badge clipped to the pocket. He came straight from the hospital.
+narrator: He's still in scrubs, his Shands badge clipped to the pocket. He came straight from the lab.
 piggy-2 neutral: Didn't change. Didn't want to risk being late.
 piggy-2 neutral: The legend says two people make a promise here while the carillon plays at dusk. Then it blooms forever.
 piggy-2 confused: Zero peer-reviewed evidence. Sample size: unclear.
@@ -798,10 +802,10 @@ piggy-2 neutral: Rounds. I heard I have a patient.
   piggy-2 neutral: Hydrate anyway. Doctor's orders.
   [end]
 [endif]
-narrator: He writes in a tiny chart with a tiny pen. The handwriting is immaculate, which is how you know he's not a real doctor yet.
+narrator: He writes in a tiny chart with a tiny pen. The handwriting is immaculate, which for a doctor is a rare clinical finding.
 piggy-2 neutral: Diagnosis: a cold. Plan: rest, fluids, warm food.
 piggy-2 happy: Prescribing {fact:comfort_food|soup}.
-piggy-2 neutral: Doctor's orders. Student doctor's.
+piggy-2 neutral: Doctor's orders. Neurosurgeon's, technically. Overqualified for a cold.
 piggy-2 neutral: Keep him warm. Page me if anything changes.
 [sfx medicine]
 piggy-2 happy: He'll be fine. Good catch, {flag:p2_nickname|intern}.

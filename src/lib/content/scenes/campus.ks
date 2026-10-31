@@ -13,7 +13,7 @@ repeat: true
 replayable: false
 ---
 [bg plaza fade]
-narrator: The four of you step out of a freezing lecture hall into a wall of warm, wet Plaza air.
+narrator: The four of you step out of a freezing guest lecture into a wall of warm, wet Plaza air.
 [sfx whoosh]
 [show piggy-1 surprised left]
 [show piggy-2 neutral center]
@@ -177,10 +177,10 @@ replayable: false
 [bgm library]
 narrator: Finals season at Marston. Every outlet is claimed, and every table has someone asleep on a highlighter.
 [show piggy-3 neutral center]
-piggy-3 neutral: I've been here so long the vending machine knows my order. It's cold brew, it's always cold brew.
+piggy-3 neutral: I've been here so long the vending machine knows my order. It's sugar-free Red Bull, it's always sugar-free Red Bull.
 piggy-3 thinking: Basically, nobody here has seen the sun since Tuesday. We're nocturnal now, it's fine.
-narrator: He hands you a cold brew from his stash without asking. The stash is large.
-[give cold_brew 1]
+narrator: He hands you a sugar-free Red Bull from his stash without asking. The stash is large.
+[give red_bull_sf 1]
 [bond piggy-3 +3]
 
 # Gated on Piggy 3's heart event 3 (the first spaghetti print), so this one is a callback.
@@ -300,7 +300,7 @@ replayable: false
 [bg communicore fade]
 [bgm stop 800]
 [show piggy-2@scrubs neutral center]
-narrator: In the hallway outside the anatomy lab, Piggy 2 is putting on a fresh gown. He isn't joking today.
+narrator: In the hallway outside the anatomy lab, Piggy 2 is gowning up to teach the first-years. He isn't joking today.
 piggy-2 neutral: Donors are our first teachers. Someone chose to teach us, after everything.
 piggy-2 neutral: So in there, we're quiet, we're careful, and we say thank you. Then we learn everything they're teaching us.
 narrator: He nods once, more to himself than to you, and goes in.
@@ -334,7 +334,7 @@ replayable: false
 [show piggy-2@scrubs neutral center]
 narrator: Before sunrise outside Shands, your breath fogs. Gainesville has panicked into parkas.
 narrator: Piggy 2 is holding two tiny cups of cafecito.
-piggy-2 neutral: Forty-eight degrees, and pre-rounds in ten. One of these is yours.
+piggy-2 neutral: Forty-eight degrees, and my call shift starts in ten. One of these is yours.
 piggy-2 happy: Espresso, sugar and cold air: peak perfusion. Based.
 [give cafecito 1]
 [bond piggy-2 +3]
@@ -352,7 +352,7 @@ replayable: false
 [show piggy-2@scrubs neutral center]
 [sfx alarm]
 narrator: Piggy 2's pager goes off mid-sentence. He reads it in one glance.
-piggy-2 neutral: Neuro ICU. The team's re-leveling a ventricular drain, and I'm shadowing.
+piggy-2 neutral: Neuro ICU. A ventricular drain needs re-leveling. Research year, but today I'm on call.
 piggy-2 neutral: You zero it at the tragus, the little flap in front of your ear. Touch yours.
 ? Touch your tragus.
   [bond piggy-2 +3]

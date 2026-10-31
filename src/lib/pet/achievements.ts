@@ -1,6 +1,7 @@
 // Achievements (GAME_DESIGN.md §12), derived from counters/flags so they can be checked at any time.
 import type { SaveData } from '../types';
 import { PIG_IDS } from '../types';
+import { MINIGAME_IDS } from '../minigames/types';
 import { bondLevel } from './bond';
 import { EDIBLE_IDS } from './items';
 import { bool, counter } from './state';
@@ -26,7 +27,7 @@ const DEFS: AchievementDef[] = [
   { id: 'legend_sakura', title: 'Legend of the Sakura', desc: 'Reach ♥10 with any pig.', icon: 'sakura_keychain', test: (s) => hearts(s).some((h) => h >= 10) },
   { id: 'kempanions_assemble', title: 'Kempanions Assemble', desc: 'Reach ♥10 with all three.', icon: 'kempapager', test: (s) => hearts(s).every((h) => h >= 10) },
   { id: 'patriot', title: 'Patriot', desc: 'Say "based" to Piggy 2.', icon: 'apple_pie', test: (s) => counter(s, 'said_based') > 0 || bool(s, 'p2_based_h1') || bool(s, 'p2_based_h6') },
-  { id: 'best_for_what', title: 'Best For What?', desc: "Ask Piggy 3 what's best.", icon: 'cold_brew', test: (s) => counter(s, 'asked_best') > 0 },
+  { id: 'best_for_what', title: 'Best For What?', desc: "Ask Piggy 3 what's best.", icon: 'red_bull_sf', test: (s) => counter(s, 'asked_best') > 0 },
   { id: 'set_spike', title: 'Set! Spike!', desc: 'Bump → set → spike call-and-response with Piggy 1.', icon: 'signed_volleyball', test: (s) => counter(s, 'set_spike') > 0 },
   { id: 'bat_signal', title: 'Bat Signal', desc: 'Visit Lake Alice at dusk.', icon: 'pin', test: (s) => counter(s, 'bat_signal') > 0 },
   { id: 'go_gators', title: 'Go Gators!', desc: 'Play on a game day.', icon: 'pennant', test: (s) => counter(s, 'gameday_days') > 0 },
@@ -36,10 +37,10 @@ const DEFS: AchievementDef[] = [
   { id: 'five_star_dining', title: 'Five-Star Dining', desc: 'Serve every food and drink on the menu.', icon: 'dining_tray', test: (s) => EDIBLE_IDS.every((id) => counter(s, `served.${id}`) > 0) },
   { id: 'house_call', title: 'House Call', desc: 'Cure 3 illnesses.', icon: 'cold_medicine', test: (s) => counter(s, 'cures') >= 3 },
   { id: 'rally_royalty', title: 'Rally Royalty', desc: 'Keep a 30-hit rally in Sakura Spike.', icon: 'medal_gold', test: (s) => counter(s, 'mg.volley.best_rally') >= 30 },
-  { id: 'textbook_perfusion', title: 'Textbook Perfusion', desc: 'Finish Perfusion! at 100%.', icon: 'ecg', test: (s) => counter(s, 'mg.perfusion.textbook') > 0 },
+  { id: 'textbook_perfusion', title: 'Textbook Perfusion', desc: 'Finish Swinus Rhythms at 100% perfusion.', icon: 'ecg', test: (s) => counter(s, 'mg.perfusion.textbook') > 0 },
   { id: 'zero_day_hunter', title: 'Zero-Day Hunter', desc: 'Bug Hunt: 10/10 with no hints.', icon: 'bug', test: (s) => counter(s, 'mg.debug.zero_day') > 0 },
   { id: 'petal_pusher', title: 'Petal Pusher', desc: 'Catch 150 petals in one Petal Catch.', icon: 'petal_gold', test: (s) => counter(s, 'mg.petals.best_petals') >= 150 },
-  { id: 'triple_gold', title: 'Triple Gold', desc: 'Earn gold in 3 different mini-games.', icon: 'medal_gold', test: (s) => ['volley', 'perfusion', 'debug', 'petals'].filter((id) => bool(s, `pet.gold.${id}`)).length >= 3 },
+  { id: 'triple_gold', title: 'Triple Gold', desc: 'Earn gold in 3 different mini-games.', icon: 'medal_gold', test: (s) => MINIGAME_IDS.filter((id) => bool(s, `pet.gold.${id}`)).length >= 3 }, // every registered game counts (Steady Hoof, For You Pig…)
 ];
 
 export const ACHIEVEMENTS: Achievement[] = DEFS.map(({ id, title, desc, icon }) => ({ id, title, desc, icon }));

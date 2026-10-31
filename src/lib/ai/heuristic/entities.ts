@@ -27,8 +27,9 @@ export const FOOD_LABEL: Record<string, string> = {
   boiled_peanuts: 'boiled peanuts', acai_bowl: 'acai bowl', protein_shake: 'banana protein shake', watermelon: 'watermelon',
   oranges: 'oranges', pastelito: 'pastelito', blueberries: 'blueberries', sakura_dango: 'sakura dango',
   truffle_fries: 'truffle fries', sideline_sip: 'Sideline Sip', florida_oj: 'Florida OJ', sweet_tea: 'sweet tea',
-  cafecito: 'cafecito', cold_brew: 'cold brew', boba_tea: 'boba', strawberry_milk: 'strawberry milk',
-  vegan_ice_cream: 'vegan ice cream', honey_lemon_tea: 'honey lemon tea', ginger_ale: 'ginger ale', cold_medicine: 'cold medicine',
+  cafecito: 'cafecito', cold_brew: 'cold brew', red_bull_sf: 'sugar-free Red Bull', boba_tea: 'boba',
+  strawberry_milk: 'strawberry milk', vegan_ice_cream: 'vegan ice cream', honey_lemon_tea: 'honey lemon tea',
+  ginger_ale: 'ginger ale', cold_medicine: 'cold medicine',
 };
 
 // Order matters: longer / more specific phrases first; each match is blanked out before the next rule runs.
@@ -39,6 +40,8 @@ const FOOD_RULES: [RegExp, string, string?][] = [
   [/\bcold (?:medicine|meds)\b|\bmedicine\b|\bcough syrup\b/g, 'cold_medicine'],
   [/\bsweet tea\b|\biced tea\b/g, 'sweet_tea'],
   [/\bbubble tea\b|\bmilk tea\b|\bboba(?: tea)?\b/g, 'boba_tea'],
+  // Piggy 3's favorite (a bare "a sugar-free" is matched last, below).
+  [/\b(?:sugar ?free |sf )?red ?bulls?\b|\benergy drinks?\b/g, 'red_bull_sf'],
   [/\bcold brew\b|\biced coffee\b|\blatte\b|\bcoffee\b/g, 'cold_brew'],
   [/\bcafecito\b|\bcuban coffee\b|\bcolada\b|\bespresso\b|\bcafe con leche\b/g, 'cafecito'],
   [/\b(?:florida )?(?:oj|orange juice)\b/g, 'florida_oj'],
@@ -64,6 +67,9 @@ const FOOD_RULES: [RegExp, string, string?][] = [
   [/\bdining hall\b|\bcafeteria\b|\bdining tray\b/g, 'dining_tray'],
   [/\bwater(?: bottle)?\b|\bh2o\b/g, 'water_bottle'],
   [/\btea\b/g, 'sweet_tea'],
+  // "Want a sugar-free?" on its own means his can. Last, so a named food wins ("is the tea sugar free?"), and only
+  // after a/an/another/one more with nothing else named ("sugar-free gum", "is it sugar free?" are not the can).
+  [/\b(?:a|an|another|one more) (?:sugar ?free|sugarfree)(?: (?:one|can)s?)?(?= please\b|$)/g, 'red_bull_sf'],
 ];
 
 /** Everyday foods that are not shop items: still food talk, just no taste table entry. */
@@ -90,7 +96,9 @@ const PLACE_RULES: [RegExp, LocationId][] = [
 
 const PIG_RULES: [RegExp, PigId][] = [
   [/\bpigg?y ?(?:1|one)\b|\bpig ?(?:1|one)\b|\bp1\b|\bvolleyball (?:guy|pig|one|boy)\b/, 'piggy-1'],
-  [/\bpigg?y ?(?:2|two)\b|\bpig ?(?:2|two)\b|\bp2\b|\bthe (?:doctor|surgeon|med student)\b|\bdoctor pig\b|\bdoc\b/, 'piggy-2'],
+  // Piggy 2: "the resident" / "the neurosurgeon" / "the neurosurgery resident"; not "the resident advisor", "the resident
+  // evil games", "the resident expert" or "the resident in my dorm". Players may still say "the med student".
+  [/\bpigg?y ?(?:2|two)\b|\bpig ?(?:2|two)\b|\bp2\b|\bthe (?:doctor|surgeon|neuro ?surgeon|neuro ?surgery resident|resident(?! (?:advis[eo]rs?|assistants?|directors?|life|halls?|evil|experts?|(?:in|on|at|of) (?:my|our|the|his|her|their|this|that) (?:dorm|hall|building|floor|apartment|house)s?)\b)|med student)\b|\bdoctor pig\b|\bdoc\b/, 'piggy-2'],
   [/\bpigg?y ?(?:3|three)\b|\bpig ?(?:3|three)\b|\bp3\b|\bthe builder\b|\bhoodie (?:guy|pig|one)\b/, 'piggy-3'],
 ];
 

@@ -89,7 +89,11 @@
     cursor: pointer;
     line-height: 1.05;
   }
-  .tab:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+  /* Not on the picked tab (it outranked .on and left dark ink on a dark tile), and only for a real mouse:
+     touch browsers keep :hover on the last tapped tab. */
+  @media (hover: hover) {
+    .tab:not(.on):hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+  }
   .tab.on {
     color: var(--ink);
     background: var(--tab-color, var(--sakura-1));
@@ -109,7 +113,7 @@
   .tab:disabled { opacity: 0.4; cursor: default; }
   .tab:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: calc(var(--px) * -3); }
   .count { font-size: 12px; opacity: 0.8; }
-  .jp { font-size: 10px; opacity: 0.75; }
+  .jp { font-size: 11px; opacity: 0.75; }
   .compact .tab { min-width: 56px; padding: 2px 8px; font-size: 15px; }
   .compact .jp { display: none; }
 </style>

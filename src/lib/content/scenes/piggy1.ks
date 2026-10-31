@@ -330,7 +330,7 @@ piggy-1 laughing: That's new, right? Usually I hear everything: squirrels, bad p
 narrator: Upstairs, a window slides open.
 piggy-2: Piggy 1, bedtime in thirty minutes. Based.
 narrator: The window slides shut.
-piggy-1 laughing: ...He's not a doctor yet.
+piggy-1 laughing: ...He's not even that kind of doctor.
 piggy-2: I heard that.
 narrator: You sit down next to him. The step creaks like it has opinions.
 [bond piggy-1 +15]
@@ -1014,7 +1014,7 @@ piggy-1 happy: {player}, perfect timing! Breakfast is served!
 narrator: He has carried the kitchen table out onto the porch. Fresh air is a performance enhancer, apparently.
 piggy-1 excited: Banana pancakes, oatmeal, and a mountain of oranges. Fuel for the whole Pig Pen!
 narrator: There are four plates, and one already has a sticky note on it in immaculate handwriting.
-narrator: The note says: "Ate 4:45, pre-rounds. Based."
+narrator: The note says: "Ate 4:45. Lab-pig rounds. Based."
 piggy-1 sad: He eats at 4:45 every day, like a ghost. Thirty-eight breakfasts this semester, and I've never seen him eat one.
 piggy-1 thinking: And Piggy 3 is asleep until 8:30. Minimum.
 piggy-1 happy: So! How do we wake him up?

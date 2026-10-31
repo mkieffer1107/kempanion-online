@@ -8,7 +8,9 @@ import {
   addBondCapped, advance, applyAction, bondLevel, checkAchievements, defaultSettings, newSave, recordDayPlayed,
   type Achievement, type BondSource, type CareResult, type DailyTask, type SimEvent,
 } from '../pet';
+import { forgetFact } from '../ai/memory';
 import { now } from './clock';
+import { carrySettingsFlags } from './settings-flags';
 
 /**
  * Screens and the params they read (all optional unless noted):
@@ -94,6 +96,9 @@ class GameStore {
   session = $state({
     /** Scene ids auto-played from triggers this session (guards against trigger loops). */
     autoScenes: [] as string[],
+    /** The companion's room (hub) has shown this session. Until it has, right after the tutorial, no random home
+     *  scene takes the room's place (ui/hub/hub.ts arrivalScene). */
+    roomShown: false,
   });
   /** Epoch ms of the last pointer/key input (App updates it); drives "present" decay. */
   lastInputAt = now();
@@ -147,25 +152,29 @@ class GameStore {
     }
   }
 
-  /** Start over with a fresh save (keeps settings). */
+  /** Start over with a fresh save (keeps settings, including the ones Settings keeps in flags: SETTINGS_FLAGS). */
   reset(playerName = '') {
-    const settings = this.save.settings;
+    const { settings, flags } = this.save;
     this.save = newSave(now(), playerName);
     this.save.settings = settings;
+    carrySettingsFlags(flags, this.save.flags);
     this.session.autoScenes = [];
+    this.session.roomShown = false;
     this.flush();
   }
 
-  /** Delete the stored save entirely (keeps in-memory settings until the next write). */
+  /** Delete the stored save entirely (keeps in-memory settings, the SETTINGS_FLAGS ones too, until the next write). */
   wipe() {
     if (this.#timer) { clearTimeout(this.#timer); this.#timer = null; }
     try { localStorage.removeItem(KEY); } catch { /* ignore */ }
-    const settings = this.save.settings;
+    const { settings, flags } = this.save;
     this.save = newSave(now());
     this.save.settings = settings;
+    carrySettingsFlags(flags, this.save.flags);
     this.hasSave = false;
     this.events = [];
     this.session.autoScenes = [];
+    this.session.roomShown = false;
   }
 
   /** Replace the save from an imported JSON object. */
@@ -173,6 +182,7 @@ class GameStore {
     if (data?.version !== 1 || typeof data.pigs !== 'object' || !data.pigs) throw new Error('Not a Kempanion save file.');
     this.save = normalize(data);
     this.session.autoScenes = [];
+    this.session.roomShown = false;
     this.flush();
   }
 
@@ -357,11 +367,12 @@ class GameStore {
     this.persist();
   }
 
-  /** Remove a remembered fact ("What {Pig} knows about you" → forget). */
+  /**
+   * Remove a remembered fact ("What {Pig} knows about you" → forget). The pigs share what the player tells one of
+   * them, so a shared fact is forgotten by every pig that has it; a secret stays (and goes) with the one who heard it.
+   */
   forget(pig: PigId, fact: string) {
-    const list = this.save.memories[pig];
-    const i = list.indexOf(fact);
-    if (i >= 0) { list.splice(i, 1); this.persist(); }
+    if (forgetFact(this.save.memories, pig, fact)) this.persist();
   }
 }
 

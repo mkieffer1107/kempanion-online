@@ -8,10 +8,13 @@
 
 <script lang="ts">
   // Title over Century Tower at golden hour: katakana, outlined sakura-gradient logo, tilde subtitle,
-  // ▶ menu (keyboard + touch), the three pigs idling on the plaza, falling petals, non-affiliation footer.
+  // ▶ menu (keyboard + touch), the three pigs idling on the plaza, falling petals. (The non-affiliation note lives
+  // in the credits, not here.)
   // On a device that hasn't answered yet, the Big Brain question (BigBrainPrompt) opens once the intro settles,
   // or as soon as the player picks CONTINUE / NEW GAME. After a yes, a pixel pill in a corner shows the download.
+  // The "Play offline" pill (OfflinePill) lives in that corner too: it downloads the whole game minus Big Brain.
   import { tick, untrack } from 'svelte';
+  import { MediaQuery } from 'svelte/reactivity';
   import '../meta/meta.css';
   import { PIG_IDS, type AnimId, type PigId } from '../../types';
   import { CHARACTERS } from '../../content/characters';
@@ -20,6 +23,7 @@
   import { getBigBrainChoice, onBigBrainChoice, shouldAskBigBrain, type BigBrainChoice } from '../../ai/choice';
   import { bgUrl, hasBackground } from '../meta/assets';
   import BigBrainPrompt from '../meta/BigBrainPrompt.svelte';
+  import OfflinePill from '../meta/OfflinePill.svelte';
   import PetalCanvas from '../meta/PetalCanvas.svelte';
   import PixelGlyph from '../meta/PixelGlyph.svelte';
   import SpriteAnim from '../meta/SpriteAnim.svelte';
@@ -31,7 +35,6 @@
   type ItemId = 'continue' | 'new' | 'profiles' | 'extras' | 'settings' | 'credits';
   interface Item { id: ItemId; label: string; jp: string }
 
-  const VERSION = 'v0.1';
   const canContinue = isMeaningfulSave(game.save, game.hasSave);
   const summary = canContinue ? continueSummary(game.save, now()) : '';
   const items: Item[] = [
@@ -103,6 +106,20 @@
     return readyFlash ? { ready: true, filled: 10, text: 'READY ✓', label: 'Big Brain is ready' } : null;
   });
 
+  // ── Play offline: its window is open (the menu ignores keys and taps meanwhile) ──
+  let offlineOpen = $state(false);
+  /** The Big Brain question came due while the offline window was open: ask once it closes. */
+  let brainDue = false;
+  /** Phone portrait: the corner is too narrow for both pills' full labels. */
+  const narrowCorner = new MediaQuery('(max-aspect-ratio: 5/4) and (max-width: 520px)');
+
+  function offlineToggled(open: boolean) {
+    offlineOpen = open;
+    if (open || !brainDue) return;
+    brainDue = false;
+    if (!leaving && needsBrainAnswer()) openBrainPrompt();
+  }
+
   function needsBrainAnswer(): boolean {
     return !askedBrainThisSession && shouldAskBigBrain(getBigBrainChoice());
   }
@@ -134,7 +151,9 @@
     // Once the logo has landed and the menu stepped in, ask about Big Brain (first visit on this device).
     if (needsBrainAnswer()) {
       timers.push(setTimeout(() => {
-        if (!leaving && needsBrainAnswer()) openBrainPrompt();
+        if (leaving || !needsBrainAnswer()) return;
+        if (offlineOpen) brainDue = true;
+        else openBrainPrompt();
       }, reducedAtStart ? 150 : 1100));
     }
     timers.push(setTimeout(() => flavor('piggy-1', 'wave'), 1400));
@@ -160,7 +179,7 @@
   }
 
   function activate(i: number) {
-    if (leaving || askBrain) return;
+    if (leaving || askBrain || offlineOpen) return;
     const target = items[i].id;
     if ((target === 'continue' || target === 'new') && needsBrainAnswer()) {
       // Ask before the game starts; the player lands where they were going right after answering.
@@ -202,9 +221,16 @@
   }
 
   function onkeydown(e: KeyboardEvent) {
-    if (leaving || askBrain) return;
+    if (leaving || askBrain || offlineOpen) return;
     const t = e.target as HTMLElement | null;
     const onItem = !!t && t.dataset.item !== undefined;
+    const offlineBtn = (t?.closest?.('.op-pill') ?? null) as HTMLButtonElement | null;
+    if (offlineBtn && (e.key === 'Enter' || e.key === ' ')) return; // the focused pill clicks itself
+    if (offlineBtn && (e.key === 'z' || e.key === 'Z')) {
+      e.preventDefault();
+      offlineBtn.click();
+      return;
+    }
     switch (e.key) {
       case 'ArrowUp': case 'w': case 'W':
         e.preventDefault();
@@ -237,7 +263,7 @@
 
 <svelte:window {onkeydown} />
 
-<div class="km-screen title-screen" class:km-reduced={motion.reduced} class:leaving class:pill-on={!!pill}>
+<div class="km-screen title-screen" class:km-reduced={motion.reduced} class:leaving>
   {#if titleBg}
     <div class="km-cover scene" style:background-image="url({titleBg})" aria-hidden="true"></div>
   {:else}
@@ -293,23 +319,22 @@
     {/each}
   </nav>
 
-  <footer class="foot">
-    <p>© 2026 Kempa AI · fan-made, not affiliated with or endorsed by the University of Florida</p>
-    <p class="studio">A Kempa AI Production · {VERSION}</p>
-  </footer>
-
-  {#if pill}
-    <div class="bb-pill" class:ready={pill.ready} role="status" aria-label={pill.label} title="Big Brain is getting ready in the background. Manage it in Settings → Brain.">
-      <Icon id="brain_big" size={16} />
-      <span class="bp-name">BIG BRAIN</span>
-      {#if !pill.ready}
-        <span class="bp-bar" aria-hidden="true">
-          {#each BLOCKS as k (k)}<i class:on={k < pill.filled}></i>{/each}
-        </span>
-      {/if}
-      <span class="bp-text">{pill.text}</span>
-    </div>
-  {/if}
+  <!-- download corner: Big Brain's progress (while it downloads) beside the "Play offline" pill -->
+  <div class="dl-corner">
+    {#if pill}
+      <div class="bb-pill" class:ready={pill.ready} role="status" aria-label={pill.label} title="Big Brain is getting ready in the background. Manage it in Settings → Brain.">
+        <Icon id="brain_big" size={16} />
+        <span class="bp-name">BIG BRAIN</span>
+        {#if !pill.ready}
+          <span class="bp-bar" aria-hidden="true">
+            {#each BLOCKS as k (k)}<i class:on={k < pill.filled}></i>{/each}
+          </span>
+        {/if}
+        <span class="bp-text">{pill.text}</span>
+      </div>
+    {/if}
+    <OfflinePill compact={!!pill && narrowCorner.current} disabled={leaving} onopenchange={offlineToggled} />
+  </div>
 
   {#if askBrain}
     <BigBrainPrompt onclose={brainAnswered} />
@@ -321,13 +346,12 @@
     --pig-size: 192px;
     display: grid;
     grid-template-columns: minmax(300px, 42%) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas:
       'logo .'
-      'menu pigs'
-      'foot foot';
+      'menu pigs';
     gap: 2.5vh 3vw;
-    padding: max(5vh, var(--safe-top)) max(5vw, var(--safe-right)) max(2vh, var(--safe-bottom)) max(5vw, var(--safe-left));
+    padding: max(5vh, var(--safe-top)) max(5vw, var(--safe-right)) max(4vh, var(--safe-bottom)) max(5vw, var(--safe-left));
   }
   .scene { transition: filter 180ms steps(3); }
   .km-cover.scene { --focus: 50%; }
@@ -345,7 +369,7 @@
     pointer-events: none;
   }
   .leaving .scene { filter: brightness(1.25); }
-  .logo, .menu, .pigs, .foot { position: relative; z-index: 1; }
+  .logo, .menu, .pigs { position: relative; z-index: 1; }
 
   /* ── logo ── */
   .logo {
@@ -483,26 +507,20 @@
   .pig { margin: 0 calc(var(--pig-size) * -0.18); }
   .pig:nth-child(2) { margin-bottom: calc(var(--pig-size) * 0.06); }
 
-  /* ── footer ── */
-  .foot {
-    grid-area: foot;
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    font-size: 12px;
-    color: rgba(255, 246, 234, 0.85);
-    text-shadow: 1px 1px 0 var(--ink);
-    text-align: center;
-  }
-  .foot p { margin: 0; }
-  .studio { color: var(--sakura-1); font-family: var(--font-display); letter-spacing: 0.08em; }
-
-  /* ── Big Brain download pill (top-right corner; bottom-right in S, under the menu) ── */
-  .bb-pill {
+  /* ── download corner (top right): the Big Brain pill while it downloads, then "Play offline" in the corner
+        itself (a 44px button around its 30px pill). In S both move under the logo, Big Brain below "Play offline". ── */
+  .dl-corner {
     position: absolute;
     z-index: 2;
-    top: max(10px, var(--safe-top));
-    right: max(12px, var(--safe-right));
+    top: max(3px, var(--safe-top));
+    right: max(6px, var(--safe-right));
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+  }
+  .bb-pill {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -529,7 +547,9 @@
   .bp-bar i { height: 8px; background: rgba(255, 255, 255, 0.12); }
   .bp-bar i.on { background: var(--sakura-2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45); }
   .bp-text { min-width: 3ch; text-align: right; }
-  .km-reduced .bb-pill { animation: none; }
+  .km-reduced .bb-pill, .km-reduced .dl-corner > :global(.op-pill) { animation: none; }
+  /* "Play offline" steps in with the menu, not before the logo has landed */
+  .dl-corner > :global(.op-pill) { animation-delay: 480ms; }
 
   @media (min-height: 900px) { .title-screen { --pig-size: 256px; } }
   @media (max-height: 640px) { .title-screen { --pig-size: 128px; } }
@@ -539,10 +559,10 @@
     .title-screen {
       --pig-size: 128px;
       grid-template-columns: 1fr;
-      grid-template-rows: auto minmax(0, 1fr) auto auto;
-      grid-template-areas: 'logo' 'pigs' 'menu' 'foot';
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas: 'logo' 'pigs' 'menu';
       gap: 10px;
-      padding: max(18px, var(--safe-top)) max(16px, var(--safe-right)) max(10px, var(--safe-bottom)) max(16px, var(--safe-left));
+      padding: max(18px, var(--safe-top)) max(16px, var(--safe-right)) max(18px, var(--safe-bottom)) max(16px, var(--safe-left));
     }
     .km-cover.scene { --focus: 74%; }
     .shade {
@@ -573,14 +593,13 @@
     .item.wide { grid-column: 1 / -1; }
     .item:not(.wide) .jp { display: none; }
     .pigs { justify-self: center; margin-bottom: 0; }
-    .foot { font-size: 11px; }
   }
   @media (max-aspect-ratio: 5/4) and (min-height: 760px) {
     .title-screen { --pig-size: 160px; }
   }
-  /* T: the pill gets its own strip above the logo */
+  /* T: the pills get their own strip above the logo */
   @media (max-aspect-ratio: 5/4) {
-    .title-screen.pill-on { padding-top: max(50px, calc(var(--safe-top) + 38px)); }
+    .title-screen { padding-top: max(50px, calc(var(--safe-top) + 46px)); }
   }
 
   /* ── S: phone landscape ── */
@@ -588,8 +607,8 @@
     .title-screen {
       --pig-size: 96px;
       grid-template-columns: minmax(0, 1fr) minmax(250px, 42%);
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      grid-template-areas: 'logo menu' 'pigs menu' 'foot menu';
+      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-areas: 'logo menu' 'pigs menu';
       gap: 6px 4vw;
       padding: max(10px, var(--safe-top)) max(14px, var(--safe-right)) max(6px, var(--safe-bottom)) max(14px, var(--safe-left));
     }
@@ -599,7 +618,16 @@
     .menu { align-self: center; width: 100%; gap: 0; }
     .item { min-height: 44px; font-size: 17px; }
     .pigs { justify-self: start; margin-left: 4vw; }
-    .foot { justify-items: start; text-align: left; font-size: 10px; }
-    .bb-pill { top: auto; bottom: max(6px, var(--safe-bottom)); }
+    /* no corner here: a tall menu reaches the top, and with a save (CONTINUE + its summary) the bottom too. Both pills
+       sit under the logo, over the sky: "Play offline", then Big Brain's progress below its 44px button. */
+    .dl-corner { display: contents; }
+    .dl-corner > :global(.op-pill), .bb-pill {
+      grid-area: pigs;
+      align-self: start;
+      justify-self: start;
+      position: relative;
+      z-index: 2;
+    }
+    .bb-pill { margin-top: 48px; }
   }
 </style>

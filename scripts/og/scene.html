@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kempanion Online link preview</title>
+    <!-- Rendered frame by frame by scripts/build-og.ts (served from a fake origin; see `serve` there). -->
+    <link rel="stylesheet" href="/fonts/pixelify-sans/700.css" />
+    <link rel="stylesheet" href="/fonts/dotgothic16/400.css" />
+    <style>
+      /* Tokens from src/styles/global.css. */
+      :root {
+        --ink: #1b1229;
+        --paper: #fff6ea;
+        --sakura-1: #ffe3ea;
+        --sakura-4: #d6608a;
+        --night: #1a1030;
+        --font-body: 'DotGothic16', sans-serif;
+        --font-display: 'Pixelify Sans', 'DotGothic16', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--night); }
+      #stage { position: relative; width: 1920px; height: 1008px; overflow: hidden; }
+      #cv { position: absolute; inset: 0; image-rendering: pixelated; }
+
+      /* The title-screen logo (src/lib/ui/screens/Title.svelte, "landed" state), sized for a 1920x1008 card:
+         the game's vh/vw clamps are resolved to px, and the DotGothic16 lines use 32px (16px design x2) so their
+         dots land on whole pixels. Keep in sync with Title.svelte when the logo changes. */
+      .logo {
+        position: absolute;
+        left: 92px;
+        top: 52px;
+        display: grid;
+        justify-items: start;
+        gap: 4px;
+      }
+      .kana {
+        margin: 0 0 4px;
+        font-family: var(--font-body);
+        font-size: 32px;
+        line-height: 1.2;
+        letter-spacing: 0.3em;
+        color: var(--sakura-1);
+        text-shadow: 3px 3px 0 var(--ink);
+      }
+      /* outline + extrusion on the parent, sakura gradient clipped to the glyphs on the children */
+      .wordmark {
+        --o: 6px;
+        display: grid;
+        width: max-content;
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 132px;
+        line-height: 0.92;
+        filter:
+          drop-shadow(var(--o) 0 0 var(--ink))
+          drop-shadow(calc(var(--o) * -1) 0 0 var(--ink))
+          drop-shadow(0 var(--o) 0 var(--ink))
+          drop-shadow(0 calc(var(--o) * -1) 0 var(--ink))
+          drop-shadow(0 calc(var(--o) * 2) 0 #7a2850);
+      }
+      .w1, .w2 {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+      .w1 {
+        letter-spacing: 0.02em;
+        background-image: linear-gradient(180deg, #ffffff 0 30%, #ffe3ea 30% 48%, #ffb7c5 48% 70%, #f48fb1 70% 100%);
+      }
+      .w2 {
+        justify-self: end;
+        font-size: 0.52em;
+        letter-spacing: 0.28em;
+        margin-right: -0.28em;
+        background-image: linear-gradient(180deg, #fff6ea 0 45%, #ffd25a 45% 100%);
+      }
+      .tilde {
+        margin: 10px 0 0;
+        font-family: var(--font-body);
+        font-size: 32px;
+        line-height: 1.2;
+        letter-spacing: 0.1em;
+        color: var(--paper);
+        text-shadow: 2px 2px 0 var(--sakura-4), 4px 4px 0 var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="cv" width="1920" height="1008"></canvas>
+      <header class="logo" id="logo">
+        <p class="kana">ケンパニオン・オンライン</p>
+        <h1 class="wordmark"><span class="w1">KEMPANION</span><span class="w2">ONLINE</span></h1>
+        <p class="tilde">「～Sakura Campus Days～」</p>
+      </header>
+    </div>
+    <script type="module" src="./scene.js"></script>
+  </body>
+</html>

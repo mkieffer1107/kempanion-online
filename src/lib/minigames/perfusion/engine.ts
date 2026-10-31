@@ -1,4 +1,4 @@
-// Perfusion! rules (GAME_DESIGN.md §9): rhythm on a scrolling ECG. Beat = tap on the spike, Drain = hold,
+// Swinus Rhythms rules (id 'perfusion'; GAME_DESIGN.md §9): rhythm on a scrolling ECG. Beat = tap on the spike, Drain = hold,
 // Skip = flat line (don't tap). Three phases shown as heart rates 72/96/120. Perfusion meter starts at 70:
 // Perfect ±50 ms +3, Good ±110 ms +1, Miss −6; under 30 it is ISCHEMIA (no fail state).
 // Times are song seconds on mini_perfusion's steady 96 BPM grid: a 2-bar count-in, then 8-bar phases at 5/25/45 s.

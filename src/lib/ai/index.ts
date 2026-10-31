@@ -13,13 +13,20 @@ import { extractFacts, rememberFacts, type LearnedFact } from './memory';
 import { MAX_CHARS, MAX_SENTENCES, postfilter, sentenceCutIndex } from './postfilter';
 import { buildPrompt, createPromptMemo, recordExchange, type PromptMemo } from './prompts';
 import { matchQuirk } from './quirks';
+import { mumbleText } from './heuristic/mumble';
 import { fallbackChips, topicMatch } from './topics';
 
 export type { Brain } from './brain';
 export type { AiHost, AiStatus, LlmHandle } from './host';
 export { BIG_BRAIN_FLAGS, installAiHost, getAiHost } from './host';
-export { matchQuirk, isDistress, isMedicalAdvice, normalizeForQuirk, CODEX_LINES, UF_CWC_PHONE, CRISIS_LINE } from './quirks';
+export {
+  matchQuirk, isDistress, isMedicalAdvice, isSafetyMessage, normalizeForQuirk, CODEX_LINES, UF_CWC_PHONE, CRISIS_LINE, CRISIS_CALL,
+  CRISIS_REACH,
+} from './quirks';
 export type { QuirkHit, QuirkKind } from './quirks';
+// Piggy 3's X mumble, for the Talk screen (the reply-effect contract: types.ts ChatReply.effect / ChatMumble)
+export { isMumbleReply, mumbleText, MUMBLE_FACES } from './heuristic/mumble';
+export type { MumbleKind, MumbleReply } from './heuristic/mumble';
 export { postfilter, splitSentences, isNotPG } from './postfilter';
 export { parseTagged, TaggedStream, classifyExpression, animFor, normalizeTag, finishLine, formatTagged, OUTPUT_REGEX } from './emotion';
 export { extractFacts, rememberFacts, followUpsDue, resolveDay } from './memory';
@@ -102,6 +109,22 @@ export function exchangeEffects(pig: PigId, playerText: string): { bond: number;
   if (intent === 'insult') return { bond: 0, fun: 0 };
   const topical = intent === PASSION_INTENT[pig] || topicMatch(pig, playerText);
   return { bond: 2 + (topical ? 1 : 0), fun: 3 };
+}
+
+/**
+ * The reply-effect contract (types.ts ChatReply.effect): a reply with `effect: 'mumble'` carries its `mumble`, and its
+ * `text` is the same words as one plain line (opener, stream, catch), which the chat log, the backlog and the Big
+ * Brain's history keep. So a UI that plays the effect and one that only shows `text` say the same thing. A half-made
+ * effect (no mumble, or a `text` something rewrote) is dropped, and the plain line shows.
+ */
+export function withEffect(reply: ChatReply): ChatReply {
+  if (reply.effect === undefined && reply.mumble === undefined) return reply;
+  const m = reply.mumble;
+  if (reply.effect === 'mumble' && m && reply.text === mumbleText(m)) return reply;
+  const plain: ChatReply = { ...reply };
+  delete plain.effect;
+  delete plain.mumble;
+  return plain;
 }
 
 async function llmReply(
@@ -241,8 +264,8 @@ export async function respond(
   let reply: ChatReply | null = null;
   let safety = false;
 
-  // 1. Deterministic intercepts (hard quirks, Go Gators, medical/distress/explicit). Not streamed: they appear
-  //    at once (source 'quirk').
+  // 1. Deterministic intercepts (hard quirks, Go Gators, medical/distress/explicit, Piggy 3's X mumble). Not streamed:
+  //    they appear at once (source 'quirk'), and a quirk's scripted delivery (`effect`, `mumble`) comes along as is.
   try {
     const hit = matchQuirk({ pig, playerText: req.playerText, history: req.history });
     if (hit) {
@@ -264,6 +287,8 @@ export async function respond(
   }
   // A fallback after a partial stream doesn't append to it: the caller shows reply.text when we resolve.
   if (!reply) reply = await heuristicReply(req, streamed ? undefined : onToken, signal, opts);
+  // The Talk screen plays an effect only when it is whole (its mumble, and `text` saying the same words).
+  reply = withEffect(reply);
 
   // 3. Effects + memory (not for safety intercepts).
   if (!safety) {
@@ -284,11 +309,14 @@ export async function respond(
     delete reply.effects;
   }
 
-  sessionExchanges++;
-  try {
-    host.countExchange?.();
-  } catch {
-    /* counters are a bonus */
+  // A safety exchange isn't a chat: it doesn't count toward the chats the Big Brain offer waits for either.
+  if (!safety) {
+    sessionExchanges++;
+    try {
+      host.countExchange?.();
+    } catch {
+      /* counters are a bonus */
+    }
   }
   return reply;
 }

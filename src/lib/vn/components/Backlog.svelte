@@ -1,6 +1,7 @@
 <script lang="ts">
   // Backlog of the last 200 lines (role="log"): speaker names in their colours, picked choices marked ▶.
-  // Esc / L / Close / tapping outside closes it.
+  // Esc / L / Close / tapping outside closes it. Lives on document.body: inside the stage (wide layouts) its
+  // z-index was trapped under the top bar and side rails.
   import { onMount, tick } from 'svelte';
   import { dialogue } from '../dialogue.svelte';
 
@@ -12,6 +13,11 @@
   function close() {
     if (onclose) onclose();
     else dialogue.closeBacklog();
+  }
+
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return { destroy: () => node.remove() };
   }
 
   onMount(() => {
@@ -36,7 +42,7 @@
   });
 </script>
 
-<div class="backdrop" role="presentation" onclick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) close(); }}>
+<div class="backdrop" role="presentation" use:portal onclick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) close(); }}>
   <div class="sheet px-panel dark" role="dialog" aria-modal="true" aria-labelledby="vn-backlog-title">
     <header>
       <h2 id="vn-backlog-title" class="px-title">LOG <span class="jp" aria-hidden="true">バックログ</span></h2>
@@ -64,6 +70,9 @@
     inset: 0;
     z-index: 200;
     display: grid;
+    /* explicit tracks: otherwise the row grows with the whole log and the window drifts off the bottom */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     place-items: center;
     padding: max(12px, var(--safe-top)) max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
     background: rgba(16, 10, 36, 0.62);
@@ -77,6 +86,8 @@
     padding: calc(var(--px) * 3);
     animation: open 120ms steps(4) both;
   }
+  /* opaque, unlike the other dark panels: the text box and its controls showed through under the newest lines */
+  .sheet.dark { --panel-bg: #1a1030; }
   header {
     display: flex;
     align-items: center;

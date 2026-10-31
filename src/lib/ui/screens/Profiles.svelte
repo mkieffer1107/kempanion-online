@@ -9,6 +9,7 @@
   import { now } from '../../state/clock';
   import { localDate } from '../../time';
   import { bondLevel } from '../../pet';
+  import { isSecretFact } from '../../ai/memory';
   import { bgUrl, firstBackground } from '../meta/assets';
   import { MOVING_GAG, type MetaLine } from '../meta/content';
   import ConfirmDialog from '../meta/ConfirmDialog.svelte';
@@ -33,6 +34,13 @@
   let gagExpr = $state<Expression>('neutral');
   let toast = $state('');
   let armed = $state(-1); // index of a memory waiting for a second tap to forget
+  let rightEl = $state<HTMLElement>();
+
+  // On phones the card column scrolls: each pig's card starts at its top.
+  $effect(() => {
+    void pig;
+    if (rightEl) rightEl.scrollTop = 0;
+  });
 
   const HOME_BG: Record<PigId, string[]> = {
     'piggy-1': ['malachowsky', 'volleyball_courts', 'century_tower'],
@@ -86,7 +94,8 @@
     game.forget(pig, fact);
     armed = -1;
     ui.back();
-    showToast(`${CHARACTERS[pig].name} forgot that. No hard feelings.`);
+    // the pigs share what you tell one of them, so Forget clears a shared fact from all of them; a secret only he had
+    showToast(isSecretFact(fact) ? `${CHARACTERS[pig].name} forgot that. No hard feelings.` : 'Forgotten by every pig who knew it.');
   }
 
   function startSwitch() {
@@ -169,7 +178,7 @@
       </div>
     </section>
 
-    <div class="right px-scroll">
+    <div class="right px-scroll" bind:this={rightEl}>
       <div class="cardbox">
         {#key pig}<ProfileCard {pig} variant="full" {hearts} />{/key}
       </div>
@@ -194,7 +203,7 @@
               </li>
             {/each}
           </ul>
-          <p class="hint">Tap ✕ twice to make him forget something.</p>
+          <p class="hint">Tap ✕ twice to forget something. Every pig who knows it forgets it too.</p>
         {/if}
       </section>
     </div>
@@ -269,9 +278,12 @@
   .switch, .chat { width: 100%; font-size: 15px; font-family: var(--font-display); }
   .note { margin: 0; font-size: 12px; opacity: 0.8; }
 
+  /* In every mode the card and the memories keep their whole height and the column scrolls, instead of the rows
+     shrinking to fit and squeezing the facts list to a sliver (the window's clip-path would hide the rest). */
   .right {
     min-height: 0;
     display: grid;
+    grid-auto-rows: max-content;
     align-content: start;
     gap: 14px;
     padding-right: 4px;
@@ -306,7 +318,7 @@
     position: absolute;
     left: 50%;
     top: 12px;
-    transform: translateX(-50%);
+    translate: -50% 0; /* not transform: km-pop-in's fill owns that and would undo the centring */
     z-index: 6;
     margin: 0;
     padding: 8px 14px;
@@ -331,5 +343,35 @@
   }
   @media (min-aspect-ratio: 5/4) and (max-height: 499px) {
     .layout { grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.4fr); gap: 10px; }
+    /* side by side as in portrait (stacked, the status left the portrait a sliver), with compact type; on the very
+       smallest screens the status scrolls rather than clip its buttons. The pig's column takes what the status can
+       spare beyond ~190px: 84px on the smallest phones, up to 132px where the stage has room */
+    .stage { grid-template-rows: minmax(0, 1fr); grid-template-columns: clamp(84px, calc(100% - 190px), 132px) minmax(0, 1fr); }
+    .portrait { align-self: end; }
+    .status { min-height: 0; overflow-y: auto; align-content: start; gap: 4px; padding: 4px 8px; border-top: 0; border-left: var(--px) solid var(--pig); }
+    /* the bond line at Hearts' own compact sizes: at full size its title wraps to 3-4 lines in this narrow column and
+       pushes CHAT / MAKE below the fold at most heart levels (specificity beats Hearts' scoped rules, no !important).
+       The title goes first, so a long one ("Partner-in-Crime") takes a line of its own and the level and the progress
+       share the next, a line fewer than each on its own */
+    .status :global(.hearts) { gap: 3px; }
+    .status :global(.hearts .lvl) { font-size: 16px; }
+    .status :global(.hearts .title) { font-size: 15px; order: -1; }
+    .status :global(.hearts .meta) { gap: 0 6px; }
+    .status :global(.hearts .next) { font-size: 11px; }
+    .badge { font-size: 12px; }
+    .switch, .chat { font-size: 13px; text-wrap: balance; } /* two even lines, not a lone "2" */
+    /* already switched today: the note says why, in place of the greyed-out button */
+    .switch:has(+ .note) { display: none; }
+    .note { font-size: 11px; line-height: 1.2; }
+  }
+  /* the shortest phones (iPhone mini, Galaxy S9+, Pixel 4a, an SE): every pixel counts, so the status trims its padding
+     and the long bond title ("Partner-in-Crime") keeps to one line instead of pushing MAKE below the fold */
+  @media (min-aspect-ratio: 5/4) and (max-height: 340px) {
+    .status { gap: 3px; padding: 3px 6px; }
+    .status :global(.hearts) { gap: 2px; }
+    .status :global(.hearts .title) { font-size: 14px; letter-spacing: 0; }
+  }
+  @media (min-aspect-ratio: 5/4) and (max-height: 340px) and (max-width: 600px) {
+    .stage { grid-template-columns: 76px minmax(0, 1fr); }
   }
 </style>

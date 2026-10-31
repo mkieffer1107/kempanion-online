@@ -220,7 +220,7 @@ narrator: He wipes the bed, nudges a knob a quarter turn, and slides a sheet of 
 [sfx ui_select]
 piggy-3 happy: Okay, restarting. Forty minutes— coffee?
 [sfx drink]
-narrator: The library café. Piggy 3 orders a cold brew and holds it in both hooves like a hand warmer, even though it's cold brew.
+narrator: The library café. Piggy 3 gets a sugar-free Red Bull and holds the can in both hooves like a hand warmer, even though it's ice cold.
 piggy-3 happy: Fun fact: if you don't pick up a print here in fourteen days, it becomes library property.
 piggy-3 laughing: I have basically donated a small army. There's a whole shelf, and it's all my stuff.
 player: You make a lot of things for people.
@@ -354,7 +354,7 @@ piggy-3 happy: Hi. Okay, so I was thinking.
 piggy-3 happy: Do you want to make something? Like, right now?
 piggy-3 bashful_smile: A little thing. It ships tonight, into your actual pager.
 [bg home_p3 fade]
-narrator: His room smells like warm plastic and cold brew: lavender walls, fairy lights, a shelf of pirate manga.
+narrator: His room smells like warm plastic and sugar-free Red Bull: lavender walls, fairy lights, a shelf of pirate manga.
 piggy-3 laughing: Welcome to the den. That's a printer, that's a printer, and that's a smaller printer.
 piggy-3 neutral: Okay. Remember when I asked if you'd used Codex, and then didn't explain anything?
 piggy-3 happy: This is me explaining. It's a coding agent: you tell it what you want, it writes the code, you read what it did.
@@ -888,7 +888,7 @@ piggy-2 thinking: Also, he hasn't eaten. Look at him— his perfusion is questio
 piggy-3 confused: I had a granola bar.
 piggy-2 neutral: When.
 piggy-3 sad: …Yesterday.
-piggy-2 neutral: Feed him, {flag:p2_nickname|intern}. Doctor's orders— well, future doctor's orders.
+piggy-2 neutral: Feed him, {flag:p2_nickname|intern}. Doctor's orders. Licensed ones.
 ? Let's all get lunch.
   [bond piggy-2 +10]
   [bond piggy-3 +10]

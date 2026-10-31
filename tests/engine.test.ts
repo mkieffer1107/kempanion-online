@@ -8,12 +8,14 @@ import {
 } from '../src/lib/engine/layout';
 import { GOLDEN_REST_MS, GoldenPetals, type Golden } from '../src/lib/engine/fx';
 import {
-  bodyExtents, capSpeed, classifyDrop, DANGLE, FLIGHT, FLIGHT_REDUCED, HIT_CEILING, HIT_FLOOR, HIT_WALL, LANDED, launchBody,
-  MAX_THROW, newFlightBody, PointerTrail, SETTLED, stepDangle, stepFlight, stepSpring, throwVelocity, wrapAngle,
+  bodyExtents, capSpeed, classifyDrop, DROP_RULES, FLIGHT, FLIGHT_REDUCED, HIT_CEILING, HIT_FLOOR, HIT_WALL, LANDED,
+  launchBody, MAX_FLING, MAX_THROW, newFlightBody, PointerTrail, SETTLED, stepFlight, stepSpring, throwVelocity,
+  tossVelocity, wrapAngle,
   type FlightBody, type FlightBounds,
 } from '../src/lib/engine/physics';
 import { gustWind, MAX_LANDED, PETAL_COUNTS, PetalSystem, petalCount, spawnBounds, spawnPetal, type Petal } from '../src/lib/engine/petals';
 import { mulberry32 } from '../src/lib/engine/rng';
+import { StageWorld } from '../src/lib/engine/world';
 import { FRAME, PORTRAIT, resolveClip, resolvePortrait } from '../src/lib/engine/sprites';
 import type { PortraitPos } from '../src/lib/engine/stage';
 import { ALT_EXPRESSION_FALLBACK, EXPRESSIONS, PIG_IDS, type AnimId } from '../src/lib/types';
@@ -377,6 +379,34 @@ describe('client → stage (drags may leave the canvas)', () => {
     expect(clientToStage(1, 1, { left: 0, top: 0, width: 0, height: 10 }, 480, out)).toBe(false);
     expect(clientToStage(NaN, 1, rect, 480, out)).toBe(false);
   });
+
+  test('a pick-up keeps hold where the pointer pressed him, in stage px: grabbed by the tummy he rises with the first CSS px', () => {
+    // the desktop hub's canvas: 1280 × 720 CSS px from y 40 for the 480 × 270 stage (2.67 CSS px a stage px), ground 221
+    const w = new StageWorld();
+    const rect = { left: 0, top: 40, right: 1280, bottom: 760, width: 1280, height: 720, x: 0, y: 40 };
+    w.attach({ setActive() {}, bubblesChanged() {}, canvasRect: () => rect, hitAlpha: () => true } as never);
+    w.setGroundY(221);
+    w.spawnActor('pig', 'piggy-1', { x: 240 });
+    const k = 1280 / 480;
+    // pressed on his tummy: row 82 of the frame his feet stand in at row FRAME.pivotY (he hangs from row 6)
+    const px = 240 * k;
+    const py = 40 + (221 - FRAME.pivotY + 82) * k;
+    expect(w.holdActor('pig', px, py)).toBe(true);
+    const air = (w as unknown as { actors: Map<string, { air: { hand: { y: number }; fit: number } }> }).actors.get('pig')!.air;
+    const head = 221 - FRAME.pivotY + 6;
+    expect(air.hand.y).toBeCloseTo(head, 6);
+    // (it used to take 160-210 CSS px of drag before he left the floor at all)
+    for (const css of [1, 3, 8, 40]) {
+      w.moveHeld(px, py - css);
+      w.update(16);
+      expect(head - air.hand.y).toBeCloseTo(css / k, 6);
+    }
+    // up past the canvas top: his grab point stops at the stage top, and he hangs there unsquashed
+    w.moveHeld(px, 0);
+    for (let i = 0; i < 60; i++) w.update(16);
+    expect(air.hand.y).toBe(2);
+    expect(air.fit).toBe(0);
+  });
 });
 
 describe('held clip timing (intro frame, then loop)', () => {
@@ -627,25 +657,8 @@ describe('pick-up physics: throw velocity', () => {
   });
 });
 
-describe('pick-up physics: dangle and landings', () => {
-  test('dragging right swings the body left (positive angle), then it settles', () => {
-    const d = { angle: 0, vel: 0 };
-    for (let i = 0; i < 10; i++) stepDangle(d, 16, 4000, 0);
-    expect(d.angle).toBeGreaterThan(0.05);
-    for (let i = 0; i < 400; i++) stepDangle(d, 16, 0, 0);
-    expect(Math.abs(d.angle)).toBeLessThan(0.01);
-  });
-
-  test('the swing is limited and a downward yank never flips him over', () => {
-    const d = { angle: 0, vel: 0 };
-    for (let i = 0; i < 60; i++) stepDangle(d, 16, 60_000, 0);
-    expect(d.angle).toBeLessThanOrEqual(DANGLE.maxAngle);
-    const e = { angle: 0.3, vel: 0 };
-    for (let i = 0; i < 60; i++) stepDangle(e, 16, 0, 50_000);
-    expect(Math.abs(e.angle)).toBeLessThanOrEqual(DANGLE.maxAngle);
-    expect(Math.abs(e.angle)).toBeLessThan(0.31); // still pulled back toward hanging straight
-  });
-
+// The held swing (string pendulum, whirling) has its own suite: tests/swing.test.ts.
+describe('pick-up physics: landings', () => {
   test('landing kinds', () => {
     const k = (vx: number, vy: number, impact: number, wallImpact = 0, ceiling = 0) => classifyDrop({ vx, vy, impact, wallImpact, ceiling });
     expect(k(0, 0, 60)).toBe('soft'); // set down gently
@@ -659,6 +672,24 @@ describe('pick-up physics: dangle and landings', () => {
     expect(k(100, -260, 300)).toBe('pop');
     expect(k(500, -260, 300)).toBe('drop'); // too sideways for a pop
     expect(k(0, -300, 380, 0, 1)).toBe('hard'); // bonked the top
+  });
+
+  test('a release is judged on the hand’s throw plus only the swing beyond a dangling sway', () => {
+    const t = (hvx: number, hvy: number, svx: number, svy: number) => tossVelocity(hvx, hvy, svx, svy, { vx: 0, vy: 0 });
+    expect(t(0, 0, 0, 0)).toEqual({ vx: 0, vy: 0 });
+    // set down mid-sway after a brisk carry: his own swing alone is no throw
+    expect(t(10, 0, -(DROP_RULES.swaySpeed - 50), 40)).toEqual({ vx: 10, vy: 0 });
+    expect(classifyDrop({ ...t(0, 0, 280, 0), impact: 80, wallImpact: 0, ceiling: 0 })).toBe('soft');
+    expect(classifyDrop({ vx: 280, vy: 0, impact: 80, wallImpact: 0, ceiling: 0 })).toBe('drop'); // the whole swing would count
+    // only the part beyond the sway counts, along his own direction
+    const v = t(0, 0, -(DROP_RULES.swaySpeed + 500), 0);
+    expect(v.vx).toBeCloseTo(-500, 6);
+    expect(v.vy).toBe(0);
+    // a fast whirl still lands hard; the total stays capped and non-finite input counts as nothing
+    expect(classifyDrop({ ...t(0, 0, 0, 1300), impact: 80, wallImpact: 0, ceiling: 0 })).toBe('hard');
+    const big = t(1400, 0, 1400, 0);
+    expect(Math.hypot(big.vx, big.vy)).toBeLessThanOrEqual(MAX_FLING + 1e-9);
+    expect(t(NaN, 0, 0, 0)).toEqual({ vx: 0, vy: 0 });
   });
 });
 

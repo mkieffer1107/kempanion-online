@@ -22,7 +22,7 @@ These are working names. Real names live in `characters.json`.
 
 | | **Piggy 1** (Piggy 1) | **Piggy 2** (Piggy 2) | **Piggy 3** (Piggy 3) |
 |---|---|---|---|
-| Who | CS junior; outside hitter on the club volleyball team | Med student and future neurosurgeon; volunteers in a large-animal neuro lab | Grad researcher in biosignals and 3D printing; HiPerGator regular |
+| Who | CS junior; outside hitter on the club volleyball team | MD and fourth-year (PGY-4) neurosurgery resident at Shands, still studying; on his research year in a large-animal neuro lab (spinal cord injury in pigs, papers, grants, the occasional call shift) | Grad researcher in biosignals and 3D printing; HiPerGator regular |
 | Day base | Malachowsky Hall ("the Starship") | HSC Communicore, then Shands | Physics Building basement lab |
 | Work mode | Volleyball uniform | Scrubs | Black hoodie |
 | Tics | "Mine!" "Free ball!" "Next rally." Calls you "team." | "Based." If you say "based," he replies only `patriot`. Rates everything as **perfusion** or **ischemia**. | "Okay, so I was thinking…" "Actually—" "basically." Answers questions with "Best for what?" |
@@ -93,7 +93,7 @@ These are working names. Real names live in `characters.json`.
 
 | Slot | Window | What's happening |
 |---|---|---|
-| Dawn | 05:00–07:59 | Piggy 1 practices, Piggy 2 pre-rounds, Piggy 3 sleeps |
+| Dawn | 05:00–07:59 | Piggy 1 practices, Piggy 2 rounds on the lab pigs, Piggy 3 sleeps |
 | Morning | 08:00–11:59 | Classes |
 | Midday | 12:00–13:59 | Plaza lunch; carillon at 12:35 |
 | Afternoon | 14:00 → dusk | Labs and practice; carillon at 16:55 |
@@ -138,7 +138,7 @@ Map pins show cropped busts, plus a ♥ when an event is ready. Petal density sc
 
 | Weekday | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Dawn | SW Rec (Tu/Th/Sa), else asleep | Shands pre-rounds | Asleep |
+| Dawn | SW Rec (Tu/Th/Sa), else asleep | Shands (lab-pig rounds, sim lab, call shifts) | Asleep |
 | Morning | Malachowsky | Communicore | Asleep → Physics at 10:30 |
 | Midday | Plaza | Communicore ("Lunch is a social construct.") | Physics, `coffee_break` |
 | Afternoon | Malachowsky | Shands M/W/F, Communicore Tu/Th | Physics |
@@ -245,7 +245,7 @@ Each pig has 0–100 bond, shown as 10 hearts.
    - **Choices:**
      - *Follow it* (+3): "Cranial nerves intact. Based."
      - ***"Based."*** (+5): he says only `patriot`, which unlocks the *Call & Response* achievement.
-     - *"Are you a doctor?"* (+2): "Almost. Spiritually, yes."
+     - *"Are you a doctor?"* (+2): "Yes. Fourth-year neurosurgery resident. Legally and spiritually."
    - **CG:** "Follow the Hoof."
 2. **To Perfuse or Not to Perfuse** *(Communicore, weekday morning)*
    - **Scene:** He holds up a `brain_model` like Yorick's skull. "The circle of Willis: a roundabout for blood. Perfusion's entire personality."
@@ -253,7 +253,7 @@ Each pig has 0–100 bond, shown as 10 hearts.
    - **CG:** "Alas, Poor Willis."
    - **Unlocks:** daily **Neuro Trivia**.
 3. **Scrub In: Sim Edition** *(Shands sim lab, Dawn/Morning)*
-   - **Scene:** `scrub_up` → `preop_check` → `surgical_focus` as he practices a lumbar drain on an offscreen mannequin. "We drain a little CSF, pressure comes down, the brain says thank you."
+   - **Scene:** `scrub_up` → `preop_check` → `surgical_focus` as he practices a lumbar drain on an offscreen mannequin (research year means fewer OR days, so he keeps his skills up in the sim lab). "We drain a little CSF, pressure comes down, the brain says thank you."
    - **Choices** (hand him…):
      - *Sterile gloves* (+8).
      - *Your phone* (+2): "Contaminated. Based, but contaminated."
@@ -265,7 +265,7 @@ Each pig has 0–100 bond, shown as 10 hearts.
    - **Choices:**
      - *"Isn't that weird, as a pig?"* (+5): "It's an honor. Porcine solidarity."
      - *"Tell me about the microchips."* (+6).
-     - *"Do they have names?"* (+8): "Professor Snout. Sir Lancelot. Bacon Bits. We renamed him, obviously."
+     - *"Do they have names?"* (+8): "Professor Snout. Sir Lancelot. Patriot. He earned that name."
    - **CG:** "Light Box."
 5. **Mildly Ischemic** *(Sakura House; triggers when his energy stat has been low for 2 days or he skipped Pig Pen Friday)*
    - **Scene:** He's `sick` and still heading for Shands. "I'm not sick. My perfusion is merely philosophical."
@@ -284,7 +284,7 @@ Each pig has 0–100 bond, shown as 10 hearts.
      - *"Based."* (+8): `patriot`, through tears.
    - **CG:** "He Walks." Piggy 2 is lit by the call window while a procedural EMG trace spikes. The pig is never drawn.
 7. **Discharge Summary** *(Library West, finals, Night)*
-   - **Scene:** Three days of `surgical_focus`. You bring food until he crashes, and you wake to a `write_chart` note: "Patient presents with chronic friendship. Prognosis: excellent. Plan: continue indefinitely."
+   - **Scene:** His biggest grant application yet (research year; Professor Snout's walk is figure one) is due in finals week. He is already PI on a small grant and is always writing the next one, so there is always another deadline. Three days of `surgical_focus`. You bring food until he crashes, and you wake to a `write_chart` note: "Patient presents with chronic friendship. Prognosis: excellent. Plan: continue indefinitely."
    - **CG:** "Discharge Summary."
 
 ### Piggy 3: "Ship It Route"
@@ -388,7 +388,7 @@ Each pig has 0–100 bond, shown as 10 hearts.
 - **Intercepts run before either engine:**
   - Saying "based" (regex `\bbased\b`) to Piggy 2 returns exactly `patriot`, with [proud].
   - Saying it to Piggy 1 or Piggy 3 while Piggy 2 is at the same location gets the same reply from offscreen.
-  - Medical questions get "I'm a pig in med school, not your doctor. Student Health Care Center. Go."
+  - Medical questions get "I'm a pig doctor in a game, not your doctor. Student Health Care Center. Go, and call 911 if it's an emergency."
   - Distress keywords get a warm, scripted pointer to UF's Counseling & Wellness Center.
 - **The LLM never writes state.**
   - The game scores chat bond itself (length, kindness, topic match; capped).
@@ -469,7 +469,7 @@ doc[thinking]: ...Pupils equal, round, reactive.
 choice
   "Follow the hoof."  -> bond doc +3 ; doc[proud]: Cranial nerves intact. Based.
   "Based."            -> bond doc +5 ; flag call_response ; doc: patriot
-  "Are you a doctor?" -> bond doc +2 ; doc[happy]: Almost. Spiritually, yes.
+  "Are you a doctor?" -> bond doc +2 ; doc: Yes. Fourth-year neurosurgery resident. Legally and spiritually.
 cg doc_follow_the_hoof
 ```
 

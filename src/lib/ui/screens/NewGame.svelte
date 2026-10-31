@@ -5,7 +5,9 @@
 
 <script lang="ts">
   // New game: confirm overwrite → fresh save → the 'prologue' scene (intake, meet the pigs, [companion pick]).
-  // Until the story writers ship 'prologue', a built-in fallback runs: intake form → Select.
+  // Until the story writers ship 'prologue', a built-in fallback runs: intake form → Select. A prologue skipped
+  // before its intake was done (Scene → MENU → Skip scene) comes back here with { intake: true } for the same form.
+  import { onMount } from 'svelte';
   import '../meta/meta.css';
   import { PIG_IDS } from '../../types';
   import { game } from '../../state/game.svelte';
@@ -18,13 +20,16 @@
   import IntakeForm from '../meta/IntakeForm.svelte';
   import PetalCanvas from '../meta/PetalCanvas.svelte';
   import { motion } from '../meta/motion.svelte';
+  import { giveStarterKit } from '../meta/prologue';
   import { continueSummary, isMeaningfulSave } from '../meta/save-utils';
   import { playSong } from '../meta/sfx';
 
-  const existing = isMeaningfulSave(game.save, game.hasSave);
+  // the skipped prologue already started this save: no overwrite prompt
+  const skippedPrologue = game.params.intake === true;
+  const existing = !skippedPrologue && isMeaningfulSave(game.save, game.hasSave);
   const summary = existing ? continueSummary(game.save, now()) : '';
   const hasPrologue = !!getScene('prologue');
-  let phase = $state<'confirm' | 'intake' | 'starting'>(existing ? 'confirm' : 'starting');
+  let phase = $state<'confirm' | 'intake' | 'starting'>(skippedPrologue ? 'intake' : existing ? 'confirm' : 'starting');
 
   /** Fresh save that keeps settings and the Music Room's heard songs. */
   function freshSave() {
@@ -49,6 +54,13 @@
     if (phase === 'starting') queueMicrotask(begin);
   });
 
+  // After a skipped prologue the form is already up, pre-filled with the name the scene took (IntakeForm read it when it
+  // mounted). The save itself goes back to blank until the form is submitted (finishIntake), so CANCEL, or leaving the
+  // game on the form, doesn't leave a half-made save (a name, no intake, no items) for the title's CONTINUE to pick up.
+  onMount(() => {
+    if (skippedPrologue) freshSave();
+  });
+
   function finishIntake(a: IntakeAnswers) {
     const r = applyIntake(a);
     freshSave();
@@ -57,6 +69,7 @@
     for (const fact of r.facts) for (const p of PIG_IDS) game.remember(p, fact);
     for (const [k, v] of Object.entries(r.flags)) game.setFlag(k, v);
     game.setFlag('intake.done');
+    giveStarterKit(game); // what the prologue hands over after its intake (KempaPager, water bottle, met_p1–3)
     game.flush();
     game.go('select', { from: 'newgame' });
   }

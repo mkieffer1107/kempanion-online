@@ -35,8 +35,8 @@ src/
   lib/audio/songs/                 one file per song (composer agent)
   lib/ai/                          LLM worker/client, model manager, prompts, emotion, quirks, memory (AI agent)
   lib/ai/heuristic/                deterministic chat brain + response banks (heuristic agent)
-  lib/pet/                         simulation, items, shop, achievements (pet agent)
-  lib/minigames/                   3 mini-games (pet agent)
+  lib/pet/                         simulation, items, shop, achievements, idle thoughts (thoughts.ts + thought-bank/) (pet agent)
+  lib/minigames/                   mini-games, one folder each + common/ shell; registry in index.ts, meta.ts (pet agent)
   lib/content/                     characters/profiles, locations, schedule, icons (content owners noted inline)
   lib/content/scenes/*.ks          KScript story scenes (story agents)
   lib/ui/                          screens + components (UI agent)
@@ -98,6 +98,10 @@ cg: cg_p2_lab                               ← album id unlocked when the scene
 [wait 400]                                  ← ms
 [shake] [flash] [petals heavy|normal|off] [weather rain|clear]
 [cg cg_p2_lab]   [cg off]                   ← full-screen event picture
+[pager feed drink]  [pager off]             ← the KempaPager's care keys over the scene, those keys lit (top|bottom|all)
+[brain]   [brain off]                       ← the hub's Big Brain chip over the scene where the hub has it, ringed, live
+                                              (HEUR, % while installing, BIG); inert; nothing after a "no" to Big Brain;
+                                              the scene's end turns both off
 piggy-2 happy: Hey, {player}! You found the Communicore. Based.
 piggy-2: (expression omitted → keeps the current one)
 narrator: The hallway smells faintly of formaldehyde and coffee.
@@ -117,7 +121,7 @@ player: Hi! (shows the player's name plate)
 *label_name                                 ← label
 [goto label_name]
 [chat piggy-2 "Ask him anything about the lab!"]   ← hands control to free chat, then returns
-[minigame volley]                           ← runs a mini-game (volley|perfusion|debug|petals), then continues
+[minigame volley]                           ← runs a mini-game (volley|perfusion|debug|petals|surgery), then continues
 [outfit piggy-2 scrubs]                     ← switch a pig's outfit for portraits in this scene (and unlock it)
 [name]                                      ← player name entry (UI hook)
 [input comfort_food "Comfort food?"]        ← free text stored as memory fact key=value (UI hook = dialogue.ask)
@@ -184,6 +188,12 @@ Pure functions in `src/lib/pet/sim.ts` operating on `SaveData` (see GAME_DESIGN.
 `newSave(now)`, `advance(save, now) → SimEvent[]`, `applyAction(save, pig, action, itemId?, now?) → ActionResult`,
 `bondLevel(bond)`, `bondProgress(bond)`, `moodOf(pig)`, `claimDaily(save, now)`.
 Real-time decay runs on load (catch-up capped) and every 10 s while open.
+
+Idle thought clouds (`src/lib/pet/thoughts.ts`, banks in `pet/thought-bank/`, icons in `content/icons/thoughts.ts`): a pure,
+seeded scheduler (`pickThought(save, pig, ctx)`, `markThought`, `thoughtGap`; same pig, date, count so far today and context
+give the same thought, no `Math.random`). Save keys: `pet.<pig>.thoughts` (today's ids), `tut.thoughts`, counter
+`thoughts_heard`, setting `ui.thoughts` (lots/some/off). The hub (`Hub.svelte`) runs one ambient beat (thought or spoken line)
+and place screens (`Location.svelte`) show clouds over the portraits, placed by `ui/bubbles.ts`; `ThoughtBubble.svelte` draws them.
 
 ## 8. Save
 

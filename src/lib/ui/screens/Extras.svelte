@@ -19,11 +19,19 @@
   import { outfitUnlocked } from '../meta/save-utils';
   import { goBack } from '../meta/nav';
   import { playSong, stopSong, ui } from '../meta/sfx';
+  import { viewport } from '../viewport.svelte';
 
   type TabId = 'album' | 'music' | 'trophies' | 'faces';
   const params = game.params;
   const startTab = (): TabId => (['album', 'music', 'trophies', 'faces'].includes(params.tab as string) ? (params.tab as TabId) : 'album');
   let tab = $state<TabId>(startTab());
+  let panelEl = $state<HTMLElement>();
+
+  // All four tabs share one scroller: each tab starts at its top instead of at the last tab's offset.
+  $effect(() => {
+    void tab;
+    if (panelEl) panelEl.scrollTop = 0;
+  });
 
   // ── album ──
   type Group = PigId | 'trio' | 'ending' | 'other';
@@ -162,9 +170,10 @@
 <svelte:window onkeydowncapture={onkeydown} />
 
 <MetaFrame title="EXTRAS" jp="おまけ" onBack={leave} keys={!viewing}>
-  <Tabs {tabs} bind:value={tab} label="Extras sections" />
+  <!-- the full-size strip (with kana) needs ~425 px: phones get the compact one so FACES isn't cut off -->
+  <Tabs {tabs} bind:value={tab} label="Extras sections" compact={viewport.w < 520} />
 
-  <div class="panel px-scroll">
+  <div class="panel px-scroll" class:faces-tab={tab === 'faces'} bind:this={panelEl}>
     {#if tab === 'album'}
       {#if cgs.length}
         <h2 class="km-title sect">MEMORIES</h2>
@@ -374,8 +383,11 @@
   .got .atitle { color: var(--gold); }
   .adesc { font-size: 13px; opacity: 0.85; }
 
-  .faces { display: grid; grid-template-columns: minmax(200px, 0.8fr) minmax(0, 1.6fr); gap: 14px; min-height: 0; }
-  .preview { padding: 10px; align-items: center; gap: 6px; }
+  /* .faces keeps its content height: squeezed to the panel (min-height: 0), it left the sticky preview no room */
+  .faces { display: grid; grid-template-columns: minmax(200px, 0.8fr) minmax(0, 1.6fr); gap: 14px; }
+  /* The preview stays pinned to the top of the panel while the face grid scrolls (under it, on phones), so a face
+     picked from a low row still shows big. Opaque, since the faces pass behind it. */
+  .preview { position: sticky; top: 0; z-index: 1; align-self: start; padding: 10px; align-items: center; gap: 6px; background: #1b1428; }
   .big { height: min(52vh, 420px); display: flex; align-items: flex-end; justify-content: center; }
   .ename { margin: 0; font-size: 18px; color: var(--sakura-1); text-transform: capitalize; }
   .pickers { display: grid; gap: 8px; align-content: start; min-width: 0; }
@@ -412,12 +424,27 @@
   .cgbtn img { display: block; width: min(1440px, 92vw); max-height: 86vh; object-fit: contain; image-rendering: pixelated; }
 
   @media (max-aspect-ratio: 5/4) {
+    /* A quarter of the screen, but never more than half the panel (the screen less ~120px of bar and tabs and the name
+       under the portrait): on a short window a bigger pinned preview left the grid no room, or covered all of it. */
+    .panel { --big: clamp(64px, min(26vh, 50vh - 120px), 220px); }
+    /* a button reached by keyboard scrolls into view below the pinned preview, not behind it */
+    .panel.faces-tab { scroll-padding-top: calc(var(--big) + 76px); }
     .faces { grid-template-columns: 1fr; }
-    .big { height: 200px; }
+    /* .km-window may shrink to nothing (min-height: 0); under the face grid it did, and the portrait was cut to a
+       sliver. Keep its content-based minimum so it stays whole and the panel scrolls instead. */
+    .preview { min-height: auto; }
+    /* smaller on phones, so the pinned preview leaves the grid room to scroll */
+    .big { flex: none; height: var(--big); }
     .facegrid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
     .face { height: 80px; }
   }
+  /* so short that even the smallest pinned preview would leave the grid under ~70px: let it scroll away instead */
+  @media (max-aspect-ratio: 5/4) and (max-height: 319px) {
+    .preview { position: static; }
+    .panel.faces-tab { scroll-padding-top: auto; }
+  }
   @media (min-aspect-ratio: 5/4) and (max-height: 499px) {
-    .big { height: 200px; }
+    /* fit the whole preview in the panel (the screen minus the bar, the tabs and the preview's name) so it stays in view */
+    .big { height: 200px; height: min(200px, calc(100dvh - 192px - var(--safe-bottom))); }
   }
 </style>

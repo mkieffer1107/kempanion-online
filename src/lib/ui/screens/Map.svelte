@@ -78,7 +78,7 @@
   }
 
   function names(list: PigId[]): string {
-    return list.map((p) => CHARACTERS[p].name).join(', ');
+    return new Intl.ListFormat('en', { type: 'conjunction' }).format(list.map((p) => CHARACTERS[p].name));
   }
 
   onMount(() => {
@@ -197,7 +197,9 @@
   }
   .head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; flex: none; }
   h1 { flex: 1; margin: 0; font-size: 20px; letter-spacing: 0.08em; }
-  .jp { font-size: 0.7em; color: var(--sakura-2); margin-left: 6px; }
+  .jp { font-size: 0.7em; color: var(--sakura-2); margin-left: 6px; white-space: nowrap; }
+  /* narrow phones: the katakana subtitle would wrap mid-word next to the clock; drop it */
+  @media (max-width: 420px) { h1 .jp { display: none; } }
 
   .board { flex: 1; min-height: 0; display: flex; gap: 10px; padding: 0 8px 8px; }
   .map-box { flex: 1; min-width: 0; min-height: 0; display: grid; place-items: center; container-type: size; }
@@ -288,16 +290,34 @@
   .go-sm { min-width: 52px; min-height: 44px; }
   .head .px-btn { min-height: 44px; min-width: 44px; }
 
-  /* T: map on top, card + list below */
-  .mode-t .board { flex-direction: column; }
+  /* T: map on top, card + list below. The art is as wide as the screen but leaves the board (100cqh) room for what goes
+     under it (--under): 10 + 8 px gaps, two list rows (2 × 44 + 4) and the tallest card, 233 px (the Plaza with three
+     faces and the ♥ note). That only bites on short phones and squarish windows, and never below half width. */
+  .mode-t { --under: 343px; }
+  .mode-t .board { flex-direction: column; container-type: size; }
   .mode-t .map-box { flex: none; container-type: inline-size; }
-  .mode-t .map { width: 100cqw; }
+  .mode-t .map { width: min(100cqw, max(50cqw, (100cqh - var(--under)) * 1.5)); }
   .mode-t .side { flex: 1; }
-  /* S: compact header */
+  /* short phones (iPhone SE / mini), and 360 px Androids a little taller (the Plaza's card wraps to 254 px there): no
+     blurb or ♥ note (the ♥ is still on the pin and the row). The tallest card is then 164 px (Marston's two-line name
+     with two pigs), so the art leaves 276 px: 18 for the gaps, 92 for two rows and 166 for the card. It shrinks only
+     below about 580 px tall (SE, 553: 213 px tall instead of 239). */
+  @media (max-height: 640px), (max-width: 370px) and (max-height: 680px) {
+    .mode-t { --under: 276px; }
+    .mode-t .card .blurb, .mode-t .card .heart-note { display: none; }
+  }
+  /* Up to about 350 px wide the "who" line wraps a second time and the tallest card is 187 px (Marston with two pigs;
+     the Plaza's is 181): 24 px more room, so those phones keep two rows as well. The step sits between 344 and 352 px
+     in Chromium and WebKit alike; 356 leaves a margin. */
+  @media (max-width: 356px) and (max-height: 680px) {
+    .mode-t { --under: 300px; }
+  }
+  /* S: compact header; the card drops the blurb and the ♥ note as on short T phones (with the Plaza's ♥ note the
+     list was down to one row and Go sat under the map toasts) */
   .mode-s .head { padding: 2px 8px; }
   .mode-s h1 { font-size: 16px; }
   .mode-s .side { flex-basis: 42%; }
-  .mode-s .card .blurb { display: none; }
+  .mode-s .card .blurb, .mode-s .card .heart-note { display: none; }
 
   .travel {
     position: absolute;

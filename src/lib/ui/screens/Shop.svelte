@@ -66,6 +66,9 @@
   let qty = $state(1);
   let pop = $state<{ key: number; text: string } | null>(null);
   let rows: HTMLButtonElement[] = $state([]);
+  let infoEl = $state<HTMLElement>();
+  let more = $state(false);
+  let gutter = $state(0);
 
   const list = $derived(stock.filter((i) => shopTabOf(i) === tab));
   const item = $derived(list.find((i) => i.id === selId) ?? list[0] ?? null);
@@ -79,6 +82,26 @@
   const owned = $derived(item ? (game.save.inventory[item.id] ?? 0) : 0);
   const showTastes = $derived(!!item && (item.category === 'food' || item.category === 'drink' || item.category === 'gift'));
 
+  // When the item info can't all fit above the buy row (phone landscape, short phones) it scrolls: show "▼ more" over
+  // a fade while lines are hidden below, and start each newly picked item at the top.
+  $effect(() => {
+    const el = infoEl;
+    if (!el || !item) return;
+    el.scrollTop = 0;
+    const measure = () => {
+      more = el.scrollHeight - el.scrollTop - el.clientHeight > 4;
+      gutter = el.offsetWidth - el.clientWidth; // keep the cue off a desktop scrollbar
+    };
+    measure();
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(el);
+    for (const part of el.children) ro?.observe(part); // web fonts and the taste row resize the info
+    el.addEventListener('scroll', measure, { passive: true });
+    return () => {
+      ro?.disconnect();
+      el.removeEventListener('scroll', measure);
+    };
+  });
 
   // cashier speech
   const tw = new Typewriter();
@@ -207,7 +230,7 @@
     <section class="catalog" aria-label="Items">
       <Tabs {tabs} bind:value={tab} label="Shop sections" compact onchange={() => { selId = null; qty = 1; }} />
       {#if coupon && stock.length}
-        <p class="coupon" role="note"><PixelGlyph name="star" scale={2} color="var(--gold)" /> Small Blessing: one item is half price today!</p>
+        <p class="coupon" role="note"><PixelGlyph name="star" scale={2} /> <span class="ctext">Small Blessing: one item is half price today!</span></p>
       {/if}
       {#if !status.open}
         <div class="km-empty closed">
@@ -245,21 +268,27 @@
 
     <section class="km-window details" aria-label="Item details">
       {#if item}
-        <div class="dhead">
-          <span class="bigicon"><ItemIcon id={item.icon} size={64} /></span>
-          <div class="dnames">
-            <h2 class="km-title dname">{item.name}</h2>
-            <p class="dprice">
-              {#if item.price === 0}FREE{:else}<PixelGlyph name="acorn" scale={2} /> {item.price} acorns{/if}
-              <span class="owned">· in bag: {owned}</span>
-            </p>
+        <!-- the info scrolls on its own, so the −/qty/+ and BUY row under it never leaves the screen -->
+        <div class="dwrap">
+          <div class="dbody" class:cued={more} bind:this={infoEl}>
+            <div class="dhead">
+              <span class="bigicon"><ItemIcon id={item.icon} size={64} /></span>
+              <div class="dnames">
+                <h2 class="km-title dname">{item.name}</h2>
+                <p class="dprice">
+                  {#if item.price === 0}FREE{:else}<PixelGlyph name="acorn" scale={2} /> {item.price} acorns{/if}
+                  <span class="owned">· in bag: {owned}</span>
+                </p>
+              </div>
+            </div>
+            <p class="desc">{item.desc}</p>
+            {#if effectSummary(item).length}
+              <p class="effects">{effectSummary(item).join('  ')}</p>
+            {/if}
+            {#if showTastes}<TasteRow {item} />{/if}
           </div>
+          {#if more}<span class="more" style:--gutter="{gutter}px" aria-hidden="true">▼ more</span>{/if}
         </div>
-        <p class="desc">{item.desc}</p>
-        {#if effectSummary(item).length}
-          <p class="effects">{effectSummary(item).join('  ')}</p>
-        {/if}
-        {#if showTastes}<TasteRow {item} />{/if}
         <div class="buyrow">
           <div class="qty" role="group" aria-label="Quantity">
             <button class="px-btn small" onclick={() => changeQty(-1)} disabled={qty <= 1} aria-label="One less">−</button>
@@ -380,6 +409,27 @@
   .row.sel .price.free { color: #1f7a2e; }
 
   .details { padding: 14px; gap: 10px; overflow: auto; }
+  .dwrap { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .dbody { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+  /* scroll cue while info is hidden above the buy row: a "▼ more" tag in the corner (dithered left edge). It sits in
+     a 16px strip of its own under the scroller (a margin, not padding: padding only extends the scroll range), so it
+     never covers the last visible line */
+  .dbody.cued { margin-bottom: 16px; }
+  .more {
+    position: absolute;
+    right: var(--gutter, 0px);
+    bottom: 0;
+    padding: 1px 4px 1px 12px;
+    font-family: var(--font-display);
+    font-size: 12px;
+    line-height: 14px;
+    letter-spacing: 0.06em;
+    color: var(--sakura-2);
+    background:
+      linear-gradient(rgba(27, 20, 40, 0.96), rgba(27, 20, 40, 0.96)) 6px 0 / 100% 100% no-repeat,
+      repeating-conic-gradient(rgba(27, 20, 40, 0.96) 0 25%, transparent 0 50%) 0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
+    pointer-events: none;
+  }
   .dhead { display: flex; gap: 12px; align-items: center; }
   .bigicon {
     display: grid;
@@ -395,7 +445,7 @@
   .owned { color: rgba(255, 246, 234, 0.7); font-size: 13px; }
   .desc { margin: 0; font-size: 15px; line-height: 1.5; }
   .effects { margin: 0; font-family: var(--font-display); font-size: 14px; color: var(--ok); letter-spacing: 0.04em; }
-  .buyrow { position: relative; display: flex; align-items: center; gap: 10px; margin-top: auto; flex-wrap: wrap; }
+  .buyrow { position: relative; flex: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .qty { display: inline-flex; align-items: center; gap: 6px; }
   .qty .px-btn { min-width: 44px; min-height: 44px; font-size: 20px; }
   .n { min-width: 2.2em; text-align: center; font-family: var(--font-display); font-size: 22px; }
@@ -430,9 +480,27 @@
     .speech { margin: 12px 6px 6px; min-height: 72px; padding: 14px 10px 8px; }
     .said { font-size: 14px; }
     .details { padding: 10px; gap: 6px; max-height: 46vh; }
+    .dbody { gap: 6px; }
     .bigicon { width: 52px; height: 52px; }
     .dname { font-size: 18px; }
     .desc { font-size: 14px; }
+  }
+  /* short portrait phones (e.g. 375×553 under the browser bars): a slimmer cashier strip and details window, so the
+     shelf keeps two full rows and most of a third; the details scroll above the buy row */
+  @media (max-aspect-ratio: 5/4) and (max-height: 620px) {
+    .counter { grid-template-columns: 72px minmax(0, 1fr); }
+    .scene { min-height: 64px; }
+    .speech { min-height: 0; margin: 10px 6px 4px; padding: 12px 10px 6px; }
+    /* a steady three-line box (all but a rare four-liner fit), so a one-line "Rung up!" after a three-line greeting
+       can't move the shelf */
+    .said { min-height: calc(3 * 1.45em); }
+    .role { display: none; }
+    /* the coupon note stays on one line, so the shelf keeps two full rows under it */
+    .catalog { gap: 6px; }
+    .coupon { padding: 2px 8px; font-size: 13px; line-height: 1.2; }
+    .ctext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row { min-height: 44px; }
+    .details { max-height: 32vh; }
   }
   /* S: phone landscape — cashier as a strip on top, list | details below */
   @media (min-aspect-ratio: 5/4) and (max-height: 499px) {
@@ -448,7 +516,11 @@
     .speech { margin: 10px 6px 4px; min-height: 0; padding: 12px 10px 6px; }
     .role { display: none; }
     .said { font-size: 14px; }
+    /* a one-line coupon note, so the shelf keeps two rows under it */
+    .coupon { padding: 2px 8px; font-size: 13px; line-height: 1.2; }
+    .ctext { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .details { padding: 10px; gap: 6px; }
+    .dbody { gap: 6px; }
     .bigicon { width: 52px; height: 52px; }
     .dname { font-size: 18px; }
   }

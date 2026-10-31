@@ -10,7 +10,7 @@
     ['Z', 'Next care key / button (device A)'],
     ['1–4 · ↑ ↓', 'Pick a choice'],
     ['L · PageUp', 'Backlog'],
-    ['A · S · hold Ctrl', 'Auto · skip read text'],
+    ['A · S · hold Ctrl', 'Auto · skip ahead'],
     ['H · Delete', 'Hide the text box'],
     ['T · /', 'Type to your piggy (in Talk)'],
     ['[ · ]', 'Visit the previous / next piggy'],

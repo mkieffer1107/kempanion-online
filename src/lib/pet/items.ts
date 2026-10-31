@@ -154,7 +154,12 @@ const DEFS: Record<string, Def> = {
   cold_brew: {
     name: 'Cold Brew', category: 'drink', price: 9, shops: RM, caffeine: true,
     desc: 'Steeped for 18 hours. Gone in 4 minutes. Library-adjacent.',
-    effects: { hunger: 4, energy: 15 }, tastes: { [P3]: 'love', [P1]: 'dislike' },
+    effects: { hunger: 4, energy: 15 }, tastes: { [P3]: 'like', [P1]: 'dislike' },
+  },
+  red_bull_sf: {
+    name: 'Sugar-Free Red Bull', category: 'drink', price: 9, shops: RM, caffeine: true,
+    desc: "Slim, ice-cold, zero sugar. The Marston vending machine knows exactly who it's for.",
+    effects: { hunger: 2, energy: 15 }, tastes: { [P3]: 'love', [P1]: 'dislike', [P2]: 'dislike' },
   },
   boba_tea: {
     name: 'Boba Milk Tea', category: 'drink', price: 12, shops: RM,
@@ -299,10 +304,13 @@ export function discoverTaste(save: SaveData, pig: PigId, itemId: string): boole
   return true;
 }
 
-/** The taste tier the player has discovered (for "Loved by: ?" in the shop/bag), or null if unknown. */
+/**
+ * The taste tier the player has discovered (for "Loved by: ?" in the shop/bag), or null if unknown. The flag only
+ * records that the reaction was seen; the tier always comes from today's table, so a save from before a taste
+ * changed (Piggy 3's favorite drink moved from cold brew to sugar-free Red Bull) never shows a stale heart.
+ */
 export function knownTaste(save: SaveData, pig: PigId, itemId: string): Taste | null {
-  const v = str(save, `taste.${pig}.${itemId}`);
-  return v ? (v as Taste) : null;
+  return str(save, `taste.${pig}.${itemId}`) ? tasteOf(pig, itemId) : null;
 }
 
 export function secretFavorite(pig: PigId): string {

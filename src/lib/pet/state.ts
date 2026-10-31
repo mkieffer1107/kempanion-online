@@ -13,6 +13,9 @@
 //   pet.<pig>.secret            boolean secret favorite discovered
 //   taste.<pig>.<item>          string  discovered taste tier (shop/bag "Loved by")
 //   pet.wantDone / pet.wantSeen string  want slot keys (fulfilled / announced)
+//   pet.<pig>.thoughts          JSON    {d, ids:[]} idle thought clouds shown today, marked when shown (≤ 40; see thoughts.ts)
+//   tut.thoughts                boolean the hub's one-time "that cloud is just a thought" toast has shown
+//   ui.thoughts                 string  'lots' | 'off' (unset = some): Settings → Display → Thought bubbles
 //   pet.messClock               number  awake ms accumulated toward the next mess
 //   pet.omikuji                 string  "<date>|<slip>" today's slip
 //   pet.stampDouble             boolean next stamp is doubled (Future Blessing)
@@ -27,7 +30,8 @@
 //   pet.gentle                  boolean Gentle mode (no sickness, needs frozen while away) — set by Settings UI
 //   welcome_party_ready         boolean away > 72 h: play the welcome-back party scene, then unset it
 //   stamp_party_ready           boolean 7th login stamp: play the group scene, then unset it
-// Counters: see achievements.ts and the report for the full list (days_played, baths, cures, served.<item>, …).
+// Counters: see achievements.ts and the report for the full list (days_played, baths, cures, served.<item>, …);
+// thoughts_heard counts tapped thought clouds (no bond, no acorns).
 import type { PigId, PigState, SaveData } from '../types';
 import { localDate } from '../time';
 

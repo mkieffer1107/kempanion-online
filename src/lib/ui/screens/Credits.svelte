@@ -165,6 +165,10 @@
         </section>
       {/if}
       <section class="block big"><p class="title">Thank you for playing!</p></section>
+      {#if reduced}
+        <!-- the static list's own way out, right where it ends -->
+        <button class="px-btn primary endbtn listend" onclick={skip}>END ▸</button>
+      {/if}
     </div>
 
     {#if !reduced}
@@ -178,7 +182,7 @@
       <p class="hintskip" aria-hidden="true">ESC · TAP to skip</p>
     {/if}
   {:else}
-    <div class="endcard km-pop-in">
+    <div class="endcard km-pop-in" class:has-commit={!!lastLine}>
       <p class="km-title thanks">Thank you for playing!</p>
       {#if lastLine}<p class="commit">“{lastLine}”</p>{/if}
       <div class="trio" aria-hidden="true">
@@ -251,6 +255,7 @@
     top: max(10px, var(--safe-top));
     z-index: 4;
   }
+  .listend { justify-self: center; }
   .block { display: grid; gap: 6px; }
   .head {
     margin: 0 0 4px;
@@ -295,6 +300,9 @@
     display: grid;
     justify-items: center;
     align-content: center;
+    /* a long commit-message line on a short screen: start at the title and scroll, rather than clip both ends */
+    align-content: safe center;
+    overflow-y: auto;
     gap: 14px;
     padding: max(16px, var(--safe-top)) max(16px, var(--safe-right)) max(16px, var(--safe-bottom)) max(16px, var(--safe-left));
     text-align: center;
@@ -311,7 +319,8 @@
   .signoff { width: min(620px, 100%); min-height: 84px; padding: 16px 14px 10px; position: relative; text-align: left; }
   .signoff :global(.km-plate) { position: absolute; left: 12px; top: 0; transform: translateY(-60%); font-size: 14px; }
   .signoff p { margin: 4px 0 0; font-size: 17px; }
-  .ghost { visibility: hidden; }
+  /* the typewriter's untyped rest; scoped to the sign-off so it can't also hide a `px-btn ghost` button (END ▸) */
+  .signoff .ghost { visibility: hidden; }
   .studio { margin: 0; font-size: 16px; letter-spacing: 0.12em; color: var(--sakura-2); }
   .fine { margin: 0; font-size: 12px; color: rgba(255, 246, 234, 0.7); max-width: 560px; }
   .endbtn { min-width: 220px; min-height: 48px; font-family: var(--font-display); font-size: 18px; }
@@ -323,9 +332,22 @@
   }
   @media (min-aspect-ratio: 5/4) and (max-height: 499px) {
     .credits { --walker: 72px; --endpig: 80px; }
-    .endcard { gap: 6px; }
-    .thanks { font-size: 30px; }
+    /* tight above and below (the bottom still clears the home-indicator inset) so the card fits a phone this short */
+    .endcard { gap: 6px; padding-top: max(8px, var(--safe-top)); padding-bottom: max(8px, var(--safe-bottom)); }
+    .thanks { font-size: 28px; }
     .signoff { min-height: 64px; padding: 12px 12px 6px; }
-    .fine { display: none; }
+    /* the fan-made note stays, as one compact line; with a commit line (Piggy 3's ending) the pigs and the sign-off
+       box shrink a little so it all still fits */
+    .fine { font-size: 11px; line-height: 1.2; }
+    .endcard .commit { margin: 0; }
+    .endcard.has-commit { --endpig: 64px; }
+    .has-commit .signoff { min-height: 56px; }
+    .endbtn { min-height: 44px; }
+  }
+  /* the shortest phones (568x320, an Android in landscape under its browser bars): a little tighter still */
+  @media (min-aspect-ratio: 5/4) and (max-height: 340px) {
+    .endcard { gap: 4px; }
+    .thanks { font-size: 26px; }
+    .endcard.has-commit { --endpig: 56px; }
   }
 </style>

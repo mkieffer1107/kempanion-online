@@ -91,10 +91,58 @@ const SLOT_FRACTION: Record<PortraitPos, number> = {
   'far-right': 0.9,
 };
 
-/** Horizontal center of a portrait slot; narrow stages put everyone in the middle. */
-export function portraitCenterX(pos: PortraitPos, lw: number): number {
+/** Slots that size a lineup, left to right. The far slots overhang the edges by design, as on the 16:9 stage. */
+const LINEUP_SLOTS = ['left', 'center', 'right'] as const;
+/** Half-width of a portrait's face (glasses, eyes, cheeks) around the cell's center column; ears and paws reach ±87. */
+export const PORTRAIT_FACE_HALF = 72;
+/** Neighbours' faces may overlap by this share of a face: an outer cheek and glasses rim, never an eye (eyes end ±45). */
+export const LINEUP_OVERLAP = 0.15;
+/** On the 16:9 stage the far slots sit 0.1 × 480 = 48 px in; they never hang further off than that, scaled. */
+const FAR_EDGE = 48;
+/** Lineup scales are whole 64ths, so the 192×256 cell shrinks to whole pixels (3n × 4n). */
+const SCALE_STEPS = 64;
+const MIN_LINEUP_SCALE = 0.5;
+/** A lineup that fits at 95% or more stays full size: a few px more cheek overlap beats resampling the art. */
+const FULL_SIZE_FROM = 0.95;
+
+/**
+ * Horizontal center of a portrait slot for portraits drawn at `scale` (lineupScale); narrow stages put everyone in
+ * the middle. Left, center and right sit at fixed fractions of the stage width (Talk.svelte lays out beside 'left').
+ */
+export function portraitCenterX(pos: PortraitPos, lw: number, scale = 1): number {
   if (lw < NARROW_W) return Math.round(lw / 2);
-  return Math.round(lw * SLOT_FRACTION[pos]);
+  const x = Math.round(lw * SLOT_FRACTION[pos]);
+  if (pos !== 'far-left' && pos !== 'far-right') return x;
+  const edge = Math.round(FAR_EDGE * scale);
+  return clamp(x, edge, lw - edge);
+}
+
+/**
+ * Draw scale for the portraits on stage together (1 = the art's own 192×256): the largest at which every left,
+ * center and right face stays on stage and neighbours' faces overlap by at most LINEUP_OVERLAP. The 16:9 stage
+ * keeps 1 for any lineup, and so does a lone center portrait anywhere. The square phone / tablet stage (270 wide)
+ * draws a left + center + right trio at 41/64 and a left + right pair at 50/64, where full-size art would run off
+ * the edges and hide most of the middle face. Narrow stages draw only the featured portrait, at full size.
+ */
+export function lineupScale(positions: readonly PortraitPos[], lw: number): number {
+  if (lw < NARROW_W) return 1;
+  let fit = Infinity;
+  let prev: number | null = null;
+  for (const pos of LINEUP_SLOTS) {
+    if (!positions.includes(pos)) continue;
+    // the exact fraction, not the rounded px: the scale then only ever grows as the stage widens
+    const x = lw * SLOT_FRACTION[pos];
+    fit = Math.min(fit, x / PORTRAIT_FACE_HALF, (lw - x) / PORTRAIT_FACE_HALF);
+    if (prev !== null) fit = Math.min(fit, (x - prev) / (2 * PORTRAIT_FACE_HALF * (1 - LINEUP_OVERLAP)));
+    prev = x;
+  }
+  if (fit >= FULL_SIZE_FROM) return 1;
+  return Math.max(MIN_LINEUP_SCALE, Math.floor(fit * SCALE_STEPS) / SCALE_STEPS);
+}
+
+/** Stage y of row `cellY` of a portrait drawn at `scale`: a shrunk portrait keeps its waist on the stage's bottom edge. */
+export function portraitY(cellY: number, scale = 1): number {
+  return PORTRAIT_TOP + PORTRAIT_H - Math.round(PORTRAIT_H * scale) + Math.round(cellY * scale);
 }
 
 /** Enter/exit slide direction: −1 from the left, +1 from the right, 0 rises from below. */

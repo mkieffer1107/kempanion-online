@@ -19,6 +19,36 @@ const SFX_MIN_GAP_MS = 25;
 const READY_TIMEOUT_MS = 10_000;
 
 type Ctx = AudioContext;
+type SessionNavigator = Navigator & { audioSession?: { type: string } };
+
+/**
+ * Automated browsers (Playwright / WebDriver set navigator.webdriver) and `?mute` play no sound, so test runs don't
+ * fill the room with music; `?sound` turns it back on for a test that listens on purpose.
+ */
+const SILENT = (() => {
+  if (typeof navigator === 'undefined' || typeof location === 'undefined') return false;
+  const q = new URLSearchParams(location.search);
+  return q.has('mute') || (navigator.webdriver === true && !q.has('sound'));
+})();
+
+/** iPhone/iPad/iPod (iPadOS reports a Mac user agent, but with touch points). */
+function isAppleTouch(): boolean {
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+/** 0.1 s of 8-bit silence as a WAV blob URL, for the pre-16.4 iOS media-session trick. */
+function silentWavUrl(): string {
+  const n = 800;
+  const view = new DataView(new ArrayBuffer(44 + n));
+  const tag = (at: number, s: string) => { for (let i = 0; i < 4; i++) view.setUint8(at + i, s.charCodeAt(i)); };
+  tag(0, 'RIFF'); view.setUint32(4, 36 + n, true); tag(8, 'WAVE');
+  tag(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, 8000, true); view.setUint32(28, 8000, true); view.setUint16(32, 1, true); view.setUint16(34, 8, true);
+  tag(36, 'data'); view.setUint32(40, n, true);
+  new Uint8Array(view.buffer, 44).fill(128);
+  return URL.createObjectURL(new Blob([view.buffer], { type: 'audio/wav' }));
+}
 
 class AudioEngine implements AudioApi {
   #ctx: Ctx | null = null;
@@ -36,11 +66,12 @@ class AudioEngine implements AudioApi {
   #pending: { id: SongId; fadeMs?: number } | null = null;
   #serial = 0;
   #pos = { serial: -1, sec: 0, time: 0, state: 0 };
-  #vol = { master: 0.8, bgm: 0.6, sfx: 0.8, voice: 0.7 };
+  #vol = { master: SILENT ? 0 : 0.8, bgm: 0.6, sfx: 0.8, voice: 0.7 };
   #lastBlip = new Map<VoiceId, number>();
   #lastSfx = new Map<SfxId, number>();
   #blips = 0;
   #warned = new Set<string>();
+  #silence: HTMLAudioElement | null = null;
 
   get ready(): boolean {
     return this.#ready;
@@ -58,6 +89,7 @@ class AudioEngine implements AudioApi {
       this.#warn('audio disabled: this browser lacks Web Audio worklets or WebAssembly');
       return (this.#init = Promise.resolve());
     }
+    this.#playThroughSilentSwitch();
     let ctx: Ctx;
     try {
       ctx = new AC({ latencyHint: 'interactive' });
@@ -84,6 +116,7 @@ class AudioEngine implements AudioApi {
   #unlock() {
     const ctx = this.#ctx;
     if (!ctx || this.#userSuspended) return;
+    if (this.#silence?.paused) this.#playThroughSilentSwitch();
     if (ctx.state !== 'running') void ctx.resume().catch(() => {});
     if (this.#unlocked) return;
     try {
@@ -109,8 +142,43 @@ class AudioEngine implements AudioApi {
       if (!ctx) return;
       if (document.hidden) {
         if (this.#autoSuspend) void ctx.suspend().catch(() => {});
-      } else if (!this.#userSuspended) void ctx.resume().catch(() => {});
+        this.#silence?.pause();
+      } else if (!this.#userSuspended) {
+        void ctx.resume().catch(() => {});
+        if (this.#silence) this.#playThroughSilentSwitch();
+      }
     });
+  }
+
+  /**
+   * The iPhone's ring/silent switch mutes Web Audio unless the page asks for media playback. Safari 16.4+ takes
+   * that as navigator.audioSession.type = 'playback'; older iOS switches while an <audio> element is playing, so it
+   * gets a looping silent one. With the game muted (master 0) the session goes back to 'ambient', so the game
+   * doesn't pause the player's own music for nothing. Other platforms have no such switch.
+   */
+  #playThroughSilentSwitch() {
+    if (typeof navigator === 'undefined') return;
+    const on = this.#vol.master > 0;
+    const session = (navigator as SessionNavigator).audioSession;
+    if (session) {
+      try {
+        session.type = on ? 'playback' : 'ambient';
+      } catch {
+        /* not settable here */
+      }
+      return;
+    }
+    if (!isAppleTouch()) return;
+    if (!on || document.hidden) {
+      this.#silence?.pause();
+      return;
+    }
+    if (!this.#silence) {
+      this.#silence = new Audio(silentWavUrl());
+      this.#silence.loop = true;
+      this.#silence.setAttribute('playsinline', '');
+    }
+    if (this.#silence.paused) void this.#silence.play().catch(() => {});
   }
 
   async #boot(ctx: Ctx) {
@@ -306,12 +374,13 @@ class AudioEngine implements AudioApi {
   setVolumes(v: Volumes): void {
     const clamp = (x: number | undefined, d: number) => (typeof x === 'number' && Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : d);
     this.#vol = {
-      master: clamp(v.master, this.#vol.master),
+      master: SILENT ? 0 : clamp(v.master, this.#vol.master),
       bgm: clamp(v.bgm, this.#vol.bgm),
       sfx: clamp(v.sfx, this.#vol.sfx),
       voice: clamp(v.voice, this.#vol.voice),
     };
     if (this.#ready) this.#post({ t: 'vol', ...this.#vol });
+    if (this.#ctx) this.#playThroughSilentSwitch();
   }
 
   suspend(): void {

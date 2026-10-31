@@ -13,18 +13,26 @@
     outfitHasClip, stage, type BurstKind, type DropResult, type GoldenPetalHandle, type ImpactInfo, type StageLayout,
   } from '../../engine/stage';
   import { findTriggeredScene } from '../../vn';
+  import { getCompiled } from '../../vn/registry';
   import { idleLine, type IdleKind } from '../../ai/heuristic';
   import { CHARACTERS } from '../../content/characters';
   import { HOME_BG, LOCATIONS, whereIs } from '../../content/locations';
-  import { timeOfDay, weekday } from '../../time';
+  import { localDate, timeOfDay, weekday } from '../../time';
   import {
     bondLevel, canDoctorsRounds, canPlayMinigame, catchGoldenPetal, currentWant, dismissWelcomeBack, doctorsRounds,
     freeItems, getItem, goldenPetalAvailable, knownTaste, moodOf, nearBedtime, stampCard, welcomeBack,
     type CareResult, type PetItemDef, type Want, type WelcomeBackLetter,
   } from '../../pet';
+  import { wantName } from '../../pet/wants';
+  import { rngFor } from '../../pet/rng';
+  import {
+    THOUGHT, firstBeatMs, markThought, pickThought, thoughtGap, thoughtName, thoughtPref, type Thought,
+  } from '../../pet/thoughts';
+  import { animFor } from '../../ai/emotion';
   import { MINIGAMES, type MinigameId } from '../../minigames';
   import { hasClip } from '../sprites';
-  import { ui } from '../ui.svelte';
+  import { bubbleMs, cloudSize, thoughtSpeed } from '../bubbles';
+  import { modalOpen, ui } from '../ui.svelte';
   import { viewport } from '../viewport.svelte';
   import { toast } from '../toasts.svelte';
   import GameLayout from '../layout/GameLayout.svelte';
@@ -38,6 +46,7 @@
   import BrainChip from '../components/BrainChip.svelte';
   import NumberPop from '../components/NumberPop.svelte';
   import Icon from '../components/Icon.svelte';
+  import ThoughtBubble from '../components/ThoughtBubble.svelte';
   import ItemSheet, { type SheetItem } from '../hub/ItemSheet.svelte';
   import ActionSheet, { type SheetAction } from '../hub/ActionSheet.svelte';
   import StatsSheet from '../hub/StatsSheet.svelte';
@@ -45,18 +54,23 @@
   import WelcomeLetter from '../hub/WelcomeLetter.svelte';
   import {
     ACTION_ANIM, ACTION_IDLE, ACTION_SFX, ALT_WIN, DRAG_PX, GROUND_T, GROUND_WS, HARD_BUMP, HARD_THUD, LIFT_FUN, LOW,
-    POUT_LINES, TICKLE_LINES, WHOOSH_SPEED, countToss, crumbSpots, groundFromBox, hubSong, idleKind, landingReaction,
-    liftFunDue, needsAttention, outfitReaction, popsFor, statusClip, type Pop,
+    POUT_LINES, TICKLE_LINES, WHOOSH_SPEED, ambientKind, arrivalScene, chanceGated, countToss, crumbSpots, gameIcon, groundFromBox,
+    hubSong, idleKind, landingReaction, liftFunDue, needsAttention, outfitReaction, playGames, popsFor, statusClip,
+    type Pop,
   } from '../hub/hub';
 
   const pig: PigId = game.save.companion ?? 'piggy-1';
   const ch = CHARACTERS[pig];
-  // A triggered hub scene plays first (once per session per scene), before anything is set up here.
+  // A triggered hub scene plays first (once per session per scene), before anything is set up here. Right after the
+  // tutorial the room shows first, though: no random (chance=) home scene before it (hub.ts arrivalScene).
   const opened = gameClock.date();
   const triggered = game.save.companion
     ? findTriggeredScene({ location: 'hub', time: timeOfDay(opened), weekday: weekday(opened), save: game.save, date: opened })
     : null;
-  const redirect = triggered && !game.session.autoScenes.includes(triggered.id) ? triggered.id : null;
+  const redirect = arrivalScene(
+    triggered && { id: triggered.id, chance: chanceGated(getCompiled(triggered.id)?.meta.trigger) },
+    game.session,
+  );
   const ready = game.save.companion !== null && redirect === null;
 
   // ── derived world state ──
@@ -96,11 +110,13 @@
   let speaking = $state(false);
   let speakTimer: ReturnType<typeof setTimeout> | undefined;
 
-  function say(text: string, whisper = false, bubble = true) {
+  /** `ms`: how long his speech bubble stays up (default 1.8 s + 55 ms per character, at most 6 s). */
+  function say(text: string, whisper = false, bubble = true, bubbleFor?: number) {
     if (!text) return;
+    endThought(); // speech takes the slot
     line = { text, whisper };
     if (bubble) {
-      const ms = Math.min(6000, 1800 + text.length * 55);
+      const ms = bubbleFor ?? Math.min(6000, 1800 + text.length * 55);
       stage.bubble('pig', text, ms);
       speakingUntil = performance.now() + ms;
       speaking = true;
@@ -116,6 +132,92 @@
   function chatter(kind?: IdleKind) {
     const k = kind ?? idleKind(p, Math.random());
     say(idleLine(pig, k, ctx()).text, asleep);
+  }
+
+  // ── thoughts (thoughts final.md §5): the ambient beat. About 70% of beats show a thought cloud, the rest are
+  // today's spoken lines (need cues get half while a need is low); wants always win. Tempo: today's chatter at first,
+  // calmer later in a visit and while you're away from the keys (pet/thoughts.ts thoughtGap). ──
+  let thought = $state<Thought | null>(null);
+  /** The cloud opens to his left: decided when it appears, changed only when it would leave the stage. */
+  let thoughtFlip = $state(false);
+  /** Beats run this visit, and thoughts shown without a pose of their own (every 3rd strikes 'thinking'). */
+  let beat = 0;
+  let unposed = 0;
+  let beatTimer: ReturnType<typeof setTimeout> | undefined;
+  /** The game minute the hub opened: seeds this visit's rhythm. */
+  const visit = gameClock.minute;
+  /** ?debug&thoughts=fast (Playwright): gaps × 0.15. */
+  const speed = thoughtSpeed();
+
+  // Not `asleep`: beats keep running while he sleeps so today's whispered lines continue (ambientKind → speech).
+  function beatBlocked(): boolean {
+    return !ready || !alive || !!thought || holding || flying || !!press?.lifted || busy || speaking || !!sheet || !!letter
+      || rollCall || ui.menu || ui.help || modalOpen() || document.visibilityState === 'hidden'
+      || !!game.save.flags['tut.big_brain_coach']; // App's coach mark is pointing at the brain chip
+  }
+
+  function scheduleBeat(ms: number) {
+    clearTimeout(beatTimer);
+    beatTimer = setTimeout(runBeat, Math.max(0, ms));
+  }
+
+  /** The first beat after the room settles (after the greet line): 12–20 s, seeded per visit. */
+  function scheduleFirstBeat() {
+    scheduleBeat(firstBeatMs('hub', pig, now(), visit) * speed);
+  }
+
+  function runBeat() {
+    beatTimer = undefined;
+    if (!alive) return;
+    if (beatBlocked()) return scheduleBeat(4000); // try again soon, not a whole gap
+    const at = now();
+    const kind = ambientKind(p, { wantLive: !!want, pref: thoughtPref(game.save), first: beat === 0 },
+      rngFor('ambient', pig, localDate(at), visit, beat)());
+    const t = kind === 'thought' ? pickThought(game.save, pig, { now: at, location: loc, weather, screen: 'hub' }) : null;
+    beat++;
+    if (t) showThought(t);
+    else chatter(); // nothing to think about (or a speech beat): today's spoken line
+    scheduleBeat(thoughtGap(game.save, pig, at, {
+      beat, visit, screen: 'hub', afk: at - game.lastInputAt > THOUGHT.afkMs, minMs: t ? t.ms + THOUGHT.restMs : 0,
+    }) * speed);
+  }
+
+  function showThought(t: Thought) {
+    markThought(game.save, pig, t, now()); // a glimpse counts: marked when shown, not when tapped
+    game.persist();
+    thoughtFlip = head.x > 50; // toward the roomier side, like the want
+    thought = t;
+    // A pose only when he's free, and never swapping outfits for it (alternate outfits have no 'thinking').
+    if (!busy && !holding && !flying) {
+      if (t.pose && hasClip(pig, p.outfit, t.pose)) void playClip(t.pose, { times: 2 });
+      else if (++unposed % THOUGHT.poseEvery === 0 && hasClip(pig, p.outfit, 'thinking')) void playClip('thinking');
+    }
+    if (!game.save.flags['tut.thoughts']) {
+      toast('That cloud is just a thought. Tap it to hear it. Solid bubbles are wants.', { icon: 'talk', ms: 5000 });
+      game.setFlag('tut.thoughts', true);
+    }
+  }
+
+  /** The cloud goes (expired, speech took the slot, he was picked up…). Focus never drops to <body>. */
+  function endThought() {
+    if (!thought) return;
+    const had = !!(document.activeElement as HTMLElement | null)?.closest?.('[data-thought]');
+    thought = null;
+    if (had) tickerEl?.focus();
+  }
+
+  /** Tap: his line in a speech bubble (long enough to read), the face as a clip, no reward. */
+  function thoughtTap(hadFocus: boolean) {
+    const t = thought;
+    if (!t) return; // already fading out
+    audio.sfx('ui_select'); // the want keeps 'question', so the ear can tell them apart
+    thought = null;
+    say(t.line, false, true, bubbleMs(t.line));
+    const anim = t.anim ?? animFor(t.face);
+    const clip = anim && (p.outfit === 'everyday' ? anim : outfitReaction(anim, (a) => outfitHasClip(pig, p.outfit, a), ALT_WIN[pig]));
+    if (clip && !busy && !holding && !flying) void playClip(clip);
+    game.count('thoughts_heard'); // no bond, no acorns
+    if (hadFocus) tickerEl?.focus();
   }
 
   // ── pops ──
@@ -232,13 +334,14 @@
     game.go('minigame', { id, pig, back: 'hub' });
   }
 
+  // His own mini-games, then Petal Catch (any pig). A mini-game want is met by any of them (pet/wants.ts).
   const playActions = $derived<SheetAction[]>([
     { id: 'ball', label: 'Play ball', icon: 'play', desc: 'FUN +20 · a little tiring', wanted: want?.id === 'play', run: () => act('play') },
-    ...(Object.values(MINIGAMES).filter((m) => m.pig === pig || m.anyPig).map((m) => ({
-      id: m.id, label: m.title, icon: m.id === 'petals' ? 'petal_gold' : m.id === 'debug' ? 'bug' : m.id === 'perfusion' ? 'ecg' : 'play',
+    ...playGames(Object.values(MINIGAMES), pig).map((m) => ({
+      id: m.id, label: m.title, icon: gameIcon(m.id),
       desc: m.desc || 'Mini-game · acorns and bond', wanted: want?.id?.startsWith('minigame:') ?? false,
       run: () => startMinigame(m.id),
-    }))),
+    })),
   ]);
 
   const washActions = $derived<SheetAction[]>([
@@ -335,9 +438,11 @@
     else petal = null;
   }
 
-  // ── direct play: tap = pet · drag = pick him up · flick = toss (· rub while held = tickle) ──
-  // The pig dangles from the hand cursor's pinch (engine: holdActor / moveHeld / releaseHeld), flies with
-  // gravity when let go, bounces off the stage edges and reacts to how he came down.
+  // ── direct play: tap = pet · drag = pick him up · flick = toss (· rub while held = tickle · circle = whirl) ──
+  // The pig dangles by the scruff on a short elastic string (engine: holdActor / moveHeld / releaseHeld), and the hand
+  // cursor's pinch keeps hold of him where it grabbed him: lifted by the tummy he comes along with the first pixel of a
+  // drag, and a flick from anywhere on him tosses him. Circle the hand and he swings round it, then spins; let go and
+  // he flies with gravity, bounces off the stage edges and reacts to how he came down.
   interface Press { id: number; x0: number; y0: number; onPig: boolean; lifted: boolean; lastX: number; dir: number; turns: number[] }
   let press: Press | null = null;
   /** He is in the hand / in the air after a throw. */
@@ -345,10 +450,16 @@
   let flying = $state(false);
   /** Stage cursor (fine pointers): pointing hand, open pinch over a liftable pig, pinched while holding. */
   let cursor = $state<'point' | 'grab' | 'hold'>('point');
+  /** Bumped by every pick-up, re-setup and leaving the hub: a landing (and its reaction) from before no longer reacts. */
   let flightToken = 0;
+  /** False once the hub is gone: reactions, delayed lines and stage setup still in flight stop there. */
+  let alive = true;
   let poutUntil = 0;
   const tosses: number[] = [];
   let nextHeldOink = 0;
+  /** Whole turns round the hand counted so far this hold (a whoosh per turn while he spins). */
+  let spinTurns = 0;
+  let lastWhoosh = 0;
   let lastGiggle = 0;
   let lastTickleBurst = 0;
   let lastTickleLine = -Infinity;
@@ -405,6 +516,7 @@
     if (g.lifted) {
       stage.moveHeld(e.clientX, e.clientY, e.timeStamp);
       tickleCheck(g, e.clientX);
+      spinCheck();
       return;
     }
     if (g.onPig && canLift() && Math.hypot(e.clientX - g.x0, e.clientY - g.y0) > DRAG_PX) lift(e);
@@ -441,12 +553,14 @@
     flying = false;
     g.lifted = true;
     g.lastX = e.clientX;
+    endThought();
     holding = true;
     cursor = 'hold';
     setPageHold(true);
     stage.moveHeld(e.clientX, e.clientY, e.timeStamp);
     audio.sfx(caught ? 'surprise' : 'oink');
     nextHeldOink = performance.now() + 2200 + Math.random() * 2500;
+    spinTurns = 0;
     liftFun();
   }
 
@@ -454,11 +568,14 @@
     if (!holding) return;
     holding = false;
     setPageHold(false);
-    const v = gentle ? { vx: 0, vy: 0 } : stage.heldThrow();
+    // a throw whooshes; a put-down mid-sway doesn't (judged like the landing: his own dangling sway is no throw)
+    const v = gentle ? { vx: 0, vy: 0 } : stage.heldToss();
     if (Math.hypot(v.vx, v.vy) >= WHOOSH_SPEED) audio.sfx('whoosh');
+    endThought();
     flying = true;
     const token = ++flightToken;
-    void stage.releaseHeld({ vx: v.vx, vy: v.vy, onImpact }).then((r) => {
+    // let go: the stage launches him at heldThrow() and judges the landing without his own dangling sway
+    void stage.releaseHeld(gentle ? { vx: 0, vy: 0, onImpact } : { onImpact }).then((r) => {
       if (token !== flightToken) return;
       flying = false;
       void landed(r);
@@ -486,6 +603,11 @@
     const turned = g.dir !== 0;
     g.dir = dir;
     if (!turned) return;
+    // circling the hand whirls him round: that is not a rub
+    if ((stage.heldSwing()?.whirl ?? 0) > 0.3) {
+      g.turns.length = 0;
+      return;
+    }
     const t = performance.now();
     g.turns.push(t);
     if (g.turns.length > 3) g.turns.shift();
@@ -507,6 +629,20 @@
       lastTickleLine = t;
       say(pick(TICKLE_LINES[pig]));
     }
+  }
+
+  /** Whirled round the hand: a whoosh for every full turn while he really spins (rate-limited). */
+  function spinCheck() {
+    const sw = stage.heldSwing();
+    if (!sw) return;
+    const n = Math.trunc(sw.turns);
+    if (n === spinTurns) return;
+    spinTurns = n;
+    const t = performance.now();
+    if (Math.abs(sw.spin) < 6 || t - lastWhoosh < 300) return;
+    lastWhoosh = t;
+    audio.sfx('whoosh');
+    nextHeldOink = Math.max(nextHeldOink, t + 1200);
   }
 
   /** A happy oink now and then while he hangs around (rate-limited). */
@@ -544,11 +680,13 @@
       pout();
       return;
     }
+    const token = flightToken;
     const plan = landingReaction(r.kind);
     if (plan.burst) stage.burstOn('pig', plan.burst);
     if (plan.sfx) audio.sfx(plan.sfx);
     for (const step of plan.steps) {
-      if (holding || flying) return; // picked up again: the new landing reacts instead
+      // picked up again (the new landing reacts instead), the stage was rebuilt, or the hub is gone: stop here
+      if (!alive || token !== flightToken || holding || flying) return;
       if (step.sfx) audio.sfx(step.sfx);
       await playClip(reactionClip(step.anim));
     }
@@ -603,6 +741,7 @@
 
   /** Something re-built the stage (moved, fell asleep, changed clothes): forget the hand. */
   function resetHold() {
+    endThought(); // he moved, changed clothes or fell asleep
     flightToken++;
     holding = false;
     flying = false;
@@ -650,13 +789,35 @@
     game.persist();
     letter = null;
     rollCall = !stampCard(game.save, now()).claimedToday;
-    if (!rollCall) chatter('greet');
+    if (!rollCall) {
+      chatter('greet');
+      scheduleFirstBeat();
+    }
   }
 
   function closeRollCall() {
     rollCall = false;
     chatter(asleep ? 'sleepy' : undefined);
+    scheduleFirstBeat();
   }
+
+  // A want, a sheet, the letter, roll call, the menu, the shortcut help or sleep takes the moment: the cloud goes.
+  $effect(() => {
+    if (want || sheet || letter || rollCall || ui.menu || ui.help || asleep) untrack(endThought);
+  });
+
+  // He strolls: the cloud keeps its side unless it would leave the stage there and fit better on the other side.
+  $effect(() => {
+    const t = thought, h = head, w = layout?.cssWidth ?? 0;
+    if (!t || !(w > 0)) return;
+    untrack(() => {
+      const wPct = (cloudSize(t.label.length, 0).w / w) * 100;
+      const overRight = h.x + 8 + wPct - 100; // past the right edge when it opens to his right
+      const overLeft = wPct + 8 - h.x; // past the left edge when it opens to his left
+      if (!thoughtFlip && overRight > 0 && overLeft < overRight) thoughtFlip = true;
+      else if (thoughtFlip && overLeft > 0 && overRight < overLeft) thoughtFlip = false;
+    });
+  });
 
   $effect(() => {
     if (!awayFlag) return;
@@ -685,6 +846,7 @@
     applyGround(); // reset() put the ground back at the stage default
     if (l === 'dorm') await stage.setBackground(id, tr);
     else await stage.setLocation(l, tr);
+    if (!alive) return; // left while the background loaded: the next screen owns the stage now
     stage.clearPortraits();
     resetHold();
     stage.clearActors();
@@ -727,8 +889,11 @@
     untrack(() => { if (ready) stage.setPetals(mode === 'w' ? 'normal' : 'light'); });
   });
 
+  // While a thought is visible the (non-live) canvas description mentions it; nothing is announced when it appears.
+  const thinkingAbout = $derived(thought ? ` He’s thinking about ${thought.label}.` : '');
+
   $effect(() => {
-    const text = `${placeName}, ${tod}. ${ch.name} ${asleep ? 'is asleep' : p.sick ? 'is a little sick' : `looks ${mood === 'great' || mood === 'good' ? 'happy' : mood === 'okay' ? 'okay' : 'a bit down'}`}.`;
+    const text = `${placeName}, ${tod}. ${ch.name} ${asleep ? 'is asleep' : p.sick ? 'is a little sick' : `looks ${mood === 'great' || mood === 'good' ? 'happy' : mood === 'okay' ? 'okay' : 'a bit down'}`}.${thinkingAbout}`;
     untrack(() => { if (ready) stage.setDescription(text); });
   });
 
@@ -758,6 +923,7 @@
       return;
     }
     if (!ready) { game.go('select'); return; }
+    game.session.roomShown = true; // from here on, random home scenes may take over on arrival again
     game.recordDay();
 
     letter = welcomeBack(game.save, now());
@@ -770,48 +936,63 @@
     const posTimer = setInterval(() => {
       const pos = stage.actorPosition('pig');
       if (pos && (pos.x !== pigPos.x || pos.y !== pigPos.y)) pigPos = pos;
-      if (holding) heldChatter();
-      else if (hovering && !press) updateHover(); // he may have walked under a resting cursor
+      if (holding) {
+        spinCheck(); // he may keep spinning while the hand rests
+        heldChatter();
+      } else if (hovering && !press) updateHover(); // he may have walked under a resting cursor
     }, 200);
 
-    let talkTimer: ReturnType<typeof setTimeout>;
-    const scheduleTalk = (ms: number) => {
-      talkTimer = setTimeout(() => {
-        if (!letter && !rollCall && !sheet && !busy && !holding && !flying) chatter();
-        scheduleTalk(20_000 + Math.random() * 20_000);
-      }, ms);
-    };
-    if (!letter && !rollCall) setTimeout(() => chatter(asleep ? 'sleepy' : 'greet'), 700);
-    scheduleTalk(18_000);
+    // The ambient beat (thoughts and today's chatter) starts 12–20 s after the greet line.
+    const greetTimer = !letter && !rollCall ? setTimeout(() => chatter(asleep ? 'sleepy' : 'greet'), 700) : undefined;
+    scheduleFirstBeat();
     schedulePetal(true);
 
-    // Losing the pointer (alt-tab, tab hidden) sets him down gently.
+    // Losing the pointer (alt-tab, tab hidden) sets him down gently. A hidden tab ends the cloud; coming back starts
+    // the beat again as if the room had just settled.
     const onBlur = () => {
       if (press?.lifted || holding) cancelPress();
     };
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') onBlur();
+      if (document.visibilityState === 'hidden') {
+        onBlur();
+        endThought();
+        clearTimeout(beatTimer);
+      } else scheduleFirstBeat();
+    };
+    // ?debug panel "think now": the next ambient beat right away (blocks still apply).
+    const onThinkNow = () => {
+      clearTimeout(beatTimer); // runBeat() schedules the next one: never leave two chains running
+      runBeat();
     };
     addEventListener('blur', onBlur);
+    addEventListener('kempanion:think-now', onThinkNow);
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
+      alive = false;
       offLayout();
       clearInterval(posTimer);
-      clearTimeout(talkTimer);
+      clearTimeout(beatTimer);
+      clearTimeout(greetTimer);
       clearTimeout(petalTimer);
       clearTimeout(lineTimer);
+      clearTimeout(speakTimer);
       cancelAnimationFrame(hoverRaf);
       cancelAnimationFrame(groundRaf);
       removeEventListener('blur', onBlur);
+      removeEventListener('kempanion:think-now', onThinkNow);
       document.removeEventListener('visibilitychange', onVisibility);
-      flightToken++; // a landing still in the air must not react on the next screen
-      if (holding) void stage.releaseHeld({ vx: 0, vy: 0 });
+      // The stage outlives this screen: leaving mid-toss must not hand the next one a pig still in the hand, in the
+      // air or tumbling-and-laughing. The landing reaction stops (token + alive), and the hub's pig leaves the stage
+      // (removeActor ends a hold / throw as 'gone' and drops his bubbles) with his hearts and sparkles; the next hub
+      // visit spawns him afresh.
+      flightToken++;
       press = null;
       setPageHold(false);
       petal?.handle.cancel();
-      stage.idleBehavior('pig', false);
+      stage.removeActor('pig');
       stage.clearBubbles();
+      stage.clearBursts();
       stage.setTimeOfDay('auto');
     };
   });
@@ -821,6 +1002,21 @@
 </script>
 
 {#if ready}
+  <!-- Badges. On the pager (T) they sit in the stage's top corners; in W and S the status and dock overlays cover
+       those corners, so they go in the overlay layer instead: the chip beside the status pill (W) or under it (S),
+       the light beside the needs panel. -->
+  {#snippet petalChip()}
+    <button type="button" class="petal-chip" onclick={catchByKey}>
+      <Icon id="petal_gold" size={18} /> Golden petal!
+    </button>
+  {/snippet}
+
+  {#snippet attentionLight()}
+    <button type="button" class="attention" onclick={() => open('stats')} aria-label="{ch.name} needs attention. Open stats.">
+      <Icon id="alert" size={22} />
+    </button>
+  {/snippet}
+
   <GameLayout chrome="pager">
     {#snippet status()}
       <div class="statusbar">
@@ -828,8 +1024,10 @@
         <ClockChip small />
         <span class="spacer"></span>
         <AcornChip small />
-        {#if viewport.mode !== 's'}<BrainChip small />{/if}
+        <!-- ends the pill in every layout: tutorial_big_brain says "top of the screen" and App's coach mark rings it -->
+        <BrainChip small />
       </div>
+      {#if petal && viewport.mode === 'w'}{@render petalChip()}{/if}
     {/snippet}
 
     {#snippet dock()}
@@ -850,6 +1048,8 @@
     {/snippet}
 
     {#snippet info()}
+      {#if petal && viewport.mode === 's'}{@render petalChip()}{/if}
+      {#if attention && viewport.mode !== 't'}{@render attentionLight()}{/if}
       <div class="needs" aria-label="{ch.name}'s needs">
         {#each NEED_IDS as n (n)}
           <NeedMeter need={n} value={p.needs[n]} compact={viewport.mode !== 'w'} pipsOnly={viewport.mode === 's'} />
@@ -870,7 +1070,7 @@
         onlostpointercapture={(e) => { if (press && e.pointerId === press.id) cancelPress(); }}
         onpointerleave={leave}
       >
-        <StageHost label="{placeName}. {ch.name}{asleep ? ' is asleep' : ''}.">
+        <StageHost label="{placeName}. {ch.name}{asleep ? ' is asleep' : ''}.{thinkingAbout}">
           {#each crumbs as c, i (i)}
             <button type="button" class="crumb" style:left="{c.x}%" style:top="{c.y}%" aria-label="Crumbs. Tap to tidy up." onclick={() => act('tidy')}>
               <span class="bits" aria-hidden="true"></span>
@@ -878,23 +1078,42 @@
           {/each}
 
           {#if want && !holding && !flying && !speaking}
-            <button type="button" class="want" style:left="{Math.min(head.x + 8, 70)}%" style:top="{head.y + 14}%" onclick={() => wantTap(want)} aria-label="{ch.name} is thinking about {want.label}">
+            <!-- Opens toward the roomier side (flip: to his left, tail on the right); --want-w estimates its width so
+                 it can slide back over his head instead of crossing the stage edge (see .want). -->
+            {@const flip = head.x > 50}
+            <button
+              type="button"
+              class="want"
+              class:flip
+              style:--want-at="{flip ? 108 - head.x : head.x + 8}%"
+              style:--want-w="calc(min({want.label.length}ch, 9em) + 44px + 2 * var(--px))"
+              style:top="{head.y + 14}%"
+              title={want.label}
+              onclick={() => wantTap(want)}
+              aria-label={wantName(ch.name, want)}
+            >
               <Icon id={want.icon} size={24} />
               <span class="wl">{want.label}</span>
             </button>
+          {:else if thought && !want && !holding && !flying && !speaking}
+            <!-- A thought: a lilac cloud in the want's slot (they never show together), same side rule. Silent on
+                 appear; tap for his line. -->
+            <ThoughtBubble
+              icon={thought.icon}
+              label={thought.label}
+              {head}
+              flip={thoughtFlip}
+              ms={thought.ms}
+              id={thought.id}
+              aria={thoughtName(ch.name, thought.label)}
+              onclick={thoughtTap}
+              onexpire={endThought}
+            />
           {/if}
 
-          {#if petal}
-            <button type="button" class="petal-chip" onclick={catchByKey}>
-              <Icon id="petal_gold" size={18} /> Golden petal!
-            </button>
-          {/if}
+          {#if petal && viewport.mode === 't'}{@render petalChip()}{/if}
 
-          {#if attention}
-            <button type="button" class="attention" onclick={() => open('stats')} aria-label="{ch.name} needs attention. Open stats.">
-              <Icon id="alert" size={22} />
-            </button>
-          {/if}
+          {#if attention && viewport.mode === 't'}{@render attentionLight()}{/if}
 
           {#each pops as pop (pop.id)}
             <NumberPop text={pop.text} x={pop.x} y={pop.y} color={pop.color} delay={pop.delay} />
@@ -965,6 +1184,12 @@
   .place { display: inline-flex; align-items: center; gap: 4px; min-width: 0; font-size: 14px; }
   .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spacer { flex: 1; }
+  /* the brain chip keeps its size; the place name gives way (ellipsis) */
+  .statusbar > :global([data-coach='brain']) { flex-shrink: 0; }
+  /* The chip's Big Brain panel (BrainChip's fixed .panel-layer) opens inside this status row. In W and S the rows are
+     overlay layers (z-index 1) painted in order, so the needs, keys and text box would cover the panel (S: its buttons
+     under the text box): lift the row while the panel is open. */
+  :global(.gl.chrome-pager > .frame > .r.status:has(.panel-layer)) { z-index: 5; }
   .dockbar { display: flex; flex-direction: var(--dir, row); gap: 6px; width: 100%; }
   .keys { display: flex; flex-direction: var(--dir, row); gap: 6px; width: 100%; }
   .keys > :global(.lcd) { flex: 1 1 0; }
@@ -996,9 +1221,14 @@
   }
   .crumb:focus-visible { outline: var(--px) dashed var(--gold); }
 
-  /* Thought bubble beside his head (speech bubbles from the stage go above it). */
+  /* Want bubble beside his head (speech bubbles from the stage go above it). Its near edge sits at --want-at from
+     the stage edge on his side; when the bubble (≈ --want-w: label + icon, padding, border) would not fit before the
+     far edge, it slides back over his head, and it is never wider than the room, so it stays 6px inside the stage
+     (a long label ellipsizes; the full text is in the title). */
   .want {
     position: absolute;
+    left: min(var(--want-at), calc(100% - 6px - var(--want-w)));
+    max-width: max(calc(100% - 6px - var(--want-at)), var(--want-w));
     transform: translate(0, -100%);
     display: inline-flex;
     align-items: center;
@@ -1024,13 +1254,16 @@
   }
   .want::before { left: -10px; bottom: 6px; width: 6px; height: 6px; }
   .want::after { left: -18px; bottom: 0; width: 4px; height: 4px; }
-  .wl { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* to his left: measured from the right edge, the tail dots point right, at his head */
+  .want.flip { left: auto; right: min(var(--want-at), calc(100% - 6px - var(--want-w))); }
+  .want.flip::before { left: auto; right: -10px; }
+  .want.flip::after { left: auto; right: -18px; }
+  .wl { min-width: 0; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @keyframes want-bob { 50% { transform: translate(0, calc(-100% - 2px)); } }
 
+  /* Badges: placed per mode below (T: stage corners; W/S: overlay regions, as flex items). */
   .attention {
-    position: absolute;
-    right: 6px;
-    top: 6px;
+    flex: none;
     width: 44px;
     height: 44px;
     display: grid;
@@ -1044,9 +1277,7 @@
   @keyframes att-blink { 50% { opacity: 0.35; } }
 
   .petal-chip {
-    position: absolute;
-    left: 6px;
-    top: 6px;
+    flex: none;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -1057,6 +1288,7 @@
     color: var(--gold);
     font: inherit;
     font-size: 13px;
+    white-space: nowrap;
     cursor: pointer;
     pointer-events: auto;
   }
@@ -1088,6 +1320,9 @@
   .say { display: block; min-height: 2.8em; }
   .whisper { opacity: 0.7; font-style: italic; font-size: 0.92em; }
   .more { position: absolute; right: 10px; bottom: 4px; font-family: var(--font-display); font-size: 11px; color: var(--sakura-2); }
+  /* a clamped second line runs under the cue: fade it out behind TALK ▶ (the box's own bottom color) */
+  .more { padding-left: 14px; background: linear-gradient(90deg, transparent, rgba(16, 10, 36, 0.94) 12px); }
+  :global(.mode-t) .more { padding-top: 12px; -webkit-mask-image: linear-gradient(transparent, #000 10px); mask-image: linear-gradient(transparent, #000 10px); }
   .care-note { margin: 0; font-size: 14px; }
 
   /* ── mode tuning ── */
@@ -1097,6 +1332,8 @@
   :global(.mode-t) .dockbar > :global(*) { flex: 1; }
   :global(.mode-t) .ticker { margin: 14px 8px 6px; width: auto; }
   :global(.mode-t.chrome-pager) .statusbar { color: var(--ink); background: rgba(255, 255, 255, 0.35); }
+  :global(.mode-t) .petal-chip { position: absolute; left: 6px; top: 6px; }
+  :global(.mode-t) .attention { position: absolute; right: 6px; top: 6px; }
 
   :global(.mode-w) .statusbar {
     width: auto;
@@ -1105,7 +1342,7 @@
     border: var(--px) solid var(--box-edge);
     padding: calc(var(--u) * 1.5) calc(var(--u) * 4);
   }
-  :global(.mode-w) .keys { width: auto; --lcd-w: max(48px, calc(var(--u) * 22)); --lcd-h: max(48px, calc(var(--u) * 22)); --lcd-icon: max(24px, calc(var(--u) * 11)); --lcd-font: max(9px, calc(var(--u) * 4)); }
+  :global(.mode-w) .keys { width: auto; --lcd-w: max(48px, calc(var(--u) * 22)); --lcd-h: max(48px, calc(var(--u) * 22)); --lcd-icon: max(24px, calc(var(--u) * 11)); --lcd-font: max(11px, calc(var(--u) * 4)); }
   :global(.mode-w) .keys > :global(.lcd) { flex: 0 0 auto; }
   :global(.mode-w) .needs {
     flex-direction: column;
@@ -1116,18 +1353,27 @@
     min-width: calc(var(--u) * 92);
   }
   :global(.mode-w) .dockbar { width: auto; }
+  :global(.mode-w) .petal-chip { margin-left: calc(var(--u) * 3); font-size: max(13px, calc(var(--u) * 5)); }
+  :global(.mode-w) .attention { margin-right: calc(var(--u) * 2); }
   :global(.mode-w) .ticker { min-height: calc(var(--u) * 36); padding: calc(var(--u) * 7) calc(var(--u) * 6) calc(var(--u) * 4); }
   :global(.mode-w) .plate { font-size: calc(var(--u) * 6); top: calc(var(--u) * -5); }
 
   :global(.mode-s) .keys { height: 100%; }
-  :global(.mode-s) .keys > :global(.lcd) { --lcd-icon: 26px; --lcd-font: 9px; }
+  :global(.mode-s) .keys > :global(.lcd) { --lcd-icon: 26px; --lcd-font: 11px; }
+  /* S: the chip goes to the left end of the needs row, right under the status pill */
+  :global(.mode-s) .petal-chip { margin-right: auto; }
+  :global(.mode-s) .attention { margin-right: 4px; }
   :global(.mode-s) .dockbar > :global(*) { flex: 1; min-height: 44px; }
-  :global(.mode-s) .statusbar { width: auto; background: rgba(26, 16, 48, 0.78); font-size: 12px; }
+  /* S: the pill ends in the 44px brain chip, flush top and bottom (a 44px pill, not 52px: the stage is short here;
+     30px without the chip, as before), and speech bubbles stay below the taller status row */
+  :global(.mode-s) .statusbar { width: auto; background: rgba(26, 16, 48, 0.78); font-size: 12px; padding-block: 0; min-height: 30px; }
+  :global(.gl.chrome-pager.mode-s .r.status:has([data-coach='brain']) ~ .r.stage) { --bubble-top: 58px; }
   :global(.mode-s) .needs { background: rgba(26, 16, 48, 0.78); padding: 4px 6px; max-width: 46%; }
   :global(.mode-s) .ticker { min-height: 0; padding: 14px 10px 6px; font-size: 14px; }
   /* W/S: the box overlays the stage and the pig stands on its top edge, so it keeps a steady two-line
-     height (a rare third line is clipped here; the full line is in his speech bubble too). */
-  :global(.mode-w) .say, :global(.mode-s) .say {
+     height (a rare third line is clipped here; the full line is in his speech bubble too). T too: a tapped thought's
+     longer line would otherwise wrap to a third line on a 375 px phone, grow the box and shrink the stage. */
+  :global(.mode-w) .say, :global(.mode-s) .say, :global(.mode-t) .say {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;

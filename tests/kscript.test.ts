@@ -166,6 +166,27 @@ describe('parser', () => {
       { kind: 'hide', pig: null },
       { kind: 'expr', pig: 'piggy-1', expression: 'surprised' },
     ]);
+    expect(cmds('[pager] [pager Feed drink] [pager bottom] [pager top play] [pager off]')).toEqual([
+      { kind: 'pager', keys: [] },
+      { kind: 'pager', keys: ['feed', 'drink'] },
+      { kind: 'pager', keys: ['light', 'care', 'talk', 'stats'] },
+      { kind: 'pager', keys: ['feed', 'drink', 'play', 'wash'] },
+      { kind: 'pager', keys: null },
+    ]);
+    expect(() => cmds('[pager snack]')).toThrow(/pager key/);
+  });
+
+  test('[brain] / [brain off]: the hub’s Big Brain chip over the scene', () => {
+    expect(cmds('[brain] [brain on] [BRAIN Off] [brain off]')).toEqual([
+      { kind: 'brain', on: true },
+      { kind: 'brain', on: true },
+      { kind: 'brain', on: false },
+      { kind: 'brain', on: false },
+    ]);
+    expect(errorsOf('=== s\n---\n[brain big]')).toEqual(['3: [brain] must be one of off, on (got "big")']);
+    expect(errorsOf('=== s\n---\n[brain of]')).toEqual(['3: [brain] must be one of off, on (got "of" (did you mean "off"?))']);
+    expect(errorsOf('=== s\n---\n[brain on off]')).toEqual(['3: usage: [brain] or [brain off]']);
+    expect(errorsOf('=== s\n---\n[brian]')).toEqual(['3: unknown command [brian] (did you mean "brain"?)']);
   });
 
   test('CRLF, tabs, BOM, // comments and trailing # comments', () => {
@@ -590,6 +611,14 @@ describe('interpreter', () => {
     expect(r.log).toEqual(['minigame debug piggy-3 replay', '[outfit]', 'narrator: end']);
   });
 
+  test('[brain] goes to the stage between its lines, in album replays too', async () => {
+    for (const replay of [false, true]) {
+      const r = await run('=== s\n---\nnarrator: a\n[brain]\nnarrator: b\n[brain off]\nnarrator: c', { replay });
+      expect(r.log).toEqual(['narrator: a', '[brain]', 'narrator: b', '[brain]', 'narrator: c']);
+      expect(r.store).toEqual([]);
+    }
+  });
+
   test('[call] plays another scene inline', async () => {
     const r = await run('=== a\n---\nnarrator: a1\n[call b]\nnarrator: a2\n=== b\n---\nnarrator: b1');
     expect(r.log).toEqual(['narrator: a1', 'narrator: b1', 'narrator: a2']);
@@ -691,7 +720,7 @@ describe('validator', () => {
       'error 9: unknown background "nowhere"',
       'error 10: unknown item "pub_sub" (did you mean "tender_sub"?) (canonical ids: GAME_DESIGN.md §8)',
       'error 11: piggy-1 has no "scrubs" outfit (his are everyday and volleyball)',
-      'error 12: unknown mini-game "chess" (volley, perfusion, debug, petals)',
+      'error 12: unknown mini-game "chess" (volley, perfusion, debug, petals, surgery, xfeed)',
       'warning 13: flag "never_set" is read but no scene sets it (fine if game code sets it)',
       'error 15: unknown text token {plyer} (known: {player} {companion} {time} {timeofday} {weekday} {fact:key|fallback} {flag:name|fallback})',
       'error 16: unknown jingle "fanfare"',
@@ -722,6 +751,15 @@ describe('validator', () => {
       'error 3: unknown metadata key "trigerr" (did you mean "trigger"?)',
       'warning 4: unknown metadata key "mood: x" (known: title, pig, heart, chapter, trio, ending, trigger, priority, cg, repeat, replayable, summary)',
     ]);
+  });
+
+  test('[brain] cues validate clean; a bad one is reported at its line', () => {
+    const src = '=== b\ntitle: B\n---\nnarrator: Look up.\n[brain]\nnarrator: That chip.\n[brain off]\n[brain big]\n[brain on off]';
+    expect(issues(src)).toEqual([
+      'error 8: [brain] must be one of off, on (got "big")',
+      'error 9: usage: [brain] or [brain off]',
+    ]);
+    expect(issues('=== b\ntitle: B\n---\n[if companion = piggy-1]\n  [brain]\n  narrator: Up top.\n[endif]\n[brain off]')).toEqual([]);
   });
 });
 

@@ -2,6 +2,7 @@
   // Bag: inventory grid with tabs, item details, USE on your Kempanion (applyAction) or GIVE a gift to a pig.
   // params: { back?: ScreenId, backParams?: object, pigs?: PigId[] (who is here to receive gifts) }
   import '../meta/meta.css';
+  import { tick } from 'svelte';
   import { PIG_IDS, type Expression, type ItemDef, type PigId } from '../../types';
   import { CHARACTERS } from '../../content/characters';
   import { game } from '../../state/game.svelte';
@@ -50,7 +51,10 @@
 
   let tab = $state<ShopTab>('food');
   let selId = $state<string | null>(null);
+  /** Just used the last one: its card stays up ("all gone") with his reaction until you pick something else. */
+  let gone = $state<ItemDef | null>(null);
   let slots: HTMLButtonElement[] = $state([]);
+  let detailsEl = $state<HTMLElement>();
   let speaker = $state<PigId | null>(null);
   let speakerExpr = $state<Expression>('happy');
   let notice = $state('');
@@ -58,20 +62,36 @@
   $effect(() => () => tw.stop());
 
   const list = $derived(entries.filter((e) => shopTabOf(e.def) === tab));
-  const sel = $derived(list.find((e) => e.def.id === selId) ?? list[0] ?? null);
+  const sel = $derived(
+    list.find((e) => e.def.id === selId) ?? (gone && gone.id === selId ? { def: gone, n: 0 } : null) ?? list[0] ?? null,
+  );
   const companion = $derived(game.save.companion);
   const action = $derived(sel ? actionForItem(sel.def) : null);
-  const canUse = $derived(!!sel && !!companion && !!action && action !== 'gift');
+  const canUse = $derived(!!sel && sel.n > 0 && !!companion && !!action && action !== 'gift');
   const isGift = $derived(sel?.def.category === 'gift');
   const showTastes = $derived(!!sel && ['food', 'drink', 'gift'].includes(sel.def.category));
   const SLOT_MIN = 12;
   const empties = $derived(Math.max(0, SLOT_MIN - list.length));
 
+  /** A reaction or notice belongs to the item it was about: drop it when the selection moves on. */
+  function clearFeedback() {
+    tw.stop();
+    speaker = null;
+    notice = '';
+    gone = null;
+  }
+
   function pick(id: string) {
     if (selId === id) return;
     selId = id;
-    notice = '';
+    clearFeedback();
     ui.move();
+  }
+
+  /** Feedback lands at the bottom of the details; bring it into view when they scroll (phone landscape, short phones). */
+  async function showFeedback() {
+    await tick();
+    if (detailsEl) detailsEl.scrollTop = detailsEl.scrollHeight;
   }
 
   function react(pig: PigId, text: string, expr: Expression = 'happy') {
@@ -79,6 +99,7 @@
     speakerExpr = expr;
     notice = '';
     tw.start(text, pig);
+    void showFeedback();
   }
 
   function use() {
@@ -86,6 +107,7 @@
     if (!companion) {
       ui.error();
       notice = 'Pick a Kempanion first!';
+      void showFeedback();
       return;
     }
     run(companion, action === 'gift' ? 'gift' : action, sel.def);
@@ -102,10 +124,14 @@
       ui.error();
       speaker = null;
       notice = res.reason ?? "He can't use that right now.";
+      void showFeedback();
       return;
     }
     if (res.sfx) ui.sfx(res.sfx);
     else ui.select();
+    // stay on this item even if that was the last one (otherwise the details would jump to the next item)
+    selId = def.id;
+    gone = (game.save.inventory[def.id] ?? 0) > 0 ? null : def;
     const fallback = act === 'gift' ? `For me? Thank you!` : `Thanks! That hit the spot.`;
     react(pig, res.line ?? fallback, res.expression ?? (act === 'gift' ? 'shy_blush' : 'happy'));
   }
@@ -142,6 +168,7 @@
       const j = TAB_DEFS.findIndex((x) => x.id === tab) + (e.key === ']' ? 1 : -1);
       tab = TAB_DEFS[(j + TAB_DEFS.length) % TAB_DEFS.length].id;
       selId = null;
+      clearFeedback();
       ui.move();
       return;
     } else return;
@@ -156,7 +183,7 @@
 <svelte:window {onkeydown} />
 
 <MetaFrame title="BAG" jp="かばん" money onBack={() => goBack('hub')}>
-  <Tabs {tabs} bind:value={tab} label="Bag pockets" compact onchange={() => { selId = null; notice = ''; }} />
+  <Tabs {tabs} bind:value={tab} label="Bag pockets" compact onchange={() => { selId = null; clearFeedback(); }} />
 
   <div class="bag">
     <section class="grid px-scroll" aria-label="Items">
@@ -178,12 +205,12 @@
       {/each}
     </section>
 
-    <section class="km-window details" aria-label="Item details">
+    <section class="km-window details" aria-label="Item details" bind:this={detailsEl}>
       {#if sel}
         <div class="dhead">
-          <span class="bigicon"><ItemIcon id={sel.def.icon} size={64} /></span>
+          <span class="bigicon" class:empty={sel.n === 0}><ItemIcon id={sel.def.icon} size={64} /></span>
           <div>
-            <h2 class="km-title dname">{sel.def.name} <span class="x">×{sel.n}</span></h2>
+            <h2 class="km-title dname">{sel.def.name} <span class="x">{sel.n > 0 ? `×${sel.n}` : 'all gone'}</span></h2>
             {#if effectSummary(sel.def).length}<p class="effects">{effectSummary(sel.def).join('  ')}</p>{/if}
           </div>
         </div>
@@ -191,7 +218,9 @@
         {#if showTastes}<TasteRow item={sel.def} />{/if}
 
         <div class="acts">
-          {#if sel.def.category === 'key'}
+          {#if sel.n === 0}
+            <p class="keep">That was the last one.</p>
+          {:else if sel.def.category === 'key'}
             <p class="keep">A keepsake. It stays in your bag.</p>
           {:else if isGift}
             <p class="lbl">GIVE TO</p>
@@ -271,7 +300,21 @@
   .slot.sel .count { text-shadow: none; }
 
   .details { padding: 14px; gap: 10px; overflow: auto; }
-  .dhead { display: flex; gap: 12px; align-items: center; }
+  /* the icon and name stay pinned while the details scroll (down to his reply after the last one is used, on a phone
+     in landscape): an opaque window-colored band that the text slides under, 4px of it above and 6px (the phone gap,
+     where the 64px icon pokes out of its frame) below. Sticky offsets start inside the scroller's padding, so top =
+     minus that padding pins it flush with the window's edge */
+  .dhead {
+    position: sticky;
+    top: -14px;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: -4px 0 -6px;
+    padding: 4px 0 6px;
+    background: rgb(27, 20, 40);
+  }
   .bigicon {
     display: grid;
     place-items: center;
@@ -281,6 +324,7 @@
     background: rgba(255, 255, 255, 0.08);
     border: var(--px) solid var(--sakura-3);
   }
+  .bigicon.empty { opacity: 0.4; }
   .dname { margin: 0; font-size: 22px; color: var(--sakura-1); }
   .x { font-size: 16px; color: var(--paper); opacity: 0.75; }
   .effects { margin: 4px 0 0; font-family: var(--font-display); font-size: 14px; color: var(--ok); }
@@ -308,6 +352,7 @@
     .bag { grid-template-columns: 1fr; grid-template-rows: minmax(120px, 1fr) auto; gap: 8px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); grid-auto-rows: 64px; gap: 6px; }
     .details { padding: 10px; gap: 6px; max-height: 58vh; }
+    .dhead { top: -10px; }
     .bigicon { width: 52px; height: 52px; }
     .dname { font-size: 18px; }
   }
@@ -315,6 +360,10 @@
     .bag { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); grid-auto-rows: 60px; gap: 6px; }
     .details { padding: 10px; gap: 6px; }
+    .dhead { top: -10px; }
     .bigicon { width: 48px; height: 48px; }
+    /* a smaller reaction box, so more of the item stays in view above it */
+    .reply { padding: 6px 8px; margin-top: 0; }
+    .mini { width: 48px; height: 64px; }
   }
 </style>

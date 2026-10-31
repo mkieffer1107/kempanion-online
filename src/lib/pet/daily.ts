@@ -216,7 +216,7 @@ export const TASK_POOL: readonly TaskDef[] = [
   { id: 'visit_p3', group: 'social', pig: P3, text: "Visit Piggy 3's lab in the Physics Building", match: (s) => s.kind === 'visit' && s.location === 'physics' && !!s.present?.includes(P3) },
   // play & explore
   { id: 'rally_20', group: 'play', pig: P1, text: 'Get a 20-touch rally in Sakura Spike', match: (s) => s.kind === 'minigame' && s.id === 'volley' && (s.stats.maxRally ?? 0) >= 20 },
-  { id: 'perfusion_silver', group: 'play', pig: P2, text: 'Earn silver or better in Perfusion!', match: (s) => s.kind === 'minigame' && s.id === 'perfusion' && medalAtLeast(s.medal, 'silver') },
+  { id: 'perfusion_silver', group: 'play', pig: P2, text: 'Earn silver or better in Swinus Rhythms', match: (s) => s.kind === 'minigame' && s.id === 'perfusion' && medalAtLeast(s.medal, 'silver') },
   { id: 'bugs_7', group: 'play', pig: P3, text: 'Squash 7 bugs in one Bug Hunt', match: (s) => s.kind === 'minigame' && s.id === 'debug' && (s.stats.correct ?? 0) >= 7 },
   { id: 'petals_80', group: 'play', pig: 'signal', text: 'Catch 80 petals in one Petal Catch', match: (s) => s.kind === 'minigame' && s.id === 'petals' && (s.stats.petals ?? 0) >= 80 },
   { id: 'gold_any', group: 'play', pig: 'signal', text: 'Earn a gold medal in any mini-game', match: (s) => s.kind === 'minigame' && s.medal === 'gold' },

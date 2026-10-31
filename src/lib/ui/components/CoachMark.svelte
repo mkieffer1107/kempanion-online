@@ -2,7 +2,9 @@
   // Tutorial pointer: a pulsing pixel ring around one element ([data-coach="<id>"]), a bobbing arrow and a
   // caption with a "Later" button. Lives on document.body so the layout's transforms and overflow never clip
   // it; it follows the target (resize, layout switches) and hides while the target is gone. Clicks go
-  // straight through the ring to the real control underneath.
+  // straight through the ring to the real control underneath. The caption stays inside the viewport, or inside
+  // the `within` element (phone landscape: the stage, so it never covers the side rails' keys); `compact` puts the
+  // button beside the text, for short screens.
   import { onMount } from 'svelte';
   import { motion } from '../meta/motion.svelte';
 
@@ -11,21 +13,40 @@
     text,
     dismissLabel = 'Later',
     ondismiss,
-  }: { target: string; text: string; dismissLabel?: string; ondismiss?: () => void } = $props();
+    within,
+    compact = false,
+  }: {
+    target: string;
+    text: string;
+    dismissLabel?: string;
+    ondismiss?: () => void;
+    /** Selector of the element the caption stays inside (default: the viewport). */
+    within?: string;
+    /** One row: the text, then the button on its right (phone landscape, where height is short). */
+    compact?: boolean;
+  } = $props();
 
-  let rect = $state<{ x: number; y: number; w: number; h: number } | null>(null);
-  let vw = $state(0);
+  interface Box { x: number; y: number; w: number; h: number }
+  let rect = $state<Box | null>(null);
+  /** Where the caption may go: the `within` element, else the viewport. */
+  let area = $state<Box>({ x: 0, y: 0, w: 0, h: 0 });
   let vh = $state(0);
+  let capH = $state(0);
+
+  const boxOf = (r: DOMRect): Box => ({ x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) });
+  const same = (a: Box | null, b: Box) => !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
 
   function measure() {
-    const el = document.querySelector<HTMLElement>(`[data-coach="${target}"]`);
-    vw = innerWidth;
     vh = innerHeight;
+    const bound = within ? document.querySelector<HTMLElement>(within)?.getBoundingClientRect() : undefined;
+    const nextArea = bound && bound.width > 0 && bound.height > 0 ? boxOf(bound) : { x: 0, y: 0, w: innerWidth, h: innerHeight };
+    if (!same(area, nextArea)) area = nextArea;
+    const el = document.querySelector<HTMLElement>(`[data-coach="${target}"]`);
     if (!el) return void (rect = null);
     const r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) return void (rect = null);
-    const next = { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
-    if (!rect || rect.x !== next.x || rect.y !== next.y || rect.w !== next.w || rect.h !== next.h) rect = next;
+    const next = boxOf(r);
+    if (!same(rect, next)) rect = next;
   }
 
   onMount(() => {
@@ -44,12 +65,23 @@
   }
 
   const PAD = 6;
-  /** Arrow and caption go below a target in the top half of the screen, above one in the bottom half. */
-  const below = $derived(rect ? rect.y + rect.h / 2 < vh / 2 : true);
+  /** Arrow and caption go below a target in the top half of the area, above one in the bottom half. */
+  const below = $derived(rect ? rect.y + rect.h / 2 < area.y + area.h / 2 : true);
   const cx = $derived(rect ? rect.x + rect.w / 2 : 0);
-  /** Caption box: centered on the target, kept 12 px inside the viewport. */
-  const capW = $derived(Math.min(340, vw - 24));
-  const capLeft = $derived(Math.max(12, Math.min(vw - capW - 12, cx - capW / 2)));
+  /** Caption box: centered on the target, kept 12 px inside the area. */
+  const capW = $derived(Math.min(340, area.w - 24));
+  const capLeft = $derived(Math.max(area.x + 12, Math.min(area.x + area.w - capW - 12, cx - capW / 2)));
+  /** Under the arrow (or over it); inside a `within` element it slides back in rather than cross its edge. */
+  const capTop = $derived.by(() => {
+    if (!rect || !below) return null;
+    const top = rect.y + rect.h + PAD + 40;
+    return within && capH > 0 ? Math.max(area.y + 12, Math.min(top, area.y + area.h - 12 - capH)) : top;
+  });
+  const capBottom = $derived.by(() => {
+    if (!rect || below) return null;
+    const bottom = vh - rect.y + PAD + 40;
+    return within && capH > 0 ? Math.max(vh - area.y - area.h + 12, Math.min(bottom, vh - area.y - 12 - capH)) : bottom;
+  });
 </script>
 
 {#if rect}
@@ -70,10 +102,12 @@
     ></div>
     <div
       class="caption px-panel dark"
+      class:compact
       style:left="{capLeft}px"
       style:width="{capW}px"
-      style:top={below ? `${rect.y + rect.h + PAD + 40}px` : null}
-      style:bottom={below ? null : `${vh - rect.y + PAD + 40}px`}
+      style:top={capTop === null ? null : `${capTop}px`}
+      style:bottom={capBottom === null ? null : `${capBottom}px`}
+      bind:offsetHeight={capH}
       role="status"
     >
       <p>{text}</p>
@@ -123,6 +157,13 @@
     line-height: 1.35;
   }
   .caption p { margin: 0; }
+  .caption.compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 6px 8px 6px 10px;
+    font-size: 14px;
+    line-height: 1.3;
+  }
   .still .ring, .still .arrow { animation: none; }
 
   @keyframes pulse {

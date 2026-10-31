@@ -1,6 +1,6 @@
 import type { Song } from '../mml';
 
-// Perfusion! (rhythm mini-game). D dorian, a CONSTANT 96 BPM (no tempo changes anywhere), 26 bars = 65 s.
+// Swinus Rhythms (rhythm mini-game). D dorian, a CONSTANT 96 BPM (no tempo changes anywhere), 26 bars = 65 s.
 // The heartbeat track never changes: a crisp lub (kick) on every beat and a dub (kick tuned up) a 16th later,
 // so a chart can sync to beats: beat n is at n × 0.625 s from the song start.
 // Form: count-in 2 bars (heart + a monitor beep on every beat; not looped) | I "resting" 8 (PIGGY 2 motif,
@@ -9,7 +9,7 @@ import type { Song } from '../mml';
 // Every section is the same 8-bar progression: Dm–Gsus4–Dm–C–Dm–G–F/C–Dm. Loops back to I.
 const song: Song = {
   id: 'mini_perfusion',
-  title: 'Perfusion!',
+  title: 'Swinus Rhythms',
   bpm: 96,
   loop: true,
   echo: 0.15,

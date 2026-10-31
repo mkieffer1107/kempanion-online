@@ -1,5 +1,5 @@
 <script lang="ts">
-  // ?debug panel: time warp, bond/acorns, needs, sickness, scenes, album, saves. Never shown without ?debug.
+  // ?debug panel: time warp, bond/acorns, needs, sickness, thought clouds, scenes, album, saves. Never shown without ?debug.
   import { NEED_IDS, PIG_IDS, type PigId } from '../types';
   import { game, type ScreenId } from '../state/game.svelte';
   import { clockOffset, now } from '../state/clock';
@@ -7,6 +7,7 @@
   import { allScenes } from '../vn';
   import { CHARACTERS } from '../content/characters';
   import { clockString, localDate, timeOfDay } from '../time';
+  import { thoughtsToday } from '../pet/thoughts';
   import { toast } from '../ui/toasts.svelte';
 
   const H = 3_600_000;
@@ -62,6 +63,25 @@
     game.save.flags[`pet.${comp}.sickAt`] = now();
     game.persist();
     toast(`${CHARACTERS[comp].name} is sick (debug).`, { icon: 'care' });
+  }
+
+  // Thought clouds (pet/thoughts.ts): today's log is marked when a cloud shows. ?debug&thoughts=fast shortens the gaps.
+  const thoughtLog = $derived(
+    PIG_IDS.map((p) => {
+      const ids = thoughtsToday(game.save, p, gameClock.ms);
+      return `${CHARACTERS[p].name} ${ids.length}${ids.length ? ` (last ${ids.slice(-2).join(', ')})` : ''}`;
+    }).join(' · '),
+  );
+
+  /** The hub or place screen runs its next ambient beat right now (blocks still apply). */
+  function thinkNow() {
+    dispatchEvent(new Event('kempanion:think-now'));
+  }
+
+  function clearThoughts() {
+    for (const p of PIG_IDS) delete game.save.flags[`pet.${p}.thoughts`];
+    game.persist();
+    toast('Today’s thoughts cleared (debug).', { icon: 'talk' });
   }
 
   function playScene() {
@@ -168,6 +188,11 @@
         <button type="button" onclick={sick}>make sick</button>
         <button type="button" onclick={() => { if (comp) { game.save.pigs[comp].mess = 3; game.persist(); } }}>crumbs</button>
       </div>
+      <div class="r">
+        <button type="button" onclick={thinkNow}>think now</button>
+        <button type="button" onclick={clearThoughts}>clear today’s thoughts</button>
+      </div>
+      <div class="r log">thoughts today: {thoughtLog}</div>
     </section>
 
     <section>
@@ -232,6 +257,7 @@
   header span { flex: 1; opacity: 0.8; }
   h4 { margin: 8px 0 4px; color: #7fff7f; font-size: 12px; }
   .r { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
+  .log { font-size: 11px; opacity: 0.8; overflow-wrap: anywhere; }
   button, select {
     font: inherit;
     min-height: 32px;

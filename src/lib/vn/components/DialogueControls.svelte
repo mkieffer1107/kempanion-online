@@ -17,7 +17,7 @@
     onclick={(e) => act(e, () => dialogue.openBacklog())}>LOG</button>
   <button type="button" class="px-btn ghost" title="Auto-advance (A)" aria-pressed={dialogue.auto}
     onclick={(e) => act(e, () => dialogue.toggleAuto())}>AUTO</button>
-  <button type="button" class="px-btn ghost" title="Skip read text (S, or hold Ctrl)" aria-pressed={dialogue.skipping}
+  <button type="button" class="px-btn ghost" title="Skip ahead to the next choice (S, or hold Ctrl)" aria-pressed={dialogue.skipping}
     onclick={(e) => act(e, () => dialogue.toggleSkip())}>SKIP</button>
   <button type="button" class="px-btn ghost" title="Hide the text box (H)" disabled={!dialogue.visible}
     onclick={(e) => act(e, () => dialogue.toggleHidden())}>HIDE</button>

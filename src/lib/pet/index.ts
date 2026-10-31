@@ -31,7 +31,14 @@ export type { BuyResult } from './economy';
 export { priceOf, couponActive, buyItem, goldenPetalAvailable, goldenPetalsLeft, catchGoldenPetal } from './economy';
 
 export type { Want, WantKind, WantResult } from './wants';
-export { currentWant, fulfillWant, wantSlot } from './wants';
+export { currentWant, fulfillWant, wantSlot, wantName } from './wants';
+
+// Idle thought clouds: flavor only, seeded per pig and day (thoughts.ts; the banks are in ./thought-bank).
+export type { Thought, ThoughtCtx, ThoughtPref, ThinkBlock } from './thoughts';
+export {
+  THOUGHT, pickThought, markThought, thinkBlock, thoughtPref, thoughtName, thoughtGap, firstBeatMs, thoughtMs,
+  thoughtsToday, thoughtTags, thoughtWeight, topicHint,
+} from './thoughts';
 
 export type { SignalResult } from './signals';
 export { recordSignal, saysBased } from './signals';

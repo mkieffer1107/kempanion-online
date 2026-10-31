@@ -12,8 +12,8 @@ import { normalize } from './normalize';
 import { pickWeighted, rngFrom, type Rng } from './rng';
 import { LINES } from './lines';
 import type { Bank, Tier, TierTag } from './lines/types';
-import { extractSaid, fill, isPersonal, parseFacts, sentenceCount, type Vars } from './template';
-import { DESSERTS, HOME_NAME, NICKNAME, OWN_PASSION, PIG_NAME, PLACE_NAME, TOPIC_LABEL, tasteFor } from './world';
+import { extractSaid, fill, isPersonal, isUndecided, parseArithmetic, parseFacts, sentenceCount, type Vars } from './template';
+import { DESSERTS, HOME_NAME, NICKNAME, OWN_MAJOR, OWN_PASSION, PIG_NAME, PLACE_NAME, TOPIC_LABEL, tasteFor } from './world';
 
 export const MAX_CHARS = 280;
 export const MAX_SENTENCES = 3;
@@ -124,6 +124,9 @@ export function buildVars(pig: PigId, ctx: Partial<ChatContext>, extras: VarExtr
     last: extras.last,
     said: extras.said,
     n: res?.entities.numbers[0]?.toString(),
+    // the player's sum, solved in code (template.ts parseArithmetic): the 'arithmetic' lines say these and never a number of their own
+    answer: res?.math?.answer,
+    expr: res?.math?.expr,
   };
 }
 
@@ -150,6 +153,19 @@ function playerTexts(history: readonly ChatTurn[], k: number): string[] {
   return out;
 }
 
+/**
+ * The sums the player asked within the no-repeat window, as vars: "19! Nice serve count." and "20! Nice serve count." are
+ * one line to say twice in a row (the window compares what was said, and every sum renders differently).
+ */
+function pastSums(history: readonly ChatTurn[], vars: Vars): Vars[] {
+  const out: Vars[] = [];
+  for (const text of playerTexts(history, NO_REPEAT_WINDOW)) {
+    const sum = parseArithmetic(text);
+    if (sum) out.push({ ...vars, answer: sum.answer, expr: sum.expr });
+  }
+  return out;
+}
+
 function lastPigAsked(history: readonly ChatTurn[]): boolean {
   for (let i = history.length - 1; i >= 0; i--) {
     if (history[i].role === 'pig') return /\?["”]?\s*$/.test(history[i].text.trim());
@@ -162,7 +178,7 @@ function lastPigAsked(history: readonly ChatTurn[]): boolean {
 const NON_TOPIC: ReadonlySet<Intent> = new Set<Intent>([
   'followup', 'yes', 'no', 'laugh', 'greeting', 'thanks', 'apology', 'unknown', 'question_generic', 'farewell',
   'based', 'patriot', 'bump', 'set', 'spike', 'distress', 'pork_joke', 'insult', 'hug', 'affection',
-  'compliment_looks', 'compliment_skill',
+  'compliment_looks', 'compliment_skill', 'arithmetic',
 ]);
 
 /** Most recent topical player message (looks back up to 6 player turns). */
@@ -193,6 +209,8 @@ interface Picked {
   a?: AnimId;
   key: string;
   w: number;
+  /** The same line with an earlier sum's numbers in it (Env.past): said recently means the line, whatever its numbers. */
+  was?: string[];
 }
 
 interface Env {
@@ -203,6 +221,8 @@ interface Env {
   vars: Vars;
   /** Most recent first. */
   recent: readonly string[];
+  /** The vars of the sums the player asked within the no-repeat window, most recent first (arithmetic answers only). */
+  past?: readonly Vars[];
 }
 
 /** A key, or a group of keys whose lines are pooled together. */
@@ -220,7 +240,8 @@ function candidates(bank: Bank, spec: KeySpec, env: Env): Picked[] {
       let w = 1;
       if (opts?.tier) w += 0.5;
       if (isPersonal(raw[1])) w += 1;
-      out.push({ text, e: raw[0], a: opts?.a, key, w });
+      const was = env.past?.map((v) => fill(raw[1], v)).filter((t): t is string => t !== null && t !== text);
+      out.push({ text, e: raw[0], a: opts?.a, key, w, was });
     }
   }
   return out;
@@ -228,6 +249,16 @@ function candidates(bank: Bank, spec: KeySpec, env: Env): Picked[] {
 
 function seenRecently(text: string, recent: readonly string[]): number {
   return recent.findIndex((r) => r === text || r.includes(text));
+}
+
+/** How recently the line was said (0 = last; -1 = not within the window), counting it with an earlier sum's numbers too. */
+function lastSaid(c: Picked, recent: readonly string[]): number {
+  let at = seenRecently(c.text, recent);
+  for (const t of c.was ?? []) {
+    const i = seenRecently(t, recent);
+    if (i >= 0 && (at < 0 || i < at)) at = i;
+  }
+  return at;
 }
 
 /**
@@ -242,7 +273,7 @@ function pickLine(
   prefer?: (text: string) => boolean,
 ): Picked | null {
   for (const spec of specs) {
-    const fresh = candidates(bank, spec, env).filter((c) => seenRecently(c.text, env.recent) < 0);
+    const fresh = candidates(bank, spec, env).filter((c) => lastSaid(c, env.recent) < 0);
     if (!fresh.length) continue;
     const preferred = prefer ? fresh.filter((c) => prefer(c.text)) : [];
     return pickWeighted(env.rng, preferred.length ? preferred : fresh, (c) => c.w);
@@ -254,7 +285,7 @@ function pickLine(
     let best = all[0];
     let bestAge = -1;
     for (const c of all) {
-      const age = seenRecently(c.text, env.recent);
+      const age = lastSaid(c, env.recent);
       if (age > bestAge) {
         best = c;
         bestAge = age;
@@ -264,6 +295,35 @@ function pickLine(
   }
   return null;
 }
+
+/**
+ * Topics that answer one particular question ("One Piece or JoJo?", "who's Buggy?"). A pig with no lines for one
+ * answers from the topic it points to, and a follow-up's segue into his own passion never picks one (it would
+ * answer a question nobody asked).
+ */
+const ANSWER_TOPICS: Readonly<Record<string, string>> = {
+  'passion_p3:opvsjojo': 'passion_p3:onepiece',
+  'passion_p3:jojo_better': 'passion_p3:opvsjojo',
+  'passion_p3:op_better': 'passion_p3:opvsjojo',
+  'passion_p3:buggy': 'passion_p3:onepiece',
+  // Each of these pools answers one quick reply, so a follow-up's segue into his own passion never picks it, and a
+  // drained pool falls back to his general lines on the subject (Piggy 1's and Piggy 2's new chips)
+  'passion_p1:germany': 'passion_p1', 'passion_p1:german': 'passion_p1', 'passion_p1:haikyu': 'passion_p1',
+  'passion_p1:sand': 'passion_p1', 'passion_p1:team': 'passion_p1', 'passion_p1:calls': 'passion_p1',
+  'passion_p1:algorithm': 'passion_p1', 'passion_p1:bug': 'passion_p1',
+  'passion_p2:donation': 'passion_p2:collection', 'passion_p2:research_year': 'passion_p2:medschool',
+  'passion_p2:or': 'passion_p2:medschool', 'passion_p2:why': 'passion_p2:neurosurgery',
+  'passion_p2:nerves': 'passion_p2:neurosurgery', 'passion_p2:snout': 'passion_p2:pig_models',
+  // Piggy 3: "are you on X?" (his mumble is a quirk; these are the bank's answers) and the "Twitter" correction; the AI
+  // words he decodes ("what's RLHF?"); and the questions only his chips ask
+  'passion_p3:x': 'passion_p3:ai', 'passion_p3:twitter': 'passion_p3:x',
+  'passion_p3:llm': 'passion_p3:ai', 'passion_p3:rlhf': 'passion_p3:llm', 'passion_p3:rlvr': 'passion_p3:llm',
+  'passion_p3:jev': 'passion_p3:llm', 'passion_p3:foundation': 'passion_p3:llm',
+  'passion_p3:mathtrick': 'passion_p3:math', 'passion_p3:eeg': 'passion_p3:signals', 'passion_p3:medai': 'passion_p3:ai',
+  'passion_p3:robots': 'passion_p3:building',
+  // "Hype me up!" is not the player cheering for the pig: a drained pool answers with his good-news lines, not "Thanks, teammate!"
+  'encourage:hype': 'player_happy',
+};
 
 /** Bank keys for an intent, most specific first. */
 function keysFor(pig: PigId, r: IntentResult, ctx: Partial<ChatContext>, history: readonly ChatTurn[]): string[] {
@@ -301,6 +361,9 @@ function keysFor(pig: PigId, r: IntentResult, ctx: Partial<ChatContext>, history
         if (i === 'food_offer' && (ctx.needs?.hunger ?? 0) >= 90 && !DESSERTS.has(t)) keys.push('food_offer:full');
         if (taste === 'secret') keys.push(`${i}:secret`);
         keys.push(`${i}:${t}`, `${i}:${taste}`);
+      } else if (t) {
+        // his favorite drink, his comfort food, where to eat
+        keys.push(`${i}:${t}`);
       }
       keys.push(i);
       break;
@@ -314,6 +377,11 @@ function keysFor(pig: PigId, r: IntentResult, ctx: Partial<ChatContext>, history
       }
       break;
     }
+    case 'arithmetic':
+      // 'meme' (9 + 10) can fall back to the plain answer; a division by zero has no answer, and a rounded one needs its "about"
+      if (t) keys.push(`arithmetic:${t}`);
+      if (!t || t === 'meme') keys.push(i);
+      break;
     case 'other_pig':
       if (t) keys.push(`other_pig:${t}`);
       keys.push(t === pig ? 'ask_name' : 'other_pig:all');
@@ -335,6 +403,7 @@ function keysFor(pig: PigId, r: IntentResult, ctx: Partial<ChatContext>, history
       break;
     default:
       if (t) keys.push(`${i}:${t}`);
+      if (t && ANSWER_TOPICS[`${i}:${t}`]) keys.push(ANSWER_TOPICS[`${i}:${t}`]);
       keys.push(i);
   }
   return keys;
@@ -353,6 +422,7 @@ const DEFAULT_ANIM: Partial<Record<Intent, AnimId>> = {
   greeting: 'wave', farewell: 'wave', go_gators: 'celebrate', hug: 'love', laugh: 'laugh', joke_request: 'laugh',
   insult: 'sad', pork_joke: 'angry', player_happy: 'celebrate', bored: 'bored', question_generic: 'thinking',
   unknown: 'confused', affection: 'shy', compliment_looks: 'shy', compliment_skill: 'proud', exam_stress: 'thinking',
+  arithmetic: 'thinking',
 };
 /** Need states that override the portrait (GAME_DESIGN §6: sick/asleep override the visuals). */
 const NEED_FACE: Partial<Record<NeedState, Expression>> = { sick: 'sick', tired: 'sleepy' };
@@ -410,8 +480,12 @@ export function respondHeuristic(req: ChatRequest): ChatReply {
     && (prev[0] === n.text || prev.filter((p) => p === n.text).length >= 2);
 
   const other = otherPigFor(pig, main, rng);
-  const said = main === res && res.intent === 'share_self' ? extractSaid(n.text, res.topic) : undefined;
+  // a major is read from the same corrected text as the intent and memory.ts (what he reads back is what he remembers)
+  const said = main === res && res.intent === 'share_self'
+    ? extractSaid(res.topic === 'major' ? res.corrected : n.text, res.topic, playerText)
+    : undefined;
   env.vars = buildVars(pig, ctx, { res: main, other, said });
+  if (main.intent === 'arithmetic') env.past = pastSums(history, env.vars);
 
   const fallback = res.question ? 'question_generic' : 'unknown';
   let specs: KeySpec[];
@@ -419,11 +493,17 @@ export function respondHeuristic(req: ChatRequest): ChatReply {
   else if (main.intent === 'distress') specs = ['distress'];
   else {
     specs = politeDecline ? ['no:q', 'no'] : keysFor(pig, main, ctx, history);
+    // the player studies what he studies
+    if (said && main.topic === 'major' && OWN_MAJOR[pig]?.test(said)) specs.unshift('share_self:major_same');
+    // a major with nothing to read back ("my major is terrible", "i'm a tiktok major"): ask about it instead
+    if (!said && main === res && main.intent === 'share_self' && main.topic === 'major' && !isUndecided(res.corrected)) {
+      specs.unshift('share_self:major_more');
+    }
     if (openerKey) {
       // a follow-up on a topic with every line already used segues into the pig's own passion
       const own = OWN_PASSION[pig];
-      specs.push(Object.keys(bank).filter((k) => k === own || k.startsWith(`${own}:`)));
-    } else {
+      specs.push(Object.keys(bank).filter((k) => (k === own || k.startsWith(`${own}:`)) && !(k in ANSWER_TOPICS)));
+    } else if (main.intent !== 'arithmetic') {
       // the same thing asked again in other words, with everything already said: own it instead of deflecting
       const askedBefore = playerTexts(history, 4).some((t) => {
         const p = classifyIntent(t, pig);
@@ -431,7 +511,8 @@ export function respondHeuristic(req: ChatRequest): ChatReply {
       });
       if (askedBefore) specs.push('repeat');
     }
-    specs.push(fallback);
+    // a sum is always answered (and a new sum is not "asked before"): a drained pool says its least recent line again
+    if (main.intent !== 'arithmetic') specs.push(fallback);
   }
 
   // Short extras are planned first so the main line can be chosen to leave room for them:

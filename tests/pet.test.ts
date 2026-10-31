@@ -374,6 +374,8 @@ describe('tastes', () => {
     expect(tasteOf('piggy-1', 'boiled_peanuts')).toBe('dislike');
     expect(tasteOf('piggy-2', 'boiled_peanuts')).toBe('like');
     expect(tasteOf('piggy-3', 'onigiri')).toBe('love');
+    expect(tasteOf('piggy-3', 'red_bull_sf')).toBe('love');
+    expect(tasteOf('piggy-3', 'cold_brew')).toBe('like');
     expect(tasteOf('piggy-2', 'apple_pie')).toBe('love');
     expect(tasteOf('piggy-1', 'not_an_item')).toBe('neutral');
   });
@@ -381,7 +383,7 @@ describe('tastes', () => {
   test('every canonical item exists, no pork, every edible has an icon id', () => {
     const canonical = ['dining_tray', 'water_bottle', 'tender_sub', 'pizza_slice', 'cup_ramen', 'onigiri', 'melonpan', 'apple_pie',
       'key_lime_pie', 'boiled_peanuts', 'acai_bowl', 'protein_shake', 'watermelon', 'oranges', 'pastelito', 'blueberries',
-      'sakura_dango', 'truffle_fries', 'sideline_sip', 'florida_oj', 'sweet_tea', 'cafecito', 'cold_brew', 'boba_tea',
+      'sakura_dango', 'truffle_fries', 'sideline_sip', 'florida_oj', 'sweet_tea', 'cafecito', 'cold_brew', 'red_bull_sf', 'boba_tea',
       'strawberry_milk', 'vegan_ice_cream', 'lavender_soap', 'mint_toothpaste', 'honey_lemon_tea', 'cold_medicine', 'ginger_ale',
       'knee_pad_tape', 'signed_volleyball', 'brain_model', 'big_water_bottle', 'sakura_filament', 'pirate_manga', 'pennant',
       'sakura_charm', 'comic_sans_stickers', 'kempapager', 'name_badge', 'sakura_keychain'];
@@ -755,7 +757,7 @@ describe('mini-game engines', () => {
     expect(e.digs).toBe(1);
   });
 
-  test('Perfusion!: chart rides the steady 96 BPM song (HR 72/96/120); perfect play is 100% accuracy and 100% perfusion', () => {
+  test('Swinus Rhythms: chart rides the steady 96 BPM song (HR 72/96/120); perfect play is 100% accuracy and 100% perfusion', () => {
     const c = makeChart(9);
     expect(c.phases.map((p) => p.bpm)).toEqual([96, 96, 96]);
     expect(c.phases.map((p) => p.hr)).toEqual([72, 96, 120]);
@@ -788,7 +790,7 @@ describe('mini-game engines', () => {
     expect(e.stats().miss).toBe(0);
   });
 
-  test('Perfusion!: tapping a skip or missing beats drains the meter (no fail state)', () => {
+  test('Swinus Rhythms: tapping a skip or missing beats drains the meter (no fail state)', () => {
     const e = new PerfusionEngine(4, false);
     for (let t = 0; t <= e.chart.end + 0.5; t += 1 / 60) e.update(t);
     expect(e.ended).toBe(true);

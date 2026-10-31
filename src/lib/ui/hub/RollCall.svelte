@@ -22,12 +22,16 @@
   let claim = $state<DailyClaim | null>(null);
   let tasks = $state(dailyTasks(game.save, now()));
   const filled = $derived(claim ? claim.stamp : card.onCard);
+  /** Today's stamp is still waiting: the footer's main button stamps it (the footer stays on screen on any phone). */
+  const unclaimed = $derived(!claim && !card.claimedToday);
+  let stampedAt = 0;
 
   function stamp() {
     if (claim || card.claimedToday) return;
     const money = game.save.money;
     claim = claimDaily(game.save, now());
     if (!claim) return;
+    stampedAt = performance.now();
     audio.jingle('daily_bonus');
     game.report({ moneyBefore: money });
     if (claim.item) game.events.push({ kind: 'item', item: claim.item, count: 1 });
@@ -40,68 +44,84 @@
     if (!claim && !card.claimedToday) stamp();
     onclose();
   }
+
+  /** Footer: "Stamp it!" until today's stamp is on the card, then "Let's go!" (the same button, so focus stays). */
+  function main() {
+    if (unclaimed) {
+      stamp();
+      if (claim) return; // stay and watch it land (already stamped in another tab: just go)
+    } else if (performance.now() - stampedAt < 450) {
+      return; // a double tap on "Stamp it!" shouldn't close the card before the stamp lands
+    }
+    onclose();
+  }
 </script>
 
 <Modal title="Roll Call" icon="stamp" size="md" onclose={close}>
-  <div class="greet">
-    <PigFace {pig} size={48} />
-    <p><strong style:color={CHARACTERS[pig].color}>{CHARACTERS[pig].name}:</strong> {greet.text}</p>
+  <!-- two columns on short landscape screens (greeting + stamp card | omikuji + tasks), one column elsewhere -->
+  <div class="cols">
+    <div class="col">
+      <div class="greet">
+        <PigFace {pig} size={48} />
+        <p><strong style:color={CHARACTERS[pig].color}>{CHARACTERS[pig].name}:</strong> {greet.text}</p>
+      </div>
+
+      <section class="stamps" aria-label="Login stamp card">
+        <h3>Stamp card {card.doubled ? '· next stamp doubled!' : ''}</h3>
+        <ol class="card">
+          {#each REWARDS as r, i (i)}
+            <li class:on={i < filled} class:today={claim !== null && i === filled - 1}>
+              {#if i < filled}<Icon id="stamp" size={32} alt="Stamped" />{:else}<span class="n">{i + 1}</span>{/if}
+              <span class="r">{r}</span>
+            </li>
+          {/each}
+        </ol>
+        {#if claim}
+          <p class="got">
+            Day {claim.streak} stamp! <Icon id="acorn" size={18} /> +{claim.money} acorns
+            {#if claim.item} · {getItem(claim.item)?.name ?? claim.item}{/if}
+            {#if claim.scene} · a group hangout is ready on the KempaPager!{/if}
+          </p>
+        {:else if card.claimedToday}
+          <p class="got">Today’s stamp is already on the card.</p>
+        {/if}
+      </section>
+    </div>
+
+    <div class="col">
+      <section aria-label="Omikuji">
+        <h3>Omikuji</h3>
+        {#if fortune}
+          <p>Today’s slip: <strong>{FORTUNE_NAME[fortune] ?? fortune}</strong></p>
+        {:else}
+          <p>Draw today’s fortune at the Century Tower sakura. No bad luck, ever.</p>
+          <button type="button" class="px-btn small" onclick={() => { close(); onomikuji(); }}>
+            <Icon id="pin" size={18} /> Go to Century Tower
+          </button>
+        {/if}
+      </section>
+
+      {#if tasks.length}
+        <section aria-label="Today's tasks">
+          <h3>Today’s tasks</h3>
+          <ul class="tasks">
+            {#each tasks as t (t.id)}
+              <li class:done={t.done}>
+                <Icon id={t.done ? 'star' : 'heart_empty'} size={18} />
+                <span class="tt">{t.text}</span>
+                <span class="rw">+{t.money}<Icon id="acorn" size={14} />{#if t.pig} · +{t.bond}♥{/if}</span>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+    </div>
   </div>
 
-  <section class="stamps" aria-label="Login stamp card">
-    <h3>Stamp card {card.doubled ? '· next stamp doubled!' : ''}</h3>
-    <ol class="card">
-      {#each REWARDS as r, i (i)}
-        <li class:on={i < filled} class:today={claim !== null && i === filled - 1}>
-          {#if i < filled}<Icon id="stamp" size={32} alt="Stamped" />{:else}<span class="n">{i + 1}</span>{/if}
-          <span class="r">{r}</span>
-        </li>
-      {/each}
-    </ol>
-    {#if claim}
-      <p class="got">
-        Day {claim.streak} stamp! <Icon id="acorn" size={18} /> +{claim.money} acorns
-        {#if claim.item} · {getItem(claim.item)?.name ?? claim.item}{/if}
-        {#if claim.scene} · a group hangout is ready on the KempaPager!{/if}
-      </p>
-    {:else if card.claimedToday}
-      <p class="got">Today’s stamp is already on the card.</p>
-    {:else}
-      <button type="button" class="px-btn primary stamp-btn" onclick={stamp} data-autofocus>
-        <Icon id="stamp" size={24} /> Stamp it!
-      </button>
-    {/if}
-  </section>
-
-  <section aria-label="Omikuji">
-    <h3>Omikuji</h3>
-    {#if fortune}
-      <p>Today’s slip: <strong>{FORTUNE_NAME[fortune] ?? fortune}</strong></p>
-    {:else}
-      <p>Draw today’s fortune at the Century Tower sakura. No bad luck, ever.</p>
-      <button type="button" class="px-btn small" onclick={() => { close(); onomikuji(); }}>
-        <Icon id="pin" size={18} /> Go to Century Tower
-      </button>
-    {/if}
-  </section>
-
-  {#if tasks.length}
-    <section aria-label="Today's tasks">
-      <h3>Today’s tasks</h3>
-      <ul class="tasks">
-        {#each tasks as t (t.id)}
-          <li class:done={t.done}>
-            <Icon id={t.done ? 'star' : 'heart_empty'} size={18} />
-            <span class="tt">{t.text}</span>
-            <span class="rw">+{t.money}<Icon id="acorn" size={14} />{#if t.pig} · +{t.bond}♥{/if}</span>
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
-
   {#snippet footer()}
-    <button type="button" class="px-btn primary" onclick={close}>Let’s go!</button>
+    <button type="button" class="px-btn primary main" onclick={main} data-autofocus>
+      {#if unclaimed}<Icon id="stamp" size={24} /> Stamp it!{:else}Let’s go!{/if}
+    </button>
   {/snippet}
 </Modal>
 
@@ -124,10 +144,11 @@
   }
   .card li.on { border-style: solid; border-color: var(--sakura-3); }
   .card li.today { animation: stamp-in 240ms steps(3) both; }
-  .n { font-family: var(--font-display); font-size: 18px; opacity: 0.7; }
-  .r { font-size: 10px; text-align: center; line-height: 1.1; opacity: 0.85; }
+  /* DotGothic16 (the body font), not the display font: in Pixelify Sans the 5 read as S and the 3 as 8 */
+  .n { font-family: var(--font-body); font-size: 16px; line-height: 1.1; opacity: 0.7; }
+  .r { font-size: 11px; text-align: center; line-height: 1.1; opacity: 0.85; }
   .got { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; color: var(--gold); }
-  .stamp-btn { min-width: 160px; }
+  .main { min-width: 160px; }
   section :global(.px-btn) { min-height: 44px; }
   .tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   .tasks li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
@@ -136,4 +157,16 @@
   .rw { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; color: var(--gold); white-space: nowrap; }
   @keyframes stamp-in { from { transform: scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
   :global(html.reduce-motion) .card li.today { animation: none; }
+  /* Short screens (phone landscape): tighter card, so the stamp landing and the reward line fit above the footer. */
+  @media (max-height: 499px) {
+    .greet { margin-bottom: 6px; }
+    section { margin-bottom: 8px; }
+    h3 { margin-bottom: 4px; }
+    .card li { min-height: 46px; padding: 2px; }
+    .card li :global(img) { width: 24px; height: 24px; }
+  }
+  /* …and side by side when there's the width (phone landscape): the Century Tower button sits above the fold. */
+  @media (max-height: 499px) and (min-width: 600px) {
+    .cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 14px; align-items: start; }
+  }
 </style>

@@ -24,7 +24,7 @@ export const META: Record<MinigameId, MinigameMeta> = {
     song: 'mini_volley', location: 'volleyball_courts', bg: ['volleyball_courts'], focusX: 200,
   },
   perfusion: {
-    id: 'perfusion', title: 'Perfusion!', jpTitle: 'パーフュージョン！', pig: 'piggy-2', anyPig: false,
+    id: 'perfusion', title: 'Swinus Rhythms', jpTitle: 'スワイナス・リズム', pig: 'piggy-2', anyPig: false,
     desc: 'Keep the heartbeat on rhythm in the sim lab: tap beats, hold drains, skip flat lines.',
     song: 'mini_perfusion', location: 'communicore', bg: ['communicore', 'or_suite', 'anatomy_lab'], focusX: 240,
   },
@@ -37,6 +37,16 @@ export const META: Record<MinigameId, MinigameMeta> = {
     id: 'petals', title: 'Petal Catch', jpTitle: 'はなびらキャッチ', pig: 'piggy-1', anyPig: true,
     desc: 'Run and catch falling sakura petals on the Plaza. Golden ones are worth 10. Mind the squirrels.',
     song: 'plaza', location: 'plaza', bg: ['plaza', 'century_tower', 'title'], focusX: 240,
+  },
+  surgery: {
+    id: 'surgery', title: 'Steady Hoof', jpTitle: 'ステディ・フーフ', pig: 'piggy-2', anyPig: false,
+    desc: 'Sim-suite skills night with Gerald the mannequin: close a seam, hold steady under the scope, set electrodes.',
+    song: 'piggy2_theme', location: 'shands', bg: ['or_suite', 'shands'], focusX: 250,
+  },
+  xfeed: {
+    id: 'xfeed', title: 'For You Pig', jpTitle: 'フォー・ユー・ピッグ', pig: 'piggy-3', anyPig: false,
+    desc: 'Piggy 3 holds out his phone: sort his X feed before the doomscroll wins. Like the real results, mute the hype, save the gold posts. 75 seconds.',
+    song: 'piggy3_theme', location: 'marston', bg: ['marston_night', 'marston'], focusX: 240,
   },
 };
 
@@ -64,6 +74,23 @@ export const RESULT_LINES: Record<MinigameId | 'petals_any', Partial<Record<PigI
       silver: "Okay, that's really good. Like, actually good.",
       bronze: "Some bugs survived. They'll be back. We'll be ready.",
       none: 'Okay, so bugs are hard. Best for what? Practice, basically.',
+    },
+  },
+  surgery: {
+    'piggy-2': {
+      // a medal can come mostly from the scope and electrodes, so these lines claim no seam the stats line contradicts
+      gold: 'Steady hoof. Textbook technique. Clinical success. Patriot.',
+      silver: 'Steady hands, solid reps. Gerald approves. Based.',
+      bronze: 'Acceptable technique. Research year is for reps. Based effort.',
+      none: 'A little sway, a lot of heart. Gerald still believes in you.',
+    },
+  },
+  xfeed: {
+    'piggy-3': {
+      gold: "Cleanest For You on all of X.com. I'm screenshotting this.",
+      silver: "Okay, that's a really good feed. Like, actually readable.",
+      bronze: "Some hype got through. It's fine. It's X. It's always a little bit fine.",
+      none: 'Okay, so the algorithm won this one. Touch grass, then rematch?',
     },
   },
   petals: {},

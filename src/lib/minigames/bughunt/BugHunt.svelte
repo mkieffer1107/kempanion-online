@@ -26,6 +26,8 @@
   let rounds = $state<BugRound[]>(generateGame(Math.floor(now())));
   let idx = $state(0);
   let step = $state<Step>('intro');
+  // Only these steps show the answer: the intro card and the countdown sit over a round nobody has played yet.
+  const revealed = $derived(step === 'reveal' || step === 'coffee' || step === 'done');
   let elapsed = $state(0);
   let hintUsed = $state(false);
   let picked = $state<number | null>(null);
@@ -132,7 +134,7 @@
     if (idx + 1 === 5) {
       step = 'coffee';
       setAnim('coffee_break', 'typing');
-      say('Coffee break. Basically just me and a cold brew for two seconds.');
+      say("Coffee break. We're out of sugar-free Red Bull, so it's a mug today. Two seconds.");
       advanceTimer = setTimeout(() => step === 'coffee' && startRound(5), 2400);
       return;
     }
@@ -301,8 +303,8 @@
                 bind:this={lineBtns[i]}
                 class="line"
                 class:hint={hinted}
-                class:bug={step !== 'hunting' && isBug}
-                class:wrong={step !== 'hunting' && picked === i && !isBug}
+                class:bug={revealed && isBug}
+                class:wrong={revealed && picked === i && !isBug}
                 disabled={step !== 'hunting' || phase !== 'play'}
                 onclick={() => judge(i)}
                 onkeydown={(e) => lineKey(e, i)}
@@ -311,7 +313,7 @@
                 <span class="ln" aria-hidden="true">{i + 1}</span>
                 <span class="src" aria-hidden="true">{#each tokens(line) as tk, k (k)}<span class={tk.cls}>{tk.text}</span>{/each}</span>
               </button>
-              {#if step !== 'hunting' && isBug}
+              {#if revealed && isBug}
                 <div class="fix" aria-label={`Fixed: ${round.correct[i].trim()}`}><span class="ln">✓</span><span class="src">{round.correct[i]}</span></div>
               {/if}
             </li>
@@ -418,7 +420,7 @@
   .secs { font-family: var(--font-display); font-size: 1.2rem; min-width: 2.5em; text-align: right; }
   .secs.low { color: var(--warn); }
   .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-size: 1.1rem; }
-  .stat small { font-size: 0.6rem; opacity: 0.7; letter-spacing: 0.08em; }
+  .stat small { font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.08em; }
   @media (min-aspect-ratio: 5/4) {
     .bh {
       grid-template-areas: 'cv task' 'cv code' 'bubble code' 'foot code';

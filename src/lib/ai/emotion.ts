@@ -161,7 +161,7 @@ export class TaggedStream {
             this.rawTag = raw.trim();
             this.#opts.onTag?.(e, raw.trim());
           } else if (this.#closer === ')') {
-            // "(Student doctor.) …" is speech, not a tag: give it back to the text.
+            // "(Terrible patient.) …" is speech, not a tag: give it back to the text.
             this.#buf = `(${raw})${this.#buf}`;
             this.#mode = 'body';
             this.#close = null;

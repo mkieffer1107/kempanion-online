@@ -2,8 +2,10 @@
   // Free-chat replies as VN choices (the scene ChoiceMenu look: navy rows, pink selection, ▶ cursor, stepped
   // slide-in, never timed). Rows 1–3 are the brain's quick replies; the last row, "Say something else…", folds the
   // others away and turns into a one-line field styled like a row (same size, padding, DotGothic16 font, number
-  // badge). The field takes as many characters as fit on that line (≤ the ask's maxLength; DotGothic16 draws ASCII
-  // at 0.5em), Enter sends, Esc or × brings the options back, and an empty field can't be sent. Goodbye leaves.
+  // badge). The field takes the ask's whole maxLength (48 in free chat) on every screen and scrolls sideways once the
+  // message is wider than the row, so a narrow phone never cuts a message short (a cut-off "…kill myse" could slip
+  // past the crisis check). Enter sends, Esc or × brings the options back, and an empty field can't be sent. Goodbye
+  // leaves.
   // Shown only while the pig waits for the player (free chat with an open ask); hidden while he types or thinks.
   //
   // Keys (window, like ChoiceMenu): 1–4 · ↑↓ · Enter/Space/Z/X. screenKey() adds T or / (open the field) and Esc
@@ -12,7 +14,7 @@
   import { audio } from '../../audio';
   import { game } from '../../state/game.svelte';
   import { dialogue } from '../dialogue.svelte';
-  import { charsLeftHint, fitChars, replyRows } from './chat-choices';
+  import { charsLeftHint, replyRows } from './chat-choices';
   import { liftAboveKeyboard } from './keyboard';
 
   let {
@@ -49,9 +51,8 @@
   let writing = $state(false);
   let value = $state('');
   let sel = $state(0);
-  /** Characters that fit on one line of the field (measured). */
-  let fit = $state(DEFAULT_MAX);
-  const max = $derived(Math.min(Math.max(1, opts?.maxLength ?? DEFAULT_MAX), fit));
+  /** The ask's cap, never what fits on one line: the field scrolls sideways instead of cutting the message short. */
+  const max = $derived(Math.max(1, opts?.maxLength ?? DEFAULT_MAX));
   const left = $derived(charsLeftHint(value.length, max));
   const rows = $derived(writing ? [] : replies);
 
@@ -76,20 +77,6 @@
     });
     const a = document.activeElement as HTMLElement | null;
     if (!a || a === document.body || a.closest('.vn, .cc')) node.querySelector<HTMLElement>('.menu')?.focus({ preventScroll: true });
-  }
-
-  /** Keep `fit` equal to what one line of the field holds (layout, font loading, rotation). */
-  function measure(el: HTMLInputElement) {
-    const update = () => {
-      const cs = getComputedStyle(el);
-      const width = el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
-      fit = fitChars(width, parseFloat(cs.fontSize) || 16, DEFAULT_MAX);
-    };
-    update();
-    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(update) : null;
-    ro?.observe(el);
-    void document.fonts?.ready.then(update);
-    return () => ro?.disconnect();
   }
 
   /** Rows 1–3 fold away in steps (instant under reduced motion), the last one first. */
@@ -286,7 +273,6 @@
             <input
               bind:this={field}
               bind:value
-              {@attach measure}
               data-chat-input
               type="text"
               maxlength={max}
@@ -438,6 +424,8 @@
     user-select: text;
     -webkit-user-select: text;
   }
+  /* iOS zooms into any field under 16 px (Text Size S would get there) and stays zoomed */
+  @media (pointer: coarse) { .fl input { font-size: max(16px, 1em); } }
   .fl input::placeholder { color: rgba(255, 250, 243, 0.5); text-shadow: none; opacity: 1; }
   .left {
     position: absolute;

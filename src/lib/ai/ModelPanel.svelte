@@ -425,7 +425,7 @@
     opacity: 0.8;
   }
   .badge {
-    font-size: 0.7em;
+    font-size: max(11px, 0.75em);
     padding: 0 4px;
     border: 1px solid var(--gold);
     color: var(--gold);
@@ -465,7 +465,15 @@
     min-height: 32px;
     color: var(--sakura-2);
     cursor: pointer;
-    text-decoration: underline dotted;
+    /* longhands: Safari drops the two-value `text-decoration: underline dotted` shorthand (no underline at all) */
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+  }
+  @media (pointer: coarse) {
+    .link {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
   .bar {
     display: grid;

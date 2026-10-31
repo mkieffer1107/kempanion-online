@@ -3,7 +3,7 @@
 //
 // Replay mode (album) never changes the save: bond/money/items/needs/memories/name/companion are skipped,
 // [input] and [chat] are skipped, and [set]/[unset] write to a scene-local overlay that conditions still read.
-import { EXPRESSIONS, type Expression, type NeedId, type OutfitId, type PigId, type SpeakerId } from '../types';
+import { PORTRAIT_FACES, type Expression, type NeedId, type OutfitId, type PigId, type SpeakerId } from '../types';
 import type { MinigameResult } from '../minigames';
 import { evalCondition, type CondState } from './conditions';
 import { interpolate, type InterpContext } from './interpolate';
@@ -14,7 +14,7 @@ export interface SayLine { speaker: SpeakerId; text: string; expression?: Expres
 /** Commands the environment presents directly (stage, audio, CG, ambience, portrait outfits). */
 export type PresentCommand = Extract<Command, {
   kind: 'bg' | 'bgm' | 'show' | 'hide' | 'expr' | 'sfx' | 'jingle' | 'wait' | 'shake' | 'flash' | 'fade' | 'burst'
-    | 'petals' | 'weather' | 'time' | 'cg' | 'outfit';
+    | 'petals' | 'weather' | 'time' | 'pager' | 'brain' | 'cg' | 'outfit';
 }>;
 
 /** Save mutations. Never called in replay mode. */
@@ -59,12 +59,12 @@ export interface VnEnv {
 
 export type RunResult = 'end' | 'aborted';
 
-const MINIGAME_PIG: Record<string, PigId> = { volley: 'piggy-1', perfusion: 'piggy-2', debug: 'piggy-3' };
+const MINIGAME_PIG: Record<string, PigId> = { volley: 'piggy-1', perfusion: 'piggy-2', debug: 'piggy-3', surgery: 'piggy-2', xfeed: 'piggy-3' };
 
-/** Unknown expressions fall back to neutral (design-ux §4.6); the validator reports them. */
+/** Unknown expressions fall back to neutral (design-ux §4.6); the validator reports them. Portrait poses pass. */
 export function toExpression(e: string | undefined): Expression | undefined {
   if (!e) return undefined;
-  return (EXPRESSIONS as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
+  return (PORTRAIT_FACES as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
 }
 
 /** Max ops executed without waiting on the player before we assume a [goto] loop. */

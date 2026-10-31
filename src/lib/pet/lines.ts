@@ -36,7 +36,12 @@ export const ITEM_LINES: Record<string, Partial<Record<PigId, string>>> = {
   sideline_sip: { 'piggy-1': 'Hydration is a team sport! Glug glug glug!' },
   boiled_peanuts: { 'piggy-1': "They're... wet peanuts. I'll eat it. For the team.", 'piggy-2': 'Boiled peanuts. Salty, soft, based.' },
   cafecito: { 'piggy-1': 'Too... strong... my serve is shaking...', 'piggy-2': 'Cafecito. Tiny cup. Enormous perfusion.' },
-  cold_brew: { 'piggy-1': "That's not a drink, that's a dare.", 'piggy-3': 'Cold brew. Okay, now I can actually think.' },
+  cold_brew: { 'piggy-1': "That's not a drink, that's a dare.", 'piggy-3': 'Cold brew. Not my usual, but okay— yeah, I can think now.' },
+  red_bull_sf: {
+    'piggy-1': 'An energy drink? Teammate, I AM the energy drink. ...One sip, for the team.',
+    'piggy-2': 'Arrhythmia in a can. Sugar-free does not make it based.',
+    'piggy-3': 'Sugar-free Red Bull. Okay, now I can actually think.',
+  },
   apple_pie: { 'piggy-2': 'Apple pie. The most patriotic dessert. Based.' },
   sweet_tea: { 'piggy-2': 'Sweet tea. Sugar: noteworthy. Taste: based.', 'piggy-3': "Okay, that's like ninety percent sugar. Actually, ninety-five." },
   acai_bowl: { 'piggy-2': 'This bowl has insufficient perfusion of flavor.' },
@@ -240,7 +245,7 @@ export const WANT_LINES = {
   },
   minigame: {
     'piggy-1': ['Sakura Spike? I need reps!', 'Courts? Bump, set, spike?'],
-    'piggy-2': ['Perfusion! drill? Rhythm is based.', 'Run the ECG drill with me?'],
+    'piggy-2': ['Swinus Rhythms? Rhythm is based.', 'Run the ECG drill with me?'],
     'piggy-3': ['Bug Hunt? I found some weird code.', 'Okay, so I have bugs. Code bugs. Help?'],
   },
   place: {
@@ -251,7 +256,7 @@ export const WANT_LINES = {
   talk: {
     'piggy-1': ['Ask me about my serve stats!', 'I have a volleyball fact. Ask me!'],
     'piggy-2': ['Ask me about lumbar drains.', 'I have thoughts on perfusion. Ask.'],
-    'piggy-3': ['Have you used Codex? Ask me.', 'Okay, so I was thinking... ask me about it?'],
+    'piggy-3': ['Have you used Codex? Ask me.', 'Okay, so I was thinking... ask me about it?', "Ask me what's on X today. Please."],
   },
 } satisfies Record<string, Bank>;
 
@@ -277,7 +282,7 @@ export const DIARY: Record<PigId, readonly DiaryEntry[]> = {
     { did: 'organized his pens by color.', line: 'Charting supplies: optimized. Based.' },
   ],
   'piggy-3': [
-    { did: 'printed a tiny Century Tower.', line: "It leans. That's a feature." },
+    { did: 'refreshed X.com a normal amount.', line: 'Okay, a lot. There were three new models. THREE.' },
     { did: 'ran a job on HiPerGator.', line: "Okay, so it finished. Mostly. I'll show you.", when: 'day' },
     { did: 'redid the KempaPager menu icons.', line: 'Actually, the new ones are way more chill.' },
     { did: 'watched the bats at Lake Alice.', line: 'Half a million bats. I counted like twelve.', when: 'day' },

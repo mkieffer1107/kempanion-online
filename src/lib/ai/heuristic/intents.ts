@@ -1,8 +1,10 @@
 // Intent detection: word-boundary regexes over normalized + typo-corrected text, weighted scoring,
 // entity bonuses, and a runner-up for blended answers.
 import type { PigId } from '../../types';
+import { isDistress } from '../quirks';
 import { COMMON_WORDS, allowedEdits, editDistance, normalize } from './normalize';
 import { extractEntities, type Entities } from './entities';
+import { isSubjectWord, parseArithmetic, statedMajor, type Arithmetic } from './template';
 
 export const INTENTS = [
   'greeting', 'farewell', 'thanks', 'how_are_you', 'whats_up', 'compliment_looks', 'compliment_skill', 'affection',
@@ -11,7 +13,7 @@ export const INTENTS = [
   'exam_stress', 'player_sad', 'player_happy', 'bored', 'weather', 'gators_football', 'campus_place', 'passion_p1',
   'passion_p2', 'passion_p3', 'ask_best', 'other_pig', 'yes', 'no', 'laugh', 'question_generic', 'go_gators',
   'based', 'patriot', 'bump', 'set', 'spike', 'pork_joke', 'distress', 'ask_about_me', 'share_self', 'followup',
-  'ask_time', 'encourage', 'unknown',
+  'ask_time', 'encourage', 'arithmetic', 'unknown',
 ] as const;
 
 export type Intent = (typeof INTENTS)[number];
@@ -31,6 +33,8 @@ export interface IntentResult extends IntentGuess {
   normalized: string;
   /** Normalized text after typo correction (what the rules matched against). */
   corrected: string;
+  /** The sum, for an 'arithmetic' intent: its words and its answer, solved in code (template.ts parseArithmetic). */
+  math?: Arithmetic;
 }
 
 /** Intents that make a good one-line lead-in before a more specific answer ("Hey! …", "Ha! …"). */
@@ -38,7 +42,7 @@ export const LEAD_INTENTS: readonly Intent[] = ['greeting', 'thanks', 'laugh', '
 
 /** Tie-break order (earlier wins). */
 const PRIORITY: readonly Intent[] = [
-  'distress', 'pork_joke', 'based', 'patriot', 'bump', 'set', 'spike', 'go_gators', 'insult', 'affection', 'hug',
+  'distress', 'pork_joke', 'based', 'patriot', 'bump', 'set', 'spike', 'go_gators', 'arithmetic', 'insult', 'affection', 'hug',
   'encourage', 'food_offer', 'ask_best', 'exam_stress', 'player_sad', 'sick_talk', 'hungry_talk', 'tired_talk',
   'ask_where', 'ask_schedule', 'ask_time', 'ask_favorite_food', 'passion_p2', 'passion_p3', 'passion_p1', 'other_pig', 'campus_place',
   'gators_football', 'weather', 'study', 'player_happy', 'bored', 'compliment_skill', 'compliment_looks',
@@ -59,6 +63,51 @@ interface Rule {
 }
 
 const r = (i: Intent, w: number, re: RegExp, topic?: string, extra: Partial<Rule> = {}): Rule => ({ i, w, re, topic, ...extra });
+
+/**
+ * What a pig can be asked to be ("are you a resident?"): school years, and for Piggy 2 the doctor's titles. Not a
+ * title before "fan" or the name of something else ("are you a Dr Pepper fan?", "a Doctor Who fan?").
+ */
+const STATUS = String.raw`(?:student|freshman|sophomore|junior|senior|grad(?:uate)? student|med(?:ical)? student|phd student|resident(?! (?:evil|advis\w*|assistants?|directors?)\b)|intern|doctor|doc|dr|physician|surgeon|neuro ?surgeon|attending|md(?: phd)?|pgy(?: ?[1-7])?|researcher|scientist)(?! (?:pepper|(?:who )?fans?)\b)`;
+/** "are you real?" asks what he is; "are you a real doctor?" asks his job. */
+const REAL = String.raw`real(?! (?:doctor|doc|dr|surgeon|neuro ?surgeon|resident|student|med student|md|physician|attending)\b)`;
+
+// One Piece vs JoJo: Piggy 3 always picks One Piece. The show and character names the comparison rules look for.
+const OP_NAMES = String.raw`(?:one p(?:ie|ei)ce|luffy|zoro|sanji|straw hats?)`;
+const JOJO_NAMES = String.raw`(?:jojo\w*|jjba|jotaro|giorno|joestar|bizarre adventure)`;
+
+/**
+ * X, the app (Piggy 3 is on it constantly): "are you on x", "do you use x", "x.com" (normalized "x com"), "x dot com",
+ * "anything good on x", "what's on your timeline", "how's the timeline?", "your for you page", "doomscrolling again?". Not a
+ * project's timeline ("the timeline is tight", "your timeline for finishing"). Never "x ray", "x axis",
+ * "xbox", "spacex", "malcolm x", "solve for x", "depends on x" or "2 x 3"; not the player's own doomscrolling.
+ */
+const X_APP = new RegExp(
+  String.raw`\bx(?: dot)? com\b` +
+    String.raw`|\b(?:are you|you are|you|is he|he is) (?:still |always |ever |even |really |just )?on x\b` +
+    String.raw`|\b(?:use|using|check|checking|scroll|scrolling|post on|posting on|follow (?:me|you) on|addicted to|obsessed with|(?:spend|spending|time) (?:so much |a lot of |all day |time )?on|anything (?:good |new |cool )?on|see (?:this |that |it |anything )?on|saw (?:this |that |it )?on|what is (?:new |good |happening )?on|read (?:it |this |that )?on) x\b(?! (?:ray|rays|axis|factor|chromosomes?|men|files|games|marks|as|to (?:solve|find|get|represent|stand|mean)|for (?:the|a|an))\b)` +
+    String.raw`|\b(?:your|his) x (?:account|feed|timeline|posts?|app)\b|\bthe x app\b|\bx (?:feed|timeline|account|algorithm)\b` +
+    String.raw`|\b(?:what is|anything(?: \w+)?|something(?: \w+)?|(?:saw|see|seen)(?: it| this| that)?) on (?:your|the|my) (?:timeline|tl|for you(?: page| feed)?|feed)\b` +
+    String.raw`|\bhow is (?:the|your) (?:timeline|tl|feed)(?: (?:today|lately|tonight))?$|\byour (?:for you (?:page|feed)|fyp)\b` +
+    String.raw`|^(?!.*\b(?:i|we) (?:am|was|were|keep|have been|got)\b).*\bdoom ?scroll\w*\b`,
+);
+
+/**
+ * The player's own take that X beats Y: "x is (way) better (than y)", "x is the goat", "y is worse than x", "x over y".
+ * Not when it is asked ("is x better…?", "would you pick x…") or negated ("x is not better", "i don't think…"),
+ * and not when x is better than something else ("x is better than naruto"): those are no take on this match-up.
+ */
+function takeRule(x: string, y: string): RegExp {
+  const better = String.raw`(?:better|superior|greater|goated|(?:the )?(?:best|goat|greatest))`;
+  return new RegExp(
+    String.raw`^(?!(?:is|are|was|were|do|does|did|would|will|can|could|should|which|what|who|why|how)\b)(?!.*\b(?:not|never|no way)\b)` +
+      String.raw`.*\b(?:${x} (?:(?:is|are|was) )?(?:\w+ ){0,2}${better}\b(?! than (?!(?:the )?${y}\b))` +
+      String.raw`|${y} (?:(?:is|are|was) )?(?:\w+ ){0,2}worse than (?:the )?${x}\b|${x} (?:over|beats) ${y}\b)`,
+  );
+}
+
+/** Retired and expired medical equipment, as the player offers it to Piggy 2's collection. */
+const GEAR = String.raw`(?:(?:old|expired|used|retired|broken|spare|extra|vintage|antique) )*(?:medical )?(?:stethoscopes?|equipment|gear|devices?|supplies|pulse ?ox\w*|thermometers?|monitors?|blood pressure cuffs?|otoscopes?|reflex hammers?)`;
 
 const RULES: Rule[] = [
   // ── social ──
@@ -115,15 +164,34 @@ const RULES: Rule[] = [
   r('ask_about_self', 3.5, /\btell me (?:about|more about) (?:yourself|you)\b|\babout yourself\b|\bwho are you really\b|\bwhat are you like\b|\bdescribe yourself\b|\bwhat is your (?:story|deal|background|vibe|personality)\b|\bget to know you\b|\bintroduce yourself\b/),
   r('ask_about_self', 3.5, /\bwhere are you from\b|\bwhere did you grow up\b|\byour hometown\b|\bwhere is home for you\b/, 'hometown'),
   r('ask_about_self', 3.5, /\bhow old are you\b|\byour age\b|\bwhen is your birthday\b|\byour birthday\b|\bbirthday\b/, 'birthday'),
-  r('ask_about_self', 3, /\bare you (?:a |an |actually a |really a )?(?:pig|real|human|robot|ai|bot|person|chatbot)\b|^what are you$/, 'what'),
+  r('ask_about_self', 3, new RegExp(String.raw`\bare you (?:a |an |actually a |really a )?(?:pig|${REAL}|human|robot|ai|bot|person|chatbot)\b|^what are you$`), 'what'),
+  r('ask_about_self', 3.6, /\b(?:do|did) you (?:have|ever have|ever had) a (?:job|part[- ]time job)\b|\bhave you (?:ever )?(?:had a job|worked|tutored|been a (?:math )?tutor)\b|\bwhere do you work\b|\bwhat do you do for (?:work|money|a living)\b|\byour (?:old |first |last |part[- ]time )?job\b|\bwere you (?:ever )?a (?:math )?tutor\b|\bmathnasium\b|\byour (?:profession|occupation|career|line of work)\b/, 'job'),
   r('ask_about_self', 3.5, /\b(?:your|you) (?:blood type|height|favorite color|zodiac|star sign)\b|\bhow tall are you\b/, 'trivia'),
-  r('ask_major', 3.5, /\bwhat (?:is|are) your (?:major|degree|program|field|year|track|specialty|classes|courses)\b|\bwhat do you (?:study|major in|research)\b|\bwhat are you (?:studying|majoring in|researching)\b|\bwhat year are you\b|\bwhat classes\b|\bare you a (?:student|freshman|sophomore|junior|senior|grad student|med student|phd student)\b/),
+  r('ask_major', 3.5, /\bwhat (?:is|are) your (?:major|degree|program|field|year|track|specialty|classes|courses)\b|\bwhat do you (?:study|major in|research)\b|\bwhat are you (?:studying|majoring in|researching)\b|\bwhat classes\b/),
+  // What he is and does. Piggy 2 is a doctor (an MD, a fourth-year neurosurgery resident), the other two are students:
+  // "what do you do?", "are you a (real) doctor?", "are you still a student?", "do you have a phd?", "did you match?"
+  // (the residency Match, never a bare "match"). Above a passion word ("surgeon", "doctor") and "are you a pig", below a
+  // need or a feeling ("are you a doctor? i feel sick").
+  r('ask_major', 3.9, new RegExp(
+    String.raw`\bare you (?:still |already |actually |really |even |just |also |now |currently )?(?:(?:a|an|the) (?:(?:first|second|third|fourth|fifth|sixth|seventh|1st|2nd|3rd|4th|5th|6th|7th) year |\w+ )?)?${STATUS}\b` +
+      String.raw`|\bare you (?:still |already |even )?(?:in|done with|finished with|out of|through) (?:med school|medical school|school|college|grad school|residency|training(?! for\b))\b` +
+      String.raw`|\bdo you (?:have|hold) (?:a |an |your )?(?:phd|md(?: phd)?|doctorate|medical degree|medical license|degree)\b` +
+      String.raw`|\b(?:did|have) you (?:already |ever |even |finally )?match(?:ed)?(?= (?:into|in|at|for|yet|already|anywhere|somewhere)\b|$)` +
+      String.raw`|\bwhat (?:kind|type|sort) of (?:doctor|surgeon|resident|student|physician|md|major) are you\b` +
+      String.raw`|\bwhat (?:year|pgy)(?: of (?:residency|med school|medical school|school|college))? are you\b` +
+      String.raw`|\bwhat (?:exactly |even )?do you (?:actually |even |really )?do(?: exactly| again| anyway| anyways| all day| these days| nowadays| now| here)?(?: (?:pigg?y|pig) ?(?:1|2|3|one|two|three)| doc)?(?: (?:lol|lmao|haha\w*|tho|though|btw))?$`,
+  )),
   r('ask_major', 1, /\b(?:major|degree|classes|courses|semester|thesis|dissertation)\b/),
-  r('ask_hobby', 3.5, /\bhobb(?:y|ies)\b|\bfor fun\b|\bfree time\b|\bspare time\b|\bdays? off\b|\bwhat do you like (?:to do|doing)\b|\bwhat are you into\b|\binterests\b|\bwhat do you do (?:after class|on weekends|at night|when you are not)\b|\boutside of (?:class|school|work)\b/),
+  r('ask_hobby', 3.5, /\bhobb(?:y|ies)\b|\bfor fun\b|\bfree time\b|\bspare time\b|\bdays? off\b|\bwhat do you like (?:to do|doing)\b|\bwhat are you into\b|\binterests\b|\bwhat do you do (?:after class|on weekends?|at night|when you are not)\b|\boutside of (?:class|school|work)\b/),
   r('ask_hobby', 2.5, /\bdo you (?:like|watch|play|read|listen to|enjoy) (?:anime|games|video games|music|movies|tv|shows|books|manga|sports|any sports)\b/),
   r('ask_hobby', 1, /\bweekends?\b/),
-  r('ask_favorite_food', 4, /\bfavorite (?:food|foods|snack|snacks|meal|drink|drinks|dessert|treat|thing to eat|restaurant|place to eat|fruit|breakfast|lunch|dinner)\b/),
-  r('ask_favorite_food', 3.5, /\bwhat do you (?:like to )?(?:eat|drink)\b|\bwhat (?:food|foods|snacks?|drinks?) do you (?:like|love|want)\b|\bwhat is your go to (?:food|snack|order)\b|\bdo you like (?:food|snacks|sweets|dessert|desserts|spicy food)\b|\bwhat should i (?:feed|get) you\b|\bwhat do you want to eat\b/),
+  r('ask_favorite_food', 4, /\bfavorite (?:food|foods|snack|snacks|meal|dessert|treat|thing to eat|restaurant|place to eat|fruit|breakfast|lunch|dinner)\b/),
+  r('ask_favorite_food', 3.5, /\bwhat do you (?:like to )?eat\b|\bwhat (?:food|foods|snacks?) do you (?:like|love|want)\b|\bwhat is your go to (?:food|snack|order)\b|\bdo you like (?:food|snacks|sweets|dessert|desserts|spicy food)\b|\bwhat should i (?:feed|get) you\b|\bwhat do you want to eat\b/),
+  // his drink and his comfort food have their own answers (a food named in the message still wins: "is red bull your favorite drink?")
+  r('ask_favorite_food', 4, /\bfavorite (?:drinks?|beverages?|thing to drink)\b|\bwhat do you (?:like to |want to |usually |normally |always )?drink\b|\bwhat (?:drinks?|beverages?) do you (?:like|love|want|get|order)\b|\bwhat is your (?:go to |usual )?drink\b/, 'drink'),
+  // "Why sugar-free Red Bull?" asks about his can (the named drink sets the topic: ask_favorite_food:red_bull_sf)
+  r('ask_favorite_food', 4.5, /\bwhy (?:the |so much |all the )?(?:sugar ?free |sf )?red ?bulls?\b|\bwhy sugar ?free\b|\bred ?bulls? again\b|\bhow many red ?bulls?\b|\bso (?:much|many) red ?bulls?\b/, 'drink'),
+  r('ask_favorite_food', 4, /\b(?:your|you have a|you got a) (?:favorite |go to |usual )?comfort (?:foods?|snacks?|meals?)\b|\bwhat do you eat when you are (?:sad|stressed|down|tired|sick|upset)\b/, 'comfort'),
   r('ask_where', 3.5, /\bwhere (?:are|were) you\b|\bwhere is (?:he|piggy|pig)\b|\bwhere (?:can|do|would|will|should) i find\b|\bwhere do you (?:hang out|live|stay|usually go|spend|go)\b|\bwhere have you been\b|\bwhere (?:is|are) (?:the others|everyone|the boys|the pigs|everybody)\b|\bwhere to find\b/),
   r('ask_where', 1, /\bwhere\b/),
   r('ask_schedule', 3.5, /\b(?:your|you) (?:schedule|routine|plans)\b|\bwhen do you (?:wake up|sleep|go to bed|practice|have class|get up|work|study|eat|go to sleep|get home)\b|\bwhat time do you\b|\bwhen are you (?:free|busy|done|off|home|awake)\b|\bare you (?:free|busy)\b|\bwhat are you doing (?:later|tomorrow|tonight|this weekend|after|today|this afternoon)\b|\bbed ?time\b|\bwhen is (?:practice|class|your shift|rounds)\b|\bwhat is your day like\b|\bplans (?:for )?(?:today|tonight|tomorrow|this weekend|later)\b|\bwhat does your day look like\b|\bdaily routine\b/),
@@ -152,9 +220,10 @@ const RULES: Rule[] = [
   r('exam_stress', 2.5, /\bi (?:am going to|will|might|think i will|could) fail\b|\bfailing\b|\bflunk\w*\b|\bgpa\b|\bgrades?\b|\bstudy for\b|\bcramming\b|\bcram\b/),
   r('exam_stress', 2, /\b(?:stressed|stressed out|overwhelmed|anxious|so much work|too much work|behind on)\b/),
   r('player_sad', 4.5, /\bi (?:am|feel|am feeling|have been|have been feeling) (?:so |really |very |kind of |pretty |a bit |a little |super |just )?(?:sad|down|depressed|lonely|alone|bad|awful|terrible|upset|miserable|blue|low|homesick|heartbroken|hurt|unhappy|empty|lost|stuck|meh|not okay|not good|not great|crappy|rough|gloomy|discouraged|left out|invisible|like a failure)\b/),
-  r('player_sad', 4, /\b(?:bad|rough|terrible|awful|hard|tough|long|crappy|horrible|sad|worst) day\b|\bday (?:was|is|has been) (?:bad|rough|terrible|awful|hard|the worst)\b|\b(?:nobody|no one) likes me\b|\bi miss (?:home|my family|my friends|my mom|my dad|my dog|my cat|my parents|my sister|my brother)\b|\bi am crying\b|\bi cried\b|\bbroke up\b|\bgot dumped\b|\bfeel like crying\b|\bi failed\b|\bi messed up\b|\bi got rejected\b|\bi did bad(?:ly)?\b/),
+  r('player_sad', 4, /\b(?:bad|rough|terrible|awful|hard|tough|long|crappy|horrible|sad|worst) day\b|\bday (?:was|is|has been) (?:bad|rough|terrible|awful|hard|the worst)\b|\b(?:nobody|no one) likes me\b|\bi miss (?:home|my family|my friends|my mom|my dad|my dog|my cat|my parents|my sister|my brother)\b|\bi am crying\b|\bi cried\b|\bbroke up\b|\bgot dumped\b|\bfeel like crying\b|\bi failed\b|\bi messed up\b|\bi got rejected\b|\bi did bad(?:ly)?\b|\b(?:i am having|i have|i had|i get|i got|i keep having|i keep getting|having|had) (?:a |an )?(?:\w+ )?(?:panic|anxiety) attacks?\b|\bi am panicking\b/),
   r('player_sad', 2, /\b(?:sad|lonely|depressed|homesick|crying|upset|miserable|heartbroken|unhappy|sadness)\b/),
-  r('distress', 12, /\b(?:kill myself|killing myself|suicid\w*|end my life|end it all|want to die|do not want to (?:live|be alive|exist|be here)|self harm|selfharm|hurt myself|hurting myself|cutting myself|no reason to live|better off without me|cannot go on|can not go on|give up on life|not want to wake up)\b/),
+  // 'distress' has no rule here: it is quirks.ts isDistress(), the same check that routes the message to the crisis
+  // line before any brain (classifyIntent below), so the scripted brain and the router never disagree.
   r('player_happy', 3.5, /\bi (?:am|feel|am feeling) (?:so |really |very |super |kind of |pretty |just )?(?:happy|great|good|amazing|awesome|excited|fantastic|wonderful|proud|pumped|stoked|hyped|thrilled|blessed|better|relieved|glad)\b/),
   r('player_happy', 4, /\bi (?:passed|aced|nailed|crushed|won|finished|did it|made it|got (?:an a|a job|the job|an internship|the internship|in|accepted|a scholarship|an offer|a 100|a perfect score|a good grade))\b/),
   r('player_happy', 3, /\b(?:good|great|amazing|awesome|best|wonderful) (?:news|day|week)\b|\byay+\b|\bwoo+\b|\bwoohoo+\b|\bhooray\b|\bcelebrate\b|\bcelebration\b/),
@@ -186,7 +255,7 @@ const RULES: Rule[] = [
   r('ask_about_self', 3.6, /\b(?:do you like|do you have|what about|thoughts on|opinion on|how do you feel about|fan of|favorite) (?:a |any )?(?:dogs?|cats?|puppies|kittens?|pets?|animals?|squirrels?|bats?|gators?|alligators?|birds?|bunnies|rabbits?|hamsters?)\b|\bfavorite animal\b/, 'animals'),
   r('ask_about_self', 3.8, /\b(?:girlfriend|boyfriend|gf|bf|single|dating|seeing anyone|seeing someone|date anyone|in a relationship|have a crush|got a crush|love life|significant other)\b/, 'dating'),
   r('ask_about_self', 3.8, /\bkempa(?: ai)?\b|\bkempanions?\b|\bbuddy program\b|\bwho (?:made|created|built|designed) you\b/, 'kempa'),
-  r('ask_about_self', 4, /\bare you (?:a |an |actually a |really a )?(?:robot|ai|bot|chatbot|real|human|person)\b/, 'what'),
+  r('ask_about_self', 4, new RegExp(String.raw`\bare you (?:a |an |actually a |really a )?(?:robot|ai|bot|chatbot|${REAL}|human|person)\b`), 'what'),
   r('ask_hobby', 3.6, /\b(?:music|songs?|playlists?|bands?|singers?|albums?|kpop|k pop|listen to)\b/, 'music'),
   r('ask_hobby', 3.6, /\bvideo games?\b|\bgaming\b|\bnintendo\b|\bplaystation\b|\bxbox\b|\bsteam deck\b/, 'games'),
   r('ask_hobby', 2, /\bgames?\b/, 'games'),
@@ -202,7 +271,7 @@ const RULES: Rule[] = [
   r('encourage', 4.2, /\bgood luck\b|\bbreak a leg\b|\byou (?:got|have got|have) this\b|\byou (?:can|will) do (?:it|this|great)\b|\byou will do (?:great|amazing|well)\b|\bi believe in you\b|\brooting for you\b|\bcheering for you\b|\bknock (?:it|em|them) dead\b/),
 
   // ── Piggy 1: volleyball, CS, stats, Gatorade ──
-  r('passion_p1', 3.5, /\bvolleyball\b|\bvolley\b|\bbeach volleyball\b|\boutside hitter\b|\blibero\b|\bsetter\b|\bmintonette\b|\bhaikyuu?\b/, 'volleyball'),
+  r('passion_p1', 3.5, /\bvolleyball\b|\bvolley\b|\bbeach volleyball\b|\boutside hitter\b|\blibero\b|\bsetter\b|\bmintonette\b/, 'volleyball'),
   r('passion_p1', 2, /\bspik(?:e|es|ing|ed)\b|\bbump(?:ing|ed|s)?\b|\bserv(?:e|es|ing)\b|\brally\b|\brallies\b|\bdig(?:s|ging)?\b|\bblock(?:s|ing|ed)?\b|\bace\b|\baces\b|\bjump serve\b|\bfree ball\b|\bside out\b|\bpancake\b|\bpractice\b|\bnet violations?\b|\bhitter\b|\bsetting\b|\bkill shot\b|\brotations?\b|\bknee pads?\b/, 'volleyball'),
   r('passion_p1', 3, /\bcomputer science\b|\bcomp sci\b|\bcs\b|\bcise\b|\balgorithms?\b|\bdata structures?\b|\bleetcode\b|\bcompetitive programming\b|\bbig o\b|\brecursion\b|\bcircular (?:queue|buffer)\b|\bround robin\b|\bgame dev\b|\bjava\b|\bpython\b|\bc\+\+\b|\bjavascript\b|\bmerge conflicts?\b|\btest coverage\b|\bunit tests?\b|\bcompiler\b|\bsegfault\b/, 'cs'),
   r('passion_p1', 2, /\bcod(?:e|es|ing|er|ers)\b|\bprogramming\b|\bprogrammer\b|\bdebug(?:ging)?\b|\bbugs?\b|\bsoftware\b|\bcomputers?\b/, 'cs', { alt: { 'piggy-3': { i: 'passion_p3', topic: 'building' } } }),
@@ -211,6 +280,8 @@ const RULES: Rule[] = [
   r('passion_p1', 3.5, /\bspreadsheets?\b|\bexcel\b|\bgoogle sheets\b|\bpivot tables?\b/, 'spreadsheet'),
   r('passion_p1', 3, /\bgatorade\b|\bsports drinks?\b|\belectrolytes?\b|\binvented (?:at uf|here)\b|\bsideline sip\b|\bcade\b/, 'gatorade'),
   r('passion_p1', 3.5, /\bhackathons?\b|\bswamphacks\b|\bhack night\b/, 'hackathon'),
+  // match day: a volleyball match to Piggy 1 (and Piggy 3), the residency Match to Piggy 2
+  r('passion_p1', 2, /\bmatch day\b/, 'volleyball', { alt: { 'piggy-2': { i: 'ask_major' } } }),
 
   // ── Piggy 2: neuro ──
   r('passion_p2', 2.5, /\bneuro ?surg\w*\b|\bneurosurgeons?\b|\bneuroscience\b|\bneurology\b|\bneuro\b|\bneurons?\b|\bcortex\b|\bgyri\b|\bglymphatic\b|\brhoton\b|\bnervous system\b|\bsynapses?\b|\bbrain surgery\b/, 'neurosurgery'),
@@ -220,11 +291,15 @@ const RULES: Rule[] = [
   r('passion_p2', 3.5, /\bperfus\w*\b|\bblood flow\b|\bblood pressure\b|\bmean arterial pressure\b|\bcpp\b|\bcirculation\b|\bcircle of willis\b|\bblood supply\b/, 'perfusion'),
   r('passion_p2', 3.5, /\bcsf\b|\bcerebro ?spinal(?: fluid)?\b|\bspinal fluid\b|\blumbar drains?\b|\blumbar\b|\bevds?\b|\bexternal ventricular drains?\b|\bventricles?\b|\bintracranial(?: pressure)?\b|\bicp\b|\bhydrocephalus\b|\btragus\b/, 'csf'),
   r('passion_p2', 2, /\bdrain(?:s|ing|ed)?\b/, 'csf'),
-  r('passion_p2', 3.5, /\bspin(?:e|al)\b|\bspinal cord\b|\bsci\b|\bspinal (?:cord )?injur(?:y|ies)\b|\bdecompress\w*\b|\bvertebra\w*\b|\bparaly\w*\b|\bwalk again\b/, 'spine'),
+  // "SCI" is a spinal cord injury, not "poli sci", "comp sci" or sci-fi; "Why pig spines?" is his chip
+  r('passion_p2', 3.5, /\bspin(?:es?|al)\b|\bspinal cord\b|(?<!\b(?:poli|comp|data|rocket) )\bsci\b(?! fi\b)|\bspinal (?:cord )?injur(?:y|ies)\b|\bdecompress\w*\b|\bvertebra\w*\b|\bparaly\w*\b|\bwalk again\b/, 'spine'),
   r('passion_p2', 3.5, /\belectrodes?\b|\bmicro ?chips?\b|\bbrain chips?\b|\bimplants?\b|\bbci\b|\bbrain computer interfaces?\b|\becog\b|\butah array\b|\bdbs\b|\bdeep brain stimulation\b|\bneural (?:implants?|interfaces?)\b|\bneuralink\b/, 'electrodes'),
   r('passion_p2', 3.5, /\bpig models?\b|\bswine(?: models?)?\b|\bporcine\b|\blab pigs?\b|\banimal (?:research|models?|studies|testing)\b|\bminipigs?\b|\byucatan\b|\biacuc\b|\bprofessor snout\b|\bsir lancelot\b|\bresearch pigs?\b|\bpigs in (?:research|science|medicine)\b|\btranslational\b/, 'pig_models'),
   r('passion_p2', 3, /\bmri\b|\bmris\b|\bscans?\b|\bimaging\b|\bct scans?\b|\btesla\b|\bmcknight\b|\bbrain institute\b|\bmotion artifacts?\b|\bmagnets?\b/, 'mri'),
   r('passion_p2', 3.5, /\banatomy\b|\bcadavers?\b|\bdonors?\b|\bdissect\w*\b|\bformaldehyde\b|\bgross anatomy\b|\bbody donation\b/, 'anatomy'),
+  // He collects (hogs) retired and expired medical equipment: labeled boxes at home and in the lab.
+  r('passion_p2', 3.5, /\bhoard(?:s|ing|er)?\b|\b(?:old|expired|used|retired|decommissioned|vintage) (?:medical )?(?:equipment|gear|devices?|supplies|stethoscopes?|monitors?)\b|\bmedical (?:equipment|gear|devices?|supplies)\b|\bstethoscopes?\b|\byour (?:collection|boxes)\b/, 'collection'),
+  r('passion_p2', 2, /\bcollect(?:s|ing|ion|or)?\b/, 'collection'),
   r('passion_p2', 2.5, /\bmed ?school\b|\bmedical school\b|\bmedicine\b|\bmd ?phd\b|\bmdphd\b|\bresidency\b|\brounds\b|\bpre ?med\b|\bwhite coat\b|\bstethoscope\b|\bclinicals?\b|\bshadowing\b/, 'medschool'),
   r('passion_p2', 3, /\b(?:your|the|his) research\b|\bresearch (?:going|project|lab)\b/, 'spine', {
     alt: { 'piggy-1': { i: 'passion_p1', topic: 'cs' }, 'piggy-3': { i: 'passion_p3', topic: 'signals' } },
@@ -240,18 +315,96 @@ const RULES: Rule[] = [
   r('passion_p3', 3.5, /\bhi ?per ?gator\b|\bhipergator\b|\bsuper ?computers?\b|\bgpus?\b|\bclusters?\b|\bslurm\b|\bblackwell\b|\bnvidia\b|\bjob queue\b|\bdgx\b/, 'hipergator'),
   r('passion_p3', 3.5, /\becg\b|\bekg\b|\bsignals?\b|\bsignal processing\b|\bartifacts?\b|\bheadbands?\b|\bseizure detection\b|\bwaveforms?\b|\bfourier\b|\bfft\b|\bbiosignals?\b/, 'signals'),
   r('passion_p3', 3.5, /\beeg\b|\bbrain ?waves?\b|\balpha waves?\b/, 'signals', { alt: { 'piggy-2': { i: 'passion_p2', topic: 'electrodes' } } }),
+  // "What does an EEG show?" (his chip) asks for an explanation; Piggy 2 hears his electrodes, as above
+  r('passion_p3', 3.8, /\bwhat (?:does|do|can) (?:an? |the |your )?eegs? (?:show|tell you|measure|read|record|pick up|see|do)\b|\bwhat (?:is|are) (?:an? )?eegs?\b|\bhow (?:does|do) (?:an? )?eegs? work\b/, 'eeg', { alt: { 'piggy-2': { i: 'passion_p2', topic: 'electrodes' } } }),
   r('passion_p3', 2.5, /\bprint(?:s)?\b|\bmake me (?:a|something)\b/, 'printing'),
   r('passion_p3', 3.5, /\b3d print\w*\b|\b3d printers?\b|\bprinters?\b|\bprinting\b|\bfilament\b|\bpla\b|\bspaghetti\b|\bmakerspace\b|\bcad\b|\bstl\b|\bprinted\b|\bnozzle\b|\blayer lines?\b/, 'printing'),
-  r('passion_p3', 4, /\bone piece\b|\bluffy\b|\bzoro\b|\bsanji\b|\bgrand line\b|\bstraw hats?\b|\bgear (?:4|5|five|fourth|fifth)\b|\bpirate king\b|\bthousand sunny\b|\bdevil fruits?\b/, 'onepiece'),
+  r('passion_p3', 4, /\bone p(?:ie|ei)ce\b|\bluffy\b|\bzoro\b|\bsanji\b|\bgrand line\b|\bstraw hats?\b|\bgear (?:4|5|five|fourth|fifth)\b|\bpirate king\b|\bthousand sunny\b|\bdevil fruits?\b/, 'onepiece'),
   r('passion_p3', 2, /\bpirates?\b/, 'onepiece'),
-  r('passion_p3', 4, /\bjojo\w*\b|\bstand (?:user|power)\b|\bmenacing\b|\bgo go go\b|\bora ora\b|\bza warudo\b|\bjotaro\b|\bgiorno\b|\bbizarre adventure\b|\bjoestar\b/, 'jojo'),
+  r('passion_p3', 4, /\bjojo\w*\b|\bjjba\b|\bstand (?:user|power)\b|\bmenacing\b|\bgo go go\b|\bora ora\b|\bza warudo\b|\bjotaro\b|\bgiorno\b|\bbizarre adventure\b|\bjoestar\b/, 'jojo'),
+  // One Piece or JoJo, in any order or wording ("One Piece or JoJo?", "jojo vs one piece", "which is better…", "pick
+  // one…"): the two rules above match it at 4 each, and the tie went to JoJo. He always picks One Piece.
+  r('passion_p3', 4.5, new RegExp(String.raw`\b${OP_NAMES}\b.*\b${JOJO_NAMES}\b|\b${JOJO_NAMES}\b.*\b${OP_NAMES}\b`), 'opvsjojo'),
+  // the player's own take ("jojo is better than one piece", "one piece is the goat") gets its own reaction
+  r('passion_p3', 4.6, takeRule(JOJO_NAMES, OP_NAMES), 'jojo_better'),
+  r('passion_p3', 4.6, takeRule(OP_NAMES, JOJO_NAMES), 'op_better'),
+  // Buggy the Clown, the One Piece villain in his favorite joke: "who's Buggy?" right after he brings him up
+  r('passion_p3', 4.2, /\bbuggy the clown\b|\bcaptain buggy\b|\bbuggy pirates?\b|\bwho is buggy\b|^buggy (?:is|was)\b|^(?:what is |about )?buggy$/, 'buggy'),
   r('passion_p3', 3.5, /\banime\b|\bmanga\b|\bpokemon\b|\bswampcon\b|\bcosplay\b|\bghibli\b|\bnaruto\b|\bdemon slayer\b|\bjujutsu kaisen\b|\bfrieren\b|\bchainsaw man\b|\botaku\b/, 'anime'),
   r('passion_p3', 3, /\bui\b|\bux\b|\buser interfaces?\b|\binterfaces?\b|\bdesigns?\b|\bdesigning\b|\bfigma\b|\bfonts?\b|\btypography\b|\bcomic sans\b|\bdashboards?\b|\bwebsites?\b|\bweb ?apps?\b|\bapps?\b|\blayout\b|\bpixel art\b|\bkempapager\b|\bpager\b|\bfrontend\b|\bcss\b|\bsvelte\b/, 'ui'),
   r('passion_p3', 4, /\bwhat are you (?:building|making|working on|printing|tinkering with|cooking up)\b|\byour (?:little )?(?:project|projects|thing|side project|prototype)\b|\blittle (?:project|thing)\b/, 'building'),
   r('passion_p3', 2, /\bprojects?\b|\bprototypes?\b|\bbuild(?:ing|s)?\b|\bship(?:ping|ped)?(?: it)?\b|\bdemo\b|\bside projects?\b|\btinker\w*\b|\bmaker\b|\bgadgets?\b/, 'building'),
   r('passion_p3', 3, /\bphysics\b|\bsimulations?\b|\bsimulating\b|\bquantum\b|\bligo\b|\bgravitational waves?\b|\bmicrokelvin\b|\bhiggs\b|\bparticles?\b|\bastronomy\b|\btelescopes?\b|\bobservatory\b|\bblack holes?\b|\bsaturn\b|\buniverse\b/, 'physics'),
+  // He used to tutor math.
+  r('passion_p3', 3, /\bmath(?:s|ematics)?\b|\bcalculus\b|\balgebra\b|\bgeometry\b|\btrig(?:onometry)?\b|\bfractions?\b|\blong division\b/, 'math'),
+  r('passion_p3', 4.2, /\bmath (?:tricks?|hacks?|shortcuts?|puzzles?|riddles?|facts?)\b|\bmental math\b|\bteach me (?:some |a |any |a little |more )?math\b|\btimes tables?\b|\bmultiply(?:ing)? by (?:9|11|nine|eleven)\b|\bshortcuts? for (?:multiplying|multiplication|fractions|percentages?|percents?|division)\b/, 'mathtrick'),
+  // X (the mumble and the "it's called X" correction are quirks.ts + heuristic/mumble.ts; these are the bank's answers)
+  r('passion_p3', 4.4, X_APP, 'x'),
+  r('passion_p3', 4.6, /\btwitter\b|\btweet(?:s|ed|ing)?\b|\bretweet\w*\b|\bbird app\b|\bthe bird (?:site|app)\b/, 'twitter'),
+  // AI words he'd explain (the five the owner listed, plus "what is an LLM?")
+  r('passion_p3', 4.3, /\bwhat (?:even )?(?:is|are) (?:an? )?(?:llms?|large language models?|language models?)\b|\bhow do (?:llms|large language models|language models|chatbots|ai models) (?:even )?(?:work|learn|think)\b|\bexplain (?:llms?|large language models?|language models?)\b/, 'llm'),
+  r('passion_p3', 4.3, /\brlhf\b|\breinforcement learning from human feedback\b/, 'rlhf'),
+  r('passion_p3', 4.3, /\brlvr\b|\bverifiable rewards?\b/, 'rlvr'),
+  r('passion_p3', 4.3, /\bjev\b|\bdecision models?\b|\bsystem one models?\b/, 'jev'),
+  r('passion_p3', 4.3, /\bfoundation models?\b/, 'foundation'),
+  // medical AI over health records (his research side; Piggy 2 is the doctor)
+  r('passion_p3', 4.3, /\bmedical (?:ai|models?|coding|records?|data)\b|\b(?:ai|models?) (?:in|for) (?:medicine|health ?care|hospitals?)\b|\bhealth ?care ai\b|\bclinical (?:ai|notes?|models?|data)\b|\bfhir\b|\bsynthetic patients?\b|\bsynthea\b|\bicd ?10\b|\behrs?\b|\b(?:electronic )?health records?\b/, 'medai'),
+  // robots, someday (below "are you a robot?", which asks what he is)
+  r('passion_p3', 3.5, /\brobots?\b|\brobotics\b|\bhumanoids?\b|\brobot arms?\b|\bteleop\w*\b|\bimitation learning\b|\bsim ?(?:2|to) ?real\b|\bvlas?\b/, 'robots'),
   r('ask_best', 4, /\b(?:what is|which is|what are|who is|which) (?:the |your )?best\b|\bbest (?:ai|model|models|laptop|phone|language|programming language|editor|gpu|printer|filament|anime|way|option|choice|study spot|place to study|food|snack|pizza|coffee|app|tool|framework|computer|keyboard|song|movie|game|one)\b|\bwhich (?:one )?(?:is|should i) (?:better|best|get|use|pick|choose|buy)\b|\bwhat should i (?:use|get|buy|pick|choose)\b|\bwhich is better\b|\bwhat is better\b|\bis \w+ better than\b/),
   r('ask_best', 1.5, /\bthe best\b|\bbetter than\b/),
+
+  // ── more quick replies: Piggy 1's and Piggy 2's new chips, and the six shared ones ──
+  // Every new topic has its own answer pool (lines/piggy*.ts) and an ANSWER_TOPICS entry (respond.ts). Weights sit above the
+  // general rule of the same subject, so the specific question wins and plain talk keeps its old answer.
+
+  // Piggy 1: his years as a researcher in Germany. Under share_self:hometown's 3.5, so "I'm from Germany" is still read back
+  // as a hometown; not bare "german" ("I study German" is a stated major, below).
+  r('passion_p1', 3.4, /\bgermany\b|\bdeutschland\b/, 'germany'),
+  // his German: "say something in German", "do you speak German?", the words themselves
+  r('passion_p1', 3.8, /\b(?:say|speak|sing|count|teach me|how do you say|translate)\b[^?]*\b(?:german|deutsch)\b|\bdo you (?:speak|know|understand) (?:any |some )?(?:german|deutsch)\b|\bguten (?:tag|morgen|abend)\b|\btschuss\b|\bauf wiedersehen\b/, 'german'),
+  // Haikyu!! has its own answers (it used to count as plain volleyball talk). Under One Piece's 4, so "haikyu or one piece" still
+  // gets his "we argue about it every Friday" line.
+  r('passion_p1', 3.6, /\bhaikyu+\b|\bkarasuno\b|\bkageyama\b|\bbokuto\b|\bnishinoya\b|\btsukishima\b|\bfukurodani\b|\bnekoma\b|\bhinata\b(?! (?:hyuga|from naruto|of naruto)\b)/, 'haikyu'),
+  r('passion_p1', 4, /\b(?:sand|beach) or indoor\b|\bindoor or (?:sand|beach)\b|\b(?:sand|beach|indoor) (?:vs|versus) (?:sand|beach|indoor)\b|\bsand volleyball\b/, 'sand'),
+  // joining his club team ("can i join you" is any pig's invitation; "join your lab" is not his)
+  r('passion_p1', 4, /\bjoin (?:your|the|his) (?:volleyball |club )?(?:team|club|squad|roster)\b|\b(?:can|could|may) i (?:come to|watch|try out for) (?:your |the )?(?:practice|team|club)\b|\btry ?outs?\b|\bmake the team\b/, 'team'),
+  // the calls he yells: "volleyball lingo?", "what's a pancake?" (above the food reading of pancake)
+  r('passion_p1', 4, /\bvolleyball (?:lingo|slang|terms?|jargon|calls?|vocab\w*)\b|\bwhat do (?:the|your) calls mean\b|\bwhat(?: does| is|'s)? (?:a |an |the )?(?:free ?ball|side ?out|pancake)\b/, 'calls'),
+  // a named algorithm or "favorite algorithm" (bare "algorithms" stays general CS talk, at 3 above)
+  r('passion_p1', 3.6, /\bfavorite (?:algorithm|data structure|sorting algorithm)s?\b|\bbinary search\b|\bmerge ?sort\b|\bquick ?sort\b|\bbubble ?sort\b|\bhash ?(?:maps?|tables?)\b|\blinked lists?\b|\bbreadth first\b|\bdepth first\b|\bbfs\b|\bdfs\b|\bdijkstra\b|\bsliding window\b/, 'algorithm'),
+  r('passion_p1', 3.6, /\b(?:best|worst|funniest|weirdest|craziest|hardest|dumbest|favorite) bug\b|\bbug (?:stor(?:y|ies)|you (?:ever )?(?:fixed|found|wrote|hit))\b|\bdebugging stor(?:y|ies)\b/, 'bug'),
+
+  // Piggy 2: offering him equipment for the collection. Finding it or asking about it stays 'collection' ("i found an old
+  // stethoscope", "got any expired medical equipment?").
+  r('passion_p2', 4, new RegExp(
+    String.raw`\b(?:want|take|have|keep) (?:my|this|these|those|our|an?|some) ${GEAR}\b` +
+      String.raw`|\bfor (?:your|the) collection\b|\bi (?:brought|got|saved) you (?:some |an? |my )?${GEAR}\b|\bi have (?:an? |some )?${GEAR}\b` +
+      String.raw`|\b(?:donate|give you|bring you) (?:my |some |an? |this )?${GEAR}\b`,
+  ), 'donation'),
+  // not "pgy": "what pgy are you?" is ask_major's, above
+  r('passion_p2', 4, /(?<!\bmy )\bresearch year\b|\bprotected (?:research )?time\b|\bdedicated research (?:time|year)\b|\blab year\b/, 'research_year'),
+  // "OR" reads as "or" once normalized, so only "miss the or" (never the bare word) is the operating room
+  r('passion_p2', 4, /\bmiss (?:the |being in the |being in )?(?:or|operating room|surgery|operating|scrubbing in)\b|\bdo you (?:still )?(?:operate|do surgery|do surgeries|scrub in)\b|\bsim lab\b/, 'or'),
+  // over ask_major ("are you a doctor?") and 'neurosurgery': "why" asks why
+  r('passion_p2', 4.2, /\bwhy (?:did you (?:choose|pick|go into|get into|become|want to (?:do|be|become)) |do you (?:do|like|love) |are you |be |become )?(?:a )?(?:neuro ?surg\w*|neurosurgeon|surgeon|doctor|medicine|med school|surgery)\b/, 'why'),
+  r('passion_p2', 4, /\bcranial nerves?\b|\bvag(?:us|al)\b|\bolfactory\b|\btrigeminal\b|\bfacial nerve\b|\boptic nerve\b|\btrochlear\b|\bhypoglossal\b/, 'nerves'),
+  // the lead lab pig (pig_models, above, lists him too, at 3.5)
+  r('passion_p2', 4.2, /\bprofessor snout\b|\bwho is snout\b/, 'snout'),
+  // his birthday is July 4; birthday itself stays 'birthday' (3.5)
+  r('ask_about_self', 4, /\bjuly (?:4|4th|fourth)\b|\b(?:fourth|4th) of july\b|\bindependence day\b|\bfireworks?\b/, 'july4'),
+  // "Am I based?" gets a score on his based scale (a bare "based" is still the hard quirk: "Patriot.")
+  r('based', 4, /\bam i (?:(?:so|really|very|even|actually|still|kind of|also) )?based\b|\bhow based am i\b|\bbased scale\b|\bbased rating\b/, 'rate'),
+
+  // the six shared chips: every pig answers each in his own way
+  // "Hype me up!": the player asks for a pep talk (the 'encourage' rule above is the player cheering for the pig). Not "cheer me up",
+  // which is comfort (player_sad), and below exam_stress / player_sad ("i'm stressed about my exam, give me a pep talk").
+  r('encourage', 4.4, /\bhype me(?: up)?\b|\bpump me up\b|(?<!\b(?:no|not|without) )\bpep talk\b|\bcheer me on\b|\bmotivate me\b|\bi need (?:some )?(?:motivation|encouragement|a pep talk|a boost)\b/, 'hype'),
+  r('ask_about_self', 4, /\bearly bird\b|\bnight owl\b|\bmorning person\b|\bnight person\b|\bmorning or night\b/, 'chronotype'),
+  r('study', 4, /\bteach me (?:something|anything|a (?:fun )?fact|a thing)\b|\btell me (?:something|anything|a (?:fun |cool |random )?fact) (?:cool|interesting|new|fun|random|neat)\b|\b(?:fun|cool|random) facts?\b/, 'teach'),
+  r('ask_about_self', 4, /\bwhat is your (?:biggest |big |life |dream )?(?:dream|goal)s?\b(?! (?:for|today|this|tonight)\b)|\byour dreams?\b|\bdream job\b|\bwhere do you see yourself\b|\bin (?:5|five|10|ten) years\b|\bwhen you grow up\b/, 'dream'),
+  r('ask_hobby', 3.6, /\bwhat (?:are you|have you been) (?:watching|bingeing|binging)\b|\bwhat should (?:i|we) watch\b|\bwatching anything\b|\bany good shows\b|\bfavorite (?:shows?|series|tv shows?)\b/, 'shows'),
+  r('ask_about_self', 4, /\bare you (?:so |really |very |super |kind of |pretty |a little |that )?competitive\b|\bhow competitive are you\b|\bdo you (?:hate|mind) losing\b|\bdo you (?:like|love|hate) to win\b|\bare you a (?:sore|bad|good) loser\b/, 'competitive'),
 
   // ── quirk words inside a longer message ──
   r('based', 3.5, /\bbased\b/),
@@ -261,7 +414,7 @@ const RULES: Rule[] = [
   r('ask_about_me', 4, /\bwhat do you (?:know|remember) about me\b|\bdo you (?:remember|know) (?:me|my|who i am|anything about me)\b|\bwhat is my (?:name|major|comfort food|hometown|favorite food)\b|\bwho am i\b|\bguess my\b|\bremember me\b|\bask (?:me something|about me|me a question)\b|\bwhat do you think (?:of|about) me\b/),
   r('share_self', 3.5, /\bmy name is\b|\bcall me\b|\bi go by\b/, 'name'),
   r('share_self', 3.5, /\bi am (?:a |an )?(?:freshman|sophomore|junior|senior|grad student|graduate student|transfer student|phd student|med student|first year|second year|third year|fourth year|new student)\b/, 'year'),
-  r('share_self', 3.5, /\bi study\b|\bi am studying\b|\bmy major is\b|\bi major in\b|\bi am majoring in\b|\bi am (?:a |an )?[a-z]+ major\b/, 'major'),
+  // share_self:major (a stated major) is scored in classifyIntent from template.ts statedMajor()
   r('share_self', 3.5, /\bi am from\b|\bi grew up in\b|\bmy hometown is\b/, 'hometown'),
   r('share_self', 2, /\bi (?:really )?(?:like|love|enjoy|adore|am into) (?!you\b|ya\b|it\b|that\b|this\b|your\b|when\b|how\b|to\b|the way\b)[a-z]+/, 'likes'),
 
@@ -303,8 +456,14 @@ hobbies hobby whatever because tomorrow definitely probably`
 
 const KNOWN = new Set<string>([...COMMON_WORDS, ...VOCAB]);
 
+/**
+ * Real words the corrector would turn into a keyword: "comp sci" is not "chomp sci". A field of study is never a typo
+ * either ("painting" is not "printing"), so a major is read back and remembered as the player said it.
+ */
+const NOT_TYPOS: ReadonlySet<string> = new Set(['comp']);
+
 function correctToken(tok: string): string {
-  if (tok.length < 4 || KNOWN.has(tok) || /\d/.test(tok)) return tok;
+  if (tok.length < 4 || KNOWN.has(tok) || NOT_TYPOS.has(tok) || isSubjectWord(tok) || /\d/.test(tok)) return tok;
   let best = tok;
   let bestD = 99;
   for (const kw of VOCAB) {
@@ -323,6 +482,19 @@ export function correctTypos(tokens: readonly string[]): string[] {
   return tokens.map(correctToken);
 }
 
+/** What the rules read: the message normalized, then typo-corrected (memory.ts reads a major from the same text). */
+export function correctedText(text: string): string {
+  return correctTypos(normalize(text).tokens).join(' ');
+}
+
+/**
+ * `text` (normalized) names one of the pigs' own topics outright ("perfusion", "volleyball", "codex"; not the broader
+ * "computer science" or "physics", which are majors too).
+ */
+export function isPassionTopic(text: string): boolean {
+  return RULES.some((rule) => rule.w > 3 && rule.i.startsWith('passion_') && rule.re.test(text));
+}
+
 // ───────────── classification ─────────────
 
 const EXACT_QUIRKS: Record<string, Intent> = { based: 'based', patriot: 'patriot', bump: 'bump', set: 'set', spike: 'spike' };
@@ -332,6 +504,8 @@ const OPINION_WORDS = /\b(?:like|love|enjoy|into|hate|favorite|think of|opinion|
 /** "Hey Piggy 1, …" — the name used as an address, not as the topic. */
 const VOCATIVE = /^(?:(?:hi|hey|hello|yo|okay|so|oh|good morning|morning|dear)\s+)?(?:pigg?y|pig|p) ?(?:1|2|3|one|two|three)\b/;
 const OTHER_PIG_WORDS =/\bwhat do you think (?:of|about)\b|\bdo you like\b|\btell me about\b|\bfriends?\b|\bget along\b|\broommates?\b|\bwhat is (?:he|piggy \w+) like\b|\bhow is\b/;
+/** A message that ends by asking the same thing back ("…, what about you?", "hbu"). */
+const ASKED_BACK = /\b(?:how about you|what about you|and you|and yourself|what is yours|how about yours|what about yours)$/;
 
 interface Acc {
   score: number;
@@ -367,6 +541,22 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
     if (alt) add(alt.i, rule.w, alt.topic);
     else add(rule.i, rule.w, rule.topic);
   }
+
+  // A stated major outranks its subject's words ("my major is computer science" is not CS small talk). "I study X"
+  // (X a field of study) is one too, unless X is one of the pigs' topics ("i'm studying perfusion": that topic's
+  // answer, and memory.ts doesn't file it either).
+  const major = statedMajor(corrected);
+  if (major) {
+    add('share_self', major.strong ? 4.2 : major.value && isPassionTopic(major.value) ? 3 : 3.8, 'major');
+    // "I'm a CS major, hbu?" asks for his major back, not how he is
+    if (ASKED_BACK.test(corrected) && !/\bhow (?:are|is|have|was) (?:you|it|things|life|your)\b/.test(corrected)) acc.delete('how_are_you');
+  }
+
+  // "what's 9 plus 10?", "9+10", "6 * 7 = ?": a message that is nothing but a sum is read from the raw text (normalize()
+  // drops the signs) and beats every word in it ("quick math" is not Piggy 3's math talk). Its topic is what is special
+  // about it: 'meme' (9 + 10), 'zero' (a division by zero), 'approx' (a division with decimals left over).
+  const math = parseArithmetic(text);
+  if (math) add('arithmetic', 6, math.kind);
 
   // entity bonuses
   if (entities.pork) add('pork_joke', 7);
@@ -405,6 +595,8 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
   const exact = EXACT_QUIRKS[n.text];
   if (exact) guesses.push({ intent: exact, score: 99 });
   if (n.text === 'codex') guesses.push({ intent: 'passion_p3', topic: 'codex', score: 99 });
+  // crisis language beats everything, and it is exactly what the router sends to the crisis line (quirks.ts)
+  if (isDistress(text)) guesses.push({ intent: 'distress', score: 100 });
 
   const rank = (i: Intent) => PRIORITY.indexOf(i);
   guesses.sort((a, b) => b.score - a.score || rank(a.intent) - rank(b.intent));
@@ -438,6 +630,7 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
     question: n.question,
     normalized: n.text,
     corrected,
+    ...(best.intent === 'arithmetic' && math ? { math } : {}),
   };
 }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Perfusion! — Piggy 2's ECG rhythm game in the sim lab. Clock follows audio.songPosition() when the
+  // Swinus Rhythms (id 'perfusion') — Piggy 2's ECG rhythm game in the sim lab. Clock follows audio.songPosition() when the
   // song is playing (drift-corrected against performance.now()), else performance.now().
   import { untrack } from 'svelte';
   import type { MinigameProps } from '../types';
@@ -211,7 +211,7 @@
     'Blue HOLD band = draining CSF: press and hold until it ends.',
     'Flat gray SKIP = a dropped beat. Don’t tap!',
     'Keep the perfusion meter up. Under 30% is ISCHEMIA (he is delighted, then worried).',
-    'Three phases: 72 → 96 → 120 BPM. About 45 seconds. No fail state.',
+    'Three phases: 72 → 96 → 120 BPM. About a minute. No fail state.',
   ]}
   keysHint="Tap or hold the screen / button · Space, J, K or F · Esc pauses"
   timeLeft={view.total ? view.time : null}
@@ -223,7 +223,7 @@
   onexit={onExit}
 >
   {#snippet stage()}
-    <div class="box" bind:this={box} role="img" aria-label={`Perfusion. ECG monitor and perfusion meter. Accuracy ${view.accuracy} percent.`}>
+    <div class="box" bind:this={box} role="img" aria-label={`Swinus Rhythms. ECG monitor and perfusion meter. Accuracy ${view.accuracy} percent.`}>
       <canvas
         bind:this={canvas}
         aria-hidden="true"
@@ -265,7 +265,7 @@
   .box { position: absolute; inset: 0; display: grid; place-items: center; }
   canvas { display: block; image-rendering: pixelated; cursor: pointer; touch-action: none; }
   .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; font-size: 1.1rem; }
-  .stat small { font-size: 0.6rem; opacity: 0.7; letter-spacing: 0.08em; }
+  .stat small { font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.08em; }
   .stat.hot { color: var(--gold); }
   .pulse { width: min(420px, 100%); min-height: 56px; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: 0.1em; touch-action: none; }
   .pulse.holding { --btn-bg: #7fd6ff; --btn-ink: var(--ink); }

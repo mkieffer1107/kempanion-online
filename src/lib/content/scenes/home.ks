@@ -18,12 +18,19 @@ replayable: false
   [bg home_p1 fade]
   [bgm piggy1_theme]
   [show piggy-1 excited center]
+  [pager]
   piggy-1 excited: Team huddle, first day on the KempaPager! Look, that's me— tiny me!
+  [pager feed drink]
   piggy-1 happy: Top row: FEED and DRINK. I burn fuel 1.2 times faster than average, and yes, I did the math.
+  [pager play wash]
   piggy-1 happy: PLAY is ball time. WASH is a bath or brushing teeth, because sand gets EVERYWHERE.
+  [pager light]
   piggy-1 thinking: Bottom row: LIGHT is lights-out. Tuck me in around 10:30 and I'm up for sunrise practice.
+  [pager care]
   piggy-1 sad: CARE is medicine, in case a cold benches me. It's rare— I'm very durable.
+  [pager talk stats]
   piggy-1 happy: TALK is us, talking. STATS is my numbers: needs, hearts, all of it.
+  [pager off]
   piggy-1 excited: Acorns are money! Daily stamp, tasks, mini-games, and golden petals— tap those when they float by.
   piggy-1 proud: Oh, and you can tap me. Or pet me, which is not required, but highly recommended.
   piggy-1 happy: Last thing: the clock's real. When it's lunch for you, it's lunch for me.
@@ -42,19 +49,27 @@ replayable: false
   [bgm piggy2_theme]
   [show piggy-2 neutral center]
   piggy-2 neutral: Orientation. Five minutes, then you hydrate.
+  [pager]
   piggy-2 neutral: The KempaPager is my chart. You're the attending now.
+  [pager feed drink]
   piggy-2 neutral: FEED and DRINK: nutrition and fluids. I forget both, which is where you come in.
+  [pager play]
   piggy-2 happy: PLAY: recreation, which lowers cortisol. Based.
+  [pager wash]
   piggy-2 neutral: WASH: bath and teeth. The sterile field starts at home.
-  piggy-2 neutral: LIGHT: sleep. In bed at 2200, up at 0500 for rounds.
+  [pager light]
+  piggy-2 neutral: LIGHT: sleep. In bed at 2200, up at 0500 to round on the lab pigs.
+  [pager care]
   piggy-2 thinking: CARE: medicine. If I get sick, I'll claim I'm fine— overrule me.
+  [pager talk stats]
   piggy-2 neutral: TALK is conversation. STATS are my vitals, so read them like a chart.
+  [pager off]
   piggy-2 neutral: Acorns are currency: daily stamp, tasks, mini-games, golden petals. Spend them on food.
   piggy-2 shy: Ideally apple pie. That's not a request, it's a clinical observation.
   piggy-2 neutral: Also, you may pat my head. Cranial nerves will report favorably.
   ? Understood, Doctor.
     [bond piggy-2 +5]
-    piggy-2 flustered_blush: Doctor? I'm not— not yet.
+    piggy-2 flustered_blush: Doctor? That's— yes. Correct. Nobody calls me that at home.
     piggy-2 shy_blush: ...Based. Very based.
   ? Pat his head.
     [bond piggy-2 +5]
@@ -65,12 +80,21 @@ replayable: false
   [bg home_p3 fade]
   [bgm piggy3_theme]
   [show piggy-3 happy center]
+  [pager]
   piggy-3 happy: Okay, so— this is the home screen. I redid it, so everything's a little icon, like the old LCD toys.
-  piggy-3 thinking: Top row is FEED, DRINK, PLAY, WASH. Bottom row is LIGHT, CARE, TALK, STATS.
+  [pager top]
+  piggy-3 thinking: Top row is FEED, DRINK, PLAY, WASH.
+  [pager bottom]
+  piggy-3 thinking: Bottom row is LIGHT, CARE, TALK, STATS.
+  [pager feed drink]
   piggy-3 sad: FEED and DRINK are food and drinks. I forget to eat when a build's running, so... yeah, please.
+  [pager play wash]
   piggy-3 happy: PLAY is play. WASH is a bath or teeth, because there's usually PLA dust in my curls.
+  [pager light]
   piggy-3 thinking: LIGHT is lights-out. I'm a night owl, like, after midnight, so don't tuck me in at nine.
+  [pager care talk stats]
   piggy-3 happy: CARE is medicine, TALK is talking, and STATS has the actual numbers. I made the bars chunky so they're readable.
+  [pager off]
   piggy-3 excited: Acorns are the currency: stamps, tasks, mini-games, and golden petals. Tap those, that part's my favorite.
   piggy-3 bashful_smile: Oh, and you can tap me, or pet me, or— okay. That's the whole tutorial.
   piggy-3 thinking: Wait, was that clear? Actually, I could make a shorter version.
@@ -102,6 +126,7 @@ replayable: false
   [bgm piggy1_theme]
   [show piggy-1 thinking center]
   piggy-1 thinking: Oh, wait— one more play before you go!
+  [brain]
   piggy-1 happy: See the little brain chip, top of the screen? That's how you make me smarter. Big Brain!
   piggy-1 excited: You said yes at the start, so Piggy 3's been installing it. Tap the brain to check how it's going!
   piggy-1 happy: Once it says BIG, I can actually think about what you say, instead of running my usual playbook.
@@ -111,6 +136,7 @@ replayable: false
   [bgm piggy2_theme]
   [show piggy-2 neutral center]
   piggy-2 neutral: One more item before orientation ends.
+  [brain]
   piggy-2 neutral: Top of the screen: the brain chip. That's how you make me smarter.
   piggy-2 neutral: You consented to the Big Brain at the start. Tap the chip to monitor the install.
   piggy-2 happy: Once it reads BIG, I can actually think about what you say. Higher cognition. Based.
@@ -120,6 +146,7 @@ replayable: false
   [bgm piggy3_theme]
   [show piggy-3 thinking center]
   piggy-3 thinking: Okay, so— one more thing. I built this part, so I'm kind of excited about it.
+  [brain]
   piggy-3 happy: See the little brain up top? That's how you make me smarter. It's the Big Brain.
   piggy-3 excited: You said yes at the start, so it's installing! Tap it to see the progress bar. I made it chunky.
   piggy-3 thinking: It basically runs right in your browser, on your graphics card. Nothing gets sent anywhere.
@@ -128,6 +155,7 @@ replayable: false
 [set tut.big_brain_coach]
 [sfx notify]
 narrator: 【KEMPA AI】Tip: tap the brain chip at the top of the screen to check on your Kempanion's Big Brain.
+[brain off]
 
 # Played when the pet sim reports an absence of more than 72 h (it sets welcome_party_ready, tops up needs and
 # adds the 100 acorns). This scene consumes the flag.
@@ -469,7 +497,7 @@ repeat: true
 === home_p2_yawn
 title: 0500
 pig: piggy-2
-summary: Pre-rounds, a contagious yawn, and five minutes on the stairs.
+summary: Lab rounds at dawn, a contagious yawn, and five minutes on the stairs.
 trigger: location=hub; companion=piggy-2; present=piggy-2; hour=5-6; chance=0.35
 priority: 12
 repeat: true
@@ -481,7 +509,7 @@ repeat: true
 [if replay || flag(home_p2_yawn_n) = 1]
   narrator: {time}. You get up for water, and Piggy 2 is already in the hallway in scrubs, coffee in hoof.
   [show piggy-2@scrubs neutral center]
-  piggy-2 neutral: Morning. Pre-rounds at Shands, and you're up early.
+  piggy-2 neutral: Morning. Rounds on the lab pigs, and you're up early.
   narrator: He yawns: a small, controlled, clinical yawn. You yawn back.
   piggy-2 surprised: Don't. If you yawn, I yawn, and then we both lose perfusion to the jaw.
   narrator: He yawns again. So do you.
@@ -630,7 +658,7 @@ repeat: true
   piggy-3 sleepy: Morning. I'm— hhhaaah—
   narrator: He yawns, you yawn, and then he yawns again, which makes you yawn again.
   piggy-3 thinking: Okay, wait— it's a feedback loop. We need, like, a damping term.
-  ? Be the damping term: hand him a cold brew.
+  ? Be the damping term: hand him a sugar-free Red Bull.
     [bond piggy-3 +8]
     [sfx drink]
     piggy-3 happy: Oh, critically damped— perfect. Okay, I'm awake, mostly.

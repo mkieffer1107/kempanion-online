@@ -109,6 +109,10 @@
     inset: 0;
     z-index: 60;
     display: grid;
+    /* Explicit tracks: the panel's 100% width/height resolve against the screen, not its content's
+       max-content width (which pushed the phone name entry's OK button off-screen). */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     place-items: center;
     padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);
   }

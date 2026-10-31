@@ -2038,6 +2038,14 @@
     "bashful_smile": [
      576,
      1024
+    ],
+    "phone": [
+     0,
+     1280
+    ],
+    "phone_mumble": [
+     192,
+     1280
     ]
    },
    "face": "sprites/piggy-3/everyday/face.png",
@@ -2662,6 +2670,20 @@
       200
      ],
      "loop": true
+    },
+    "phone": {
+     "page": "sprites/piggy-3/everyday/extra-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      260,
+      200,
+      180,
+      160,
+      240,
+      320
+     ],
+     "loop": true
     }
    }
   },
@@ -2715,6 +2737,14 @@
     "bashful_smile": [
      576,
      512
+    ],
+    "phone": [
+     0,
+     768
+    ],
+    "phone_mumble": [
+     192,
+     768
     ]
    },
    "face": "sprites/piggy-3/hoodie/face.png",
@@ -2922,6 +2952,20 @@
       120,
       120,
       200
+     ],
+     "loop": true
+    },
+    "phone": {
+     "page": "sprites/piggy-3/hoodie/extra-0.png",
+     "y": 128,
+     "frames": 6,
+     "durations": [
+      260,
+      200,
+      180,
+      160,
+      240,
+      320
      ],
      "loop": true
     }

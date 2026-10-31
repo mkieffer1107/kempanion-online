@@ -2,7 +2,7 @@
 import type { BackgroundId, LocationId, PigId, SongId } from '../types';
 import { weekday, type Weekday } from '../time';
 
-export type LocationAction = 'shop' | 'minigame:volley' | 'minigame:perfusion' | 'minigame:debug' | 'minigame:petals' | 'omikuji' | 'study' | 'pharmacy' | 'bats' | 'cheer' | 'rest';
+export type LocationAction = 'shop' | 'minigame:volley' | 'minigame:perfusion' | 'minigame:debug' | 'minigame:petals' | 'minigame:surgery' | 'minigame:xfeed' | 'omikuji' | 'study' | 'pharmacy' | 'bats' | 'cheer' | 'rest';
 
 export interface LocationDef {
   id: LocationId;
@@ -38,7 +38,7 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
   },
   marston: {
     id: 'marston', name: 'Marston Science Library', jp: 'マーストン図書館', blurb: 'Open late. Coffee, whiteboards, quiet floors.',
-    bg: 'marston', song: 'library', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.19 }, actions: ['study'],
+    bg: 'marston', song: 'library', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.19 }, actions: ['study', 'minigame:xfeed'],
   },
   malachowsky: {
     id: 'malachowsky', name: 'Malachowsky Hall', jp: 'マラコウスキー・ホール', blurb: 'Data science & IT. Piggy 1 has a favorite study nook here.',
@@ -53,12 +53,12 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
     bg: 'communicore', interior: 'anatomy_lab', song: 'lab', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.81 }, actions: ['minigame:perfusion'],
   },
   anatomy_lab: {
-    id: 'anatomy_lab', name: 'Anatomy Lab', jp: '解剖学実習室', blurb: 'Steel tables, blue drapes, deep respect. Piggy 2 studies late here.',
+    id: 'anatomy_lab', name: 'Anatomy Lab', jp: '解剖学実習室', blurb: 'Steel tables, blue drapes, deep respect. Piggy 2 teaches here Tue & Thu.',
     bg: 'anatomy_lab', song: 'lab', outdoor: false, focusX: 240, map: { x: 0.84, y: 0.74 }, actions: ['study'],
   },
   shands: {
-    id: 'shands', name: 'UF Health Shands', jp: 'シャンズ病院', blurb: 'The teaching hospital. Pharmacy downstairs.',
-    bg: 'shands', interior: 'or_suite', song: 'hospital', outdoor: true, focusX: 240, map: { x: 0.92, y: 0.84 }, actions: ['pharmacy'],
+    id: 'shands', name: 'UF Health Shands', jp: 'シャンズ病院', blurb: 'The teaching hospital. Pharmacy downstairs, sim suite upstairs.',
+    bg: 'shands', interior: 'or_suite', song: 'hospital', outdoor: true, focusX: 240, map: { x: 0.92, y: 0.84 }, actions: ['pharmacy', 'minigame:surgery'],
   },
   stadium: {
     id: 'stadium', name: 'Ben Hill Griffin Stadium', jp: 'ザ・スワンプ', blurb: '"The Swamp." Loudest place in Florida on game day.',

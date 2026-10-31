@@ -292,6 +292,10 @@
   .stage {
     overflow: hidden;
     display: grid;
+    /* explicit tracks (like Modal and Backlog): an auto row is at least the canvas's 256 px, so the portrait couldn't
+       shrink into a shorter window and was cut off at the snout */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     place-items: end center;
   }
   .home {
@@ -306,6 +310,10 @@
     position: relative;
     height: min(96%, 640px);
     max-width: 100%;
+    /* the sprite's 192x256: the box takes its width from its definite height. Left to shrink-to-fit, WebKit sized it
+       from the canvas in a pass that ran before the height was known (154 px instead of 174, differing per remount),
+       and object-fit: contain then drew a smaller pig floating above the window's floor. */
+    aspect-ratio: 192 / 256;
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -485,6 +493,10 @@
   @media (max-aspect-ratio: 5/4) and (max-width: 380px) {
     .pname { display: none; }
     .pigtab { justify-content: center; }
+  }
+  /* short phones: less portrait (it scales down whole), more profile card (its facts scroll) */
+  @media (max-aspect-ratio: 5/4) and (max-height: 600px) {
+    .main { grid-template-rows: minmax(110px, 0.6fr) minmax(0, 1.4fr); }
   }
   /* S: phone landscape */
   @media (min-aspect-ratio: 5/4) and (max-height: 499px) {

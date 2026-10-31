@@ -21,12 +21,14 @@ interface GameTuning {
 
 const byThresholds = (v: number, [b, s, g]: [number, number, number]): Medal => (v >= g ? 'gold' : v >= s ? 'silver' : v >= b ? 'bronze' : 'none');
 
-/** Medal thresholds — volley/petals by score, perfusion by accuracy %, debug by bugs found. */
+/** Medal thresholds — volley/petals/surgery/xfeed by score, perfusion by accuracy %, debug by bugs found. */
 export const MEDAL_THRESHOLDS: Record<MinigameId, [number, number, number]> = {
   volley: [1800, 4000, 6500],
   perfusion: [70, 85, 95],
   debug: [6, 8, 10],
   petals: [60, 100, 140],
+  surgery: [900, 1600, 2300],
+  xfeed: [2000, 3800, 7500],
 };
 
 export const TUNING: Record<MinigameId, GameTuning> = {
@@ -34,6 +36,8 @@ export const TUNING: Record<MinigameId, GameTuning> = {
   perfusion: { medal: (o) => byThresholds(o.stats.accuracy ?? 0, MEDAL_THRESHOLDS.perfusion), money: (o) => 5 + 0.4 * (o.stats.accuracy ?? 0), cap: 45, energy: -10 },
   debug: { medal: (o) => byThresholds(o.stats.correct ?? 0, MEDAL_THRESHOLDS.debug), money: (o) => 5 + o.score / 5, cap: 45, energy: -8 },
   petals: { medal: (o) => byThresholds(o.score, MEDAL_THRESHOLDS.petals), money: (o) => 5 + o.score / 4, cap: 40, energy: -10 },
+  surgery: { medal: (o) => byThresholds(o.score, MEDAL_THRESHOLDS.surgery), money: (o) => 5 + o.score / 60, cap: 45, energy: -8 },
+  xfeed: { medal: (o) => byThresholds(o.score, MEDAL_THRESHOLDS.xfeed), money: (o) => 5 + o.score / 180, cap: 45, energy: -8 },
 };
 
 export function medalFor(id: MinigameId, o: MinigameOutcome): Medal {
@@ -115,6 +119,12 @@ export function applyMinigameResult(save: SaveData, pig: PigId, result: Minigame
   if (id === 'volley') setMax(save, 'mg.volley.best_rally', stats.maxRally ?? 0);
   if (id === 'perfusion' && (stats.perfusion ?? 0) >= 100) bump(save, 'mg.perfusion.textbook');
   if (id === 'debug' && (stats.correct ?? 0) >= 10 && (stats.hints ?? 0) === 0) bump(save, 'mg.debug.zero_day');
+  if (id === 'surgery' && (stats.watertight ?? 0) >= 3) bump(save, 'mg.surgery.watertight');
+  if (id === 'xfeed') {
+    setMax(save, 'mg.xfeed.best_combo', stats.maxCombo ?? 0);
+    bump(save, 'mg.xfeed.grass', stats.grass ?? 0);
+    if ((stats.wrong ?? 0) === 0 && (stats.missed ?? 0) === 0 && (stats.judged ?? 0) >= 30) bump(save, 'mg.xfeed.signal_only');
+  }
   if (id === 'petals') {
     setMax(save, 'mg.petals.best_petals', stats.petals ?? 0);
     bump(save, 'petals_caught', stats.petals ?? 0);

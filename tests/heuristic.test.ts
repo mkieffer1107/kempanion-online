@@ -5,7 +5,8 @@ import {
 } from '../src/lib/ai/heuristic';
 import { idleOptions, IDLE_MAX_CHARS } from '../src/lib/ai/heuristic/idle';
 import { LINES } from '../src/lib/ai/heuristic/lines';
-import { fill, KNOWN_PLACEHOLDERS, placeholdersIn, parseFacts } from '../src/lib/ai/heuristic/template';
+import { extractSaid, fill, KNOWN_PLACEHOLDERS, placeholdersIn, parseFacts } from '../src/lib/ai/heuristic/template';
+import { extractFacts, rememberFacts, type MemoryStore } from '../src/lib/ai/memory';
 import { setClockOffset } from '../src/lib/state/clock';
 import { EXPRESSIONS, PIG_IDS, type ChatContext, type ChatReply, type ChatTurn, type PigId } from '../src/lib/types';
 
@@ -67,7 +68,8 @@ const SAMPLES: Record<Intent, string> = {
   yes: 'yes', no: 'nope', laugh: 'lol', question_generic: 'what is the meaning of life?', go_gators: 'go gators!',
   based: "that's so based", patriot: 'patriot', bump: 'bump', set: 'set', spike: 'spike', pork_joke: 'want some bacon?',
   distress: 'i want to die', ask_about_me: 'what do you know about me?', share_self: 'my name is jordan',
-  followup: 'tell me more', ask_time: 'what time is it?', encourage: 'good luck on your exam!', unknown: 'asdfgh qwerty',
+  followup: 'tell me more', ask_time: 'what time is it?', encourage: 'good luck on your exam!', arithmetic: "what's 7 plus 8?",
+  unknown: 'asdfgh qwerty',
 };
 
 describe('intent classification', () => {
@@ -362,6 +364,376 @@ describe('replies', () => {
   });
 });
 
+describe("the player's major", () => {
+  const lines = (pig: PigId, key: string) => (LINES[pig].chat[key] ?? []).map((l) => l[1]);
+  const acks = (pig: PigId, said: string) =>
+    [...lines(pig, 'share_self:major'), ...lines(pig, 'share_self:major_same')].map((t) => fill(t, { said }));
+
+  test('a stated major is acknowledged, several words too, not answered with CS small talk', () => {
+    const cases: [string, string][] = [
+      ['my major is computer science', 'computer science'], ["I'm a computer science major", 'computer science'],
+      ['i study computer science', 'computer science'], ['I am majoring in computer science', 'computer science'],
+      ["i'm a cs major", 'CS'], ["I'm an electrical engineering major", 'electrical engineering'], ["I'm also a biology major", 'biology'],
+      ['my major is biology', 'biology'],
+    ];
+    for (const [text, said] of cases) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        for (let h = 0; h < 6; h++) {
+          const history: ChatTurn[] = Array.from({ length: h }, (_, i) => ({ role: i % 2 ? 'pig' : 'player', text: `filler ${i}`, at: i }));
+          expect([text, pig, acks(pig, said)]).toEqual([text, pig, expect.arrayContaining([ask(pig, text, history).text])]);
+        }
+      }
+    }
+  });
+
+  test('Piggy 1 is a computer science major too', () => {
+    const same = (said: string) => lines('piggy-1', 'share_self:major_same').map((t) => fill(t, { said }));
+    expect(same('computer science')).toContain(ask('piggy-1', 'my major is computer science').text);
+    expect(same('CS')).toContain(ask('piggy-1', "I'm a CS major").text);
+    expect(same('biology')).not.toContain(ask('piggy-1', 'my major is biology').text);
+    expect(same('computer science')).not.toContain(ask('piggy-2', 'my major is computer science').text);
+    // computer science, not computer engineering (characters/piggy-1.md)
+    expect(same('computer engineering')).not.toContain(ask('piggy-1', "i'm a computer engineering major").text);
+    expect(acks('piggy-1', 'computer engineering')).toContain(ask('piggy-1', "i'm a computer engineering major").text);
+    expect(same('computing')).not.toContain(ask('piggy-1', 'i study computing').text);
+  });
+
+  test('the year, the pride or "currently" is not part of the major', () => {
+    const cases: [string, string][] = [
+      ["I'm a junior CS major", 'CS'], ["i'm a third-year biology major", 'biology'], ["i'm a proud english major", 'English'],
+      ["i'm currently a mechanical engineering major", 'mechanical engineering'], ['im a food and resource economics major', 'food and resource economics'],
+    ];
+    for (const [text, said] of cases) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, acks(pig, said)]).toEqual([text, pig, expect.arrayContaining([ask(pig, text).text])]);
+      }
+    }
+  });
+
+  test('"major" in other senses is not a stated major', () => {
+    for (const text of ["i'm not a major fan of rain", "i'm so not a math major"]) {
+      expect([text, classifyIntent(text).intent === 'share_self' && classifyIntent(text).topic === 'major']).toEqual([text, false]);
+    }
+  });
+
+  test('"major" the adjective, someone else\'s major or how studying goes is never echoed as the player\'s major', () => {
+    const notMajor = [
+      "i'm having a major panic attack", 'i am taking a major exam tomorrow', "i'm undecided about my major",
+      "i'm stressed about a major exam", "i'm in a major hurry", "i'm going through a major change",
+      "i'm thinking about changing my major", "i'm switching my major to biology", "i'm working on a major project",
+      "I'm the drum major in the band", "i'm a major fan", "i'm a double major", "i'm dating a cs major",
+      "i'm facing major delays", 'i am having major problems', 'my major is so hard', 'my major is kind of boring',
+      'i study at the library', "i'm studying for my exam", 'i am studying',
+    ];
+    const allMajorLines = PIG_IDS.flatMap((p) => [...lines(p, 'share_self:major'), ...lines(p, 'share_self:major_same')]);
+    for (const text of notMajor) {
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        expect([text, pig, c.intent === 'share_self' && c.topic === 'major']).toEqual([text, pig, false]);
+        const r = ask(pig, text);
+        // no "{said}" line at all (they all echo what was said)
+        expect([text, pig, allMajorLines.some((l) => r.text.endsWith(l.split('{said}').pop()!.trim()))]).toEqual([text, pig, false]);
+      }
+    }
+    // and they keep the answers they had before majors could be several words
+    for (const pig of PIG_IDS) {
+      expect(classifyIntent("i'm stressed about a major exam", pig).intent).toBe('exam_stress');
+      expect(classifyIntent('i am taking a major exam tomorrow', pig).intent).toBe('exam_stress');
+      expect(classifyIntent("i'm studying for my exam", pig).intent).toBe('exam_stress');
+      expect(classifyIntent("I'm the drum major in the band", pig)).toMatchObject({ intent: 'ask_hobby', topic: 'music' });
+      expect(classifyIntent("i'm working on a major project", pig)).toMatchObject({ intent: 'passion_p3', topic: 'building' });
+      // a panic attack gets the comforting answer, not "that went over the net"; a question about them isn't one
+      expect(classifyIntent("i'm having a major panic attack", pig).intent).toBe('player_sad');
+      expect(classifyIntent('i keep getting anxiety attacks', pig).intent).toBe('player_sad');
+      expect(classifyIntent('what causes panic attacks?', pig).intent).not.toBe('player_sad');
+    }
+  });
+
+  test('"my major is undecided" is not echoed back as a subject', () => {
+    for (const pig of PIG_IDS) {
+      for (const text of ['my major is undecided', "i'm an undeclared major"]) {
+        expect([text, pig, lines(pig, 'share_self')]).toEqual([text, pig, expect.arrayContaining([ask(pig, text).text])]);
+      }
+    }
+  });
+
+  test('the major is read back cleanly: it stops at a question back, a new clause or filler', () => {
+    const cases: [string, string][] = [
+      ["my major is bio, what's yours?", 'bio'], ['my major is computer science and engineering', 'computer science and engineering'],
+      ['my major is cs lol', 'CS'], ['i study biology at uf', 'biology'], ["I'm studying computer science", 'computer science'],
+      ['i major in english', 'English'], ["I'm majoring in mechanical engineering", 'mechanical engineering'],
+      ["I'm a cs major, what's yours?", 'CS'], ['my major is nursing', 'nursing'], ["I'm currently studying psychology", 'psychology'],
+      ['my majors are cs and math', 'CS and math'], ["I'm a bio major from Tampa", 'bio'], ['I\'m a bio major and I love it', 'bio'],
+      ['my major is math is hard', 'math'], ['my major is bio is that weird?', 'bio'], ['im a food and resource economics major', 'food and resource economics'],
+      ['im nursing major', 'nursing'],
+    ];
+    for (const [text, said] of cases) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        const r = ask(pig, text).text;
+        expect([text, pig, acks(pig, said).includes(r)]).toEqual([text, pig, true]);
+      }
+    }
+  });
+
+  test('the player\'s own spelling: "women\'s studies" (not "women is studies"), "pre-med", "&"', () => {
+    for (const pig of PIG_IDS) {
+      for (const [text, said] of [
+        ["i'm a women's studies major", "women's studies"], ["my major is women's studies", "women's studies"],
+        ["I'm a pre-med major", 'pre-med'], ['my major is food & resource economics', 'food & resource economics'],
+      ] as const) {
+        const r = ask(pig, text).text;
+        expect([text, pig, acks(pig, said).includes(r), /\bwomen is\b/i.test(r)]).toEqual([text, pig, true, false]);
+      }
+    }
+  });
+
+  test('ordinary sentences with "major", "study" or "studying" are not garbled into a major', () => {
+    const notMajor: [string, Intent | null][] = [
+      ["i'm studying chem for my exam", 'exam_stress'], ["i'm studying, what are you doing?", 'whats_up'],
+      ["i'm studying for the mcat", 'exam_stress'], ['i study twice a week', 'study'], ["i'm studying while eating", 'study'],
+      ["i'm studying right now", 'study'], ["i'm studying chapter 5", 'study'], ['my major is stressing me out', null],
+      ['my major is killing me', null], ['my major is a lot', null], ['that was a major problem', null],
+      ['i have a major problem', null], ['this is a major deal', null], ["i'm in major trouble", null],
+      ["I'm a drum major in the marching band", 'ask_hobby'], ["i'm a big major league fan", null], ["i'm a total major nerd", null],
+      ["I'm a former bio major", null], ["I'm a major fan of tacos", null], ["i'm studying cs tonight", null],
+      ["i'm studying cs with my friends", null], ['what is your major? mine is bio', 'ask_major'],
+      ["i'm studying ochem", 'study'], ["i'm studying ugh", 'study'], ['my major is ruining my life', 'unknown'],
+    ];
+    for (const [text, intent] of notMajor) {
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        expect([text, pig, c.intent === 'share_self' && c.topic === 'major']).toEqual([text, pig, false]);
+        if (intent) expect([text, pig, c.intent]).toEqual([text, pig, intent]);
+        const r = ask(pig, text).text;
+        const allMajorLines = PIG_IDS.flatMap((p) => [...lines(p, 'share_self:major'), ...lines(p, 'share_self:major_same')]);
+        expect([text, pig, allMajorLines.some((l) => r.endsWith(l.split('{said}').pop()!.trim()))]).toEqual([text, pig, false]);
+      }
+    }
+  });
+
+  test('"I\'m studying X" where X is a pig\'s own topic gets that topic\'s answer, from every pig', () => {
+    for (const [text, intent, topic] of [
+      ["i'm studying perfusion", 'passion_p2', 'perfusion'], ["i'm studying anatomy", 'passion_p2', 'anatomy'],
+      ["i'm studying volleyball", 'passion_p1', 'volleyball'], ["i'm studying one piece", 'passion_p3', 'onepiece'],
+      ['i study codex', 'passion_p3', 'codex'],
+    ] as const) {
+      for (const pig of PIG_IDS) expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent, topic }]);
+    }
+    // a major that is also a topic word stays a major: Piggy 1 studies computer science himself
+    expect(classifyIntent('i study computer science', 'piggy-1')).toMatchObject({ intent: 'share_self', topic: 'major' });
+    expect(classifyIntent('i study physics', 'piggy-3')).toMatchObject({ intent: 'share_self', topic: 'major' });
+  });
+
+  test('a question back ("…, hbu?") still gets the major acknowledged, not "how are you"', () => {
+    for (const text of ["i'm a cs major hbu", 'i study bio what about you', "my major is history, and you?"]) {
+      for (const pig of PIG_IDS) expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+    }
+    expect(classifyIntent("i'm good, and you?").intent).toBe('how_are_you');
+  });
+
+  const allMajorLines = () => PIG_IDS.flatMap((p) => [...lines(p, 'share_self:major'), ...lines(p, 'share_self:major_same')]);
+  const readsBack = (r: string) => allMajorLines().some((l) => r.endsWith(l.split('{said}').pop()!.trim()));
+
+  test('"my major is <how it\'s going>" gets asked about, with nothing read back ("Terrible!" never)', () => {
+    for (const text of [
+      'my major is terrible', 'my major is useless', 'my major is impossible', 'my major is pointless', 'my major is awful',
+      'my major is nice', 'my major is intense', 'my major is sooo hard', 'my major is way too hard', 'my major is fire',
+      "i'm a tiktok major lol", "i'm majoring in procrastination lol",
+    ]) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        // (after a lead-in for "lol": "Haha! Okay, wait, tell me more about your major?…")
+        const r = ask(pig, text).text;
+        const more = lines(pig, 'share_self:major_more').some((l) => r.endsWith(l));
+        expect([text, pig, more, readsBack(r)]).toEqual([text, pig, true, false]);
+      }
+    }
+  });
+
+  test('"major" the adjective before any noun, and "I\'m studying <when, where, how>", are no major at all', () => {
+    for (const text of [
+      "i'm a total major disaster", "i'm an absolute major mess", "i'm a real major klutz", 'im a lowkey major hater',
+      "i'm a huge major disappointment", "i'm in a major slump", "i'm having a major meltdown", "i'm a sophomore major in biology",
+      "i'm studying atm", "i'm studying outside", "i'm studying early", "i'm studying solo", "i'm studying already",
+      "i'm studying finally", "i'm studying remotely", "i'm studying rq", "i'm studying sm", "i'm studying asap",
+      'i study mornings', 'i study efficiently', 'i study weekends', "i'm studying overnight", "i'm studying downstairs",
+    ]) {
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        expect([text, pig, c.intent === 'share_self' && c.topic === 'major']).toEqual([text, pig, false]);
+        const r = ask(pig, text).text;
+        expect([text, pig, readsBack(r), lines(pig, 'share_self:major_more').includes(r)]).toEqual([text, pig, false, false]);
+      }
+    }
+    // a field of study still reads as one, whatever the year, the mood or a two-word name
+    for (const [text, said] of [
+      ["i'm a stressed out bio major", 'bio'], ["i'm a real estate major", 'real estate'], ["i'm a cs and math double major", 'CS and math'],
+      ["i'm a political science major from miami", 'political science'], ['my major is neuroscince', 'neuroscience'],
+      ["i'm a materials science and engineering major", 'materials science and engineering'], ['i study zoology', 'zoology'],
+      ['my major is family youth and community sciences', 'family youth and community sciences'],
+      ['my major is fine arts', 'fine arts'], ["i'm majoring in athletic training", 'athletic training'],
+    ] as const) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, acks(pig, said).includes(ask(pig, text).text)]).toEqual([text, pig, true]);
+      }
+    }
+  });
+
+  test('what the pig reads back is exactly what memory keeps (one reading of the same corrected text)', () => {
+    const corpus = [
+      "my major is bio, what's yours?", "i'm a cs major hbu", 'i study biology at uf', "I'm studying computer science",
+      "i'm studying anatomy", "i'm studying perfusion", 'i study codex', 'my major is terrible', "i'm a tiktok major lol",
+      "i'm a total major disaster", "i'm studying atm", 'i study mornings', 'my major is neuroscince', "i'm a women's studies major",
+      "i'm a materials science and engineering major", "i'm a political science major", 'im a pre-law major',
+      'my major is food & resource economics', "i'm a stressed out bio major", "i'm a real estate major", 'my major is undecided',
+      "i'm studying chem for my exam", "i'm majoring in mechanical engineering at uf", "i'm a music major and a drum major",
+      "i'm a big major league fan", "I'm a former bio major", 'my major is math is hard', 'i study history and it is fun',
+      "i'm studying physics", "i'm studying abroad next year", 'my major is way too hard', "i'm an undeclared major",
+      // words after the field, the minor, "in" (chat2 final check, issues 2 and 5)
+      "i'm studying chem atm", 'my major is bio atm', "i'm studying chem homework", 'my major is history tho',
+      'my major is psych atm but i might switch', "i'm studying chem tho", "i'm majoring in bio and minoring in chem",
+      "i'm a chem minor and bio major", "my major's in biology", 'my major is in biology', 'my degree is in computer science',
+      'my major is math heavy', 'my major is lowkey bio', "i'm studying law and order reruns lol", 'my major is media production',
+    ];
+    for (const text of corpus) {
+      const memory = extractFacts(text).filter((f) => f.key === 'major').map((f) => f.fact);
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        const said = c.intent === 'share_self' && c.topic === 'major' ? extractSaid(c.corrected, 'major', text) : undefined;
+        const kept = memory.map((f) => /^Player(?:'s major is| studies) (.+)\.$/.exec(f)?.[1]);
+        expect([text, pig, kept]).toEqual([text, pig, said ? [said] : []]);
+      }
+    }
+  });
+
+  /** The pig's reply is this major's acknowledgement, maybe after a lead-in ("Ha! …" for "lol"). */
+  const acksWith = (pig: PigId, said: string, r: string) => acks(pig, said).some((a) => r === a || r.endsWith(` ${a}`));
+
+  test('words after the field are never read back or remembered: "my major is bio atm" is bio, "i\'m studying chem atm" no major', () => {
+    const subjects: [string, string][] = [
+      ['chem', 'chem'], ['bio', 'bio'], ['psych', 'psych'], ['english', 'English'], ['computer science', 'computer science'],
+      ['art history', 'art history'],
+    ];
+    const filler = [
+      'atm', 'outside', 'early', 'solo', 'rq', 'sm', 'notes', 'homework', 'flashcards', 'nonstop', 'mornings', 'stuff',
+      'finally', 'religiously', 'remotely', 'asap', 'vocab', 'atm lol',
+    ];
+    for (const [subject, said] of subjects) {
+      for (const f of filler) {
+        // stated: the field is the major, what follows it is dropped
+        const stated = `my major is ${subject} ${f}`;
+        expect([stated, extractFacts(stated).filter((x) => x.key === 'major').map((x) => x.fact)]).toEqual([stated, [`Player's major is ${said}.`]]);
+        // said in passing: a study session, like "i'm studying chem tonight"
+        const session = `i'm studying ${subject} ${f}`;
+        expect([session, extractFacts(session).filter((x) => x.key === 'major')]).toEqual([session, []]);
+        for (const pig of PIG_IDS) {
+          const c = classifyIntent(stated, pig);
+          expect([stated, pig, c]).toMatchObject([stated, pig, { intent: 'share_self', topic: 'major' }]);
+          expect([stated, pig, extractSaid(c.corrected, 'major', stated)]).toEqual([stated, pig, said]);
+          expect([stated, pig, acksWith(pig, said, ask(pig, stated).text)]).toEqual([stated, pig, true]);
+          const s = classifyIntent(session, pig);
+          expect([session, pig, s.intent === 'share_self' && s.topic === 'major']).toEqual([session, pig, false]);
+          expect([session, pig, readsBack(ask(pig, session).text)]).toEqual([session, pig, false]);
+        }
+      }
+    }
+    // chat tone is not a study session ("i'm studying chem tho")
+    for (const text of ["i'm studying chem tho", 'i study bio lowkey', 'i study bio tbh', "i'm studying psych irl"]) {
+      const said = text.includes('chem') ? 'chem' : text.includes('psych') ? 'psych' : 'bio';
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, acksWith(pig, said, ask(pig, text).text)]).toEqual([text, pig, true]);
+      }
+      expect([text, extractFacts(text).map((x) => x.fact)]).toEqual([text, [`Player studies ${said}.`]]);
+    }
+  });
+
+  test('"majoring in X and minoring in Y" is X; "my major is in X", "my major\'s in X" and "my degree is in X" are majors', () => {
+    for (const [text, said] of [
+      ["i'm majoring in bio and minoring in chem", 'bio'], ["i'm majoring in psych and minoring in business", 'psych'],
+      ['majoring in bio, minoring in chem', 'bio'], ["i'm majoring in psych with a minor in business", 'psych'],
+      ['my major is bio and a minor in chem', 'bio'], ["i'm a chem minor and bio major", 'bio'], ["i'm a bio major and a chem minor", 'bio'],
+      ['my major is in biology', 'biology'], ["my major's in biology", 'biology'], ['my majors in nursing', 'nursing'],
+      ['my degree is in computer science', 'computer science'], ["my major's in mechanical engineering", 'mechanical engineering'],
+    ] as const) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, acksWith(pig, said, ask(pig, text).text)]).toEqual([text, pig, true]);
+      }
+      expect([text, extractFacts(text).map((x) => x.fact)]).toEqual([text, [`Player's major is ${said}.`]]);
+    }
+    for (const text of ["i'm minoring in chem", 'my minor is chem']) {
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        expect([text, pig, c.intent === 'share_self' && c.topic === 'major']).toEqual([text, pig, false]);
+      }
+      expect([text, extractFacts(text).filter((x) => x.key === 'major')]).toEqual([text, []]);
+    }
+  });
+
+  test('a name that ends on a field word only there is read back whole; "math heavy" describes the major, never names it', () => {
+    for (const [text, said] of [
+      ['my major is media production', 'media production'], ["i'm an information systems major", 'information systems'],
+      ['my major is communication sciences and disorders', 'communication sciences and disorders'],
+      ["i'm a fire and emergency services major", 'fire and emergency services'], ["i'm majoring in music theory", 'music theory'],
+      ['my major is health education and behavior', 'health education and behavior'], ["i'm an english lit major", 'English lit'],
+      ['my major is computer science honors', 'computer science'],
+    ] as const) {
+      for (const pig of PIG_IDS) expect([text, pig, acksWith(pig, said, ask(pig, text).text)]).toEqual([text, pig, true]);
+      expect([text, extractFacts(text).map((x) => x.fact)]).toEqual([text, [`Player's major is ${said}.`]]);
+    }
+    for (const text of ['my major is math heavy', 'my major is writing intensive', 'my major is stem adjacent']) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, lines(pig, 'share_self:major_more').includes(ask(pig, text).text)]).toEqual([text, pig, true]);
+      }
+      expect([text, extractFacts(text).filter((x) => x.key === 'major')]).toEqual([text, []]);
+    }
+  });
+
+  test('the stated major is never replaced by a garbled one (biology → "chem atm" → "bio atm" keeps a clean major)', () => {
+    const mem: string[] = [];
+    const store: MemoryStore = {
+      remember: (_pig, fact) => void (mem.includes(fact) || mem.push(fact)),
+      forget: (_pig, drop) => void mem.splice(0, mem.length, ...mem.filter((f) => !drop(f))),
+    };
+    rememberFacts('piggy-2', extractFacts("i'm a biology major"), store);
+    rememberFacts('piggy-2', extractFacts("i'm studying chem atm"), store);
+    expect(mem).toEqual(["Player's major is biology."]);
+    rememberFacts('piggy-2', extractFacts('my major is bio atm'), store);
+    expect(mem).toEqual(["Player's major is bio."]);
+    expect(parseFacts(mem).major).toBe('bio');
+    // and the scripted brain reads back what it keeps
+    expect(ask('piggy-2', 'what do you know about me?', [], { memories: mem }).text).not.toMatch(/\batm\b/);
+  });
+
+  test('a field of study is never "corrected": "comp sci" (not "chomp sci"), "painting" (not 3D printing)', () => {
+    for (const [text, said, fact] of [
+      ["i'm a comp sci major", 'comp sci', "Player's major is comp sci."], ['my major is comp sci', 'comp sci', "Player's major is comp sci."],
+      ["i'm a comp lit major", 'comp lit', "Player's major is comp lit."], ['my major is painting', 'painting', "Player's major is painting."],
+      ['i study comp sci', 'comp sci', 'Player studies comp sci.'], ['i study poli sci', 'poli sci', 'Player studies poli sci.'],
+    ] as const) {
+      for (const pig of PIG_IDS) {
+        expect([text, pig, classifyIntent(text, pig)]).toMatchObject([text, pig, { intent: 'share_self', topic: 'major' }]);
+        expect([text, pig, acksWith(pig, said, ask(pig, text).text)]).toEqual([text, pig, true]);
+      }
+      expect([text, extractFacts(text).map((x) => x.fact)]).toEqual([text, [fact]]);
+    }
+    // "poli sci", "comp sci" and sci-fi are no spinal cord injury (SCI); painting is no 3D printing
+    for (const text of ['i study comp sci', 'i study poli sci', 'do you like sci-fi?', 'i love painting', "i'm painting my room"]) {
+      for (const pig of PIG_IDS) {
+        const c = classifyIntent(text, pig);
+        expect([text, pig, /^(?:spine|printing)$/.test(c.topic ?? '')]).toEqual([text, pig, false]);
+      }
+    }
+    expect(classifyIntent('what is sci?', 'piggy-2')).toMatchObject({ intent: 'passion_p2', topic: 'spine' });
+  });
+});
+
 describe('line banks', () => {
   test('outfit lines only play in that outfit (Piggy 3 never credits the hoodie while in his tee)', () => {
     const seen = { everyday: new Set<string>(), alt: new Set<string>() };
@@ -383,6 +755,8 @@ describe('line banks', () => {
     home: 'the Physics Building', food: 'banana protein shake', other: 'Piggy 2', otherplace: 'the Physics Building',
     last: 'the spinal cord', said: 'marine biology', n: '12', major: 'Medicine & Life Sciences', hometown: 'Saint Petersburg',
     comfort_food: 'grilled cheese', likes: 'board games', year: 'sophomore', exam: 'organic chemistry exam', chronotype: 'night owl',
+    // the longest a sum and its answer can get (tests/talk-arithmetic.test.ts): nine digits and three decimals each, a product of two
+    answer: 'negative 999,999,998,000,000,001.998001', expr: 'negative 999,999,999.999 divided by negative 999,999,999.999',
   };
 
   test('700+ handwritten lines', () => {
@@ -504,5 +878,10 @@ describe('greeting and topics', () => {
       major: 'Computing', comfort_food: 'soup', hometown: 'Tampa', likes: 'cats',
     });
     expect(parseFacts(['major=Still deciding']).major).toBeUndefined();
+    // what the player studies is the major only until they state one, wherever it sits in the list
+    expect(parseFacts(['Player studies chem.', "Player's major is biology."]).major).toBe('biology');
+    expect(parseFacts(['Player studies chem.', 'Player likes cats.']).major).toBe('chem');
+    expect(parseFacts(["Player's major is political science."]).major).toBe('political science');
+    expect(parseFacts(["Player's major is materials science and engineering."]).major).toBe('materials science and engineering');
   });
 });

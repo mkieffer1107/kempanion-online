@@ -1,0 +1,54 @@
+Piggy 3 "phone" clip (everyday + hoodie) and the matching phone / phone_mumble portraits.
+Image model edits, transparent background. Plain shapes only on the phone: no letters except a plain X, no logos.
+
+=== Clip, everyday (references: his idle strip, then a close-up of his face and outfit) ===
+A sprite sheet for a 2D game: exactly SIX animation frames of the SAME chibi pig character, arranged left to right in ONE horizontal row, evenly spaced with clear empty space between the frames, on a fully transparent background.
+
+The FIRST reference image is his standing sprite strip: copy its body proportions exactly. He has a very big head (from the top of the curls down to the chin the head is more than half of his total height, and wider than his body), a short round torso and very short stubby legs. Do not make him taller or slimmer than in that strip. The SECOND reference image shows his face and outfit up close.
+
+Animation "look at this!": he stands facing the viewer with both feet planted on the same ground line in every frame and eagerly shows the viewer something on his smartphone. He holds the phone out in front of his chest with both hooves gripping its left and right edges, the SCREEN TURNED TOWARD THE VIEWER (we see the screen, not the back), upright in portrait orientation, flat to the viewer, not tilted. The phone is big for his size, about as wide as his torso, so the screen is easy to see: a rounded-rectangle phone with a pale silver-white frame and a thin dark outline, and a dark navy-blue screen showing a simple social media feed made only of shapes: three stacked posts, each with a small round avatar circle on the left and two or three short light-gray lines, thin divider lines between posts, and one tiny pink heart. No letters, words, numbers or logos on the screen.
+- frame 1: holding the phone out with both hooves, eager wide-eyed smile, eyebrows raised, light blush;
+- frame 2: pushing the phone a little closer toward the viewer, mouth open in an excited "look!";
+- frame 3: one hoof still holds the phone while the other hoof taps the bottom of the screen, sparkly eyes, big grin;
+- frame 4: the free hoof swipes up on the lower part of the screen (scrolling), happy open-mouth smile;
+- frame 5: both hooves on the phone again, a happy little lean forward, eyes squeezed shut in a delighted laugh;
+- frame 6: same as frame 1, eager smile, ready to loop back.
+The phone stays in about the same place in front of his chest in every frame.
+
+Keep the exact same character design as the references: chocolate-brown curly hair, thin black round glasses, lavender T-shirt and plum shorts, pink pig skin, pig snout, pig ears, small curly tail, and dark brown cloven hooves for hands and feet (no fingers, no shoes). Same art style: clean thick dark outlines, soft cel shading, cute chibi proportions. Full body visible in every frame, head to hooves, identical scale in every frame, feet on the same ground line in every frame. No motion lines, no sparkle effects outside the character, no ground shadow, no text, no frame borders, no background.
+
+=== Clip, hoodie (references: the everyday result, then his hoodie idle strip and character sheet) ===
+Redraw the FIRST image, a sprite sheet of six animation frames of a chibi pig character, with the character wearing his alternate outfit shown in the SECOND and THIRD images: a plain black hoodie with the hood down (two thin drawstrings, long sleeves, a front pocket) and charcoal-gray trousers, instead of the lavender T-shirt and plum shorts. His arms are in the long black hoodie sleeves with only the dark brown cloven hooves sticking out; his legs are in the charcoal trousers with the brown hooves at the bottom. No logos or text on the hoodie.
+
+Keep EVERYTHING else exactly as in the first image: the same six poses in the same order and the same positions, the same smartphone held the same way in front of his chest with the screen toward the viewer (pale silver-white phone frame with a thin dark outline, dark navy-blue screen with the same simple feed of avatar circles, light-gray lines and one tiny pink heart), the same hoof positions on the phone in each frame, the same facial expressions, the same big head and short chibi body proportions, the same size, and the feet on the same ground line in every frame. Same face, curly chocolate-brown hair, thin black round glasses, pink pig skin, snout, ears and small curly tail.
+
+Output: exactly SIX frames left to right in ONE horizontal row, evenly spaced with clear empty space between them, on a fully transparent background. Same art style: clean thick dark outlines, soft cel shading. No motion lines, no ground shadow, no text, no frame borders, no background.
+
+=== Portrait "phone", everyday (reference: his excited portrait) ===
+A visual-novel dialogue portrait of the SAME chibi pig character as in the reference image, in exactly the same art style and with exactly the same framing: waist-up, facing the viewer, his big head at the same size and in the same place as in the reference (top of the curls near the top edge, his body cut off at the waist at the bottom edge), centered, on a fully transparent background.
+
+Pose: he eagerly shows the viewer something on his smartphone. With his left hoof (on the RIGHT side of the picture) he holds the phone up next to his right cheek, the SCREEN TURNED TOWARD THE VIEWER, upright in portrait orientation, tilted only a little. The phone covers only the side of his cheek and jaw on that side: his eyes, glasses, snout and mouth stay fully visible. His other hoof is raised in an excited little fist near his chest. The phone: a rounded rectangle with a pale silver-white frame and a thin dark outline; the screen is dark navy blue and shows a simple social media feed made only of shapes: round avatar circles, short light-gray lines, thin divider lines and one small pink heart. No letters, words, numbers or logos on the screen or anywhere else.
+
+Expression: eager and excited, like he is saying "Hey, did you see this today?": big bright eyes looking at the viewer, eyebrows raised, a wide open happy smile, light blush.
+
+Keep the exact same character design: chocolate-brown curly hair, thin black round glasses, lavender T-shirt, pink pig skin, pig snout, pig ears, and dark brown cloven hooves for hands (no fingers). Same art style as the reference: clean thick dark outlines, soft cel shading, cute chibi proportions. No text, no speech bubble, no sparkles, no background, no frame.
+
+=== Portrait "phone_mumble" (edit of the everyday "phone" portrait) ===
+Edit this visual-novel portrait of a chibi pig character. Keep EVERYTHING the same (the framing, the size and position of his head and body, the pose, the phone held up beside his cheek with the screen toward the viewer and its feed, both hooves, the lavender T-shirt, the curly hair, the round glasses, the art style, the transparent background) and change ONLY his facial expression:
+
+He is now mumbling to himself, completely absorbed in what he is reading: his eyes are turned sideways toward the phone screen (looking to the right side of the picture), intense and focused, eyebrows slightly furrowed in concentration; his mouth is small and partly open in the middle of a fast quiet mutter (a small wobbly open mouth, not a smile); one small sweat drop beside his forehead; a faint blush. He is not looking at the viewer.
+
+No text, no speech bubble, no motion lines, no sparkles, no background.
+
+=== Portraits, hoodie (references: the everyday portrait with the same face, then his hoodie happy portrait) ===
+Edit the FIRST image, a visual-novel portrait of a chibi pig character: change ONLY his clothes to the outfit he wears in the SECOND image, a plain black hoodie with the hood down around his neck, two thin light drawstrings and long black sleeves (his raised arm is in a black sleeve, with the brown hoof sticking out of the cuff). No logos or text on the hoodie.
+
+Keep EVERYTHING else exactly the same as in the first image: the framing, the size and position of his head and body, his facial expression and where his eyes look, the pose, the phone held up beside his cheek with the screen toward the viewer and the same feed on it, both hooves in the same places, the curly chocolate-brown hair, the thin black round glasses, the pink pig skin, the art style (clean thick dark outlines, soft cel shading) and the fully transparent background. No text, no speech bubble, no background.
+
+=== After generation ===
+Clip: sliced into 256x256 frames with the feet on idle's ground row (228 pivot) and centre; one head-up/body-squash warp
+per outfit so the head size and eye line match that outfit's idle (everyday head x1.06, chin 9 px lower; hoodie x1.02,
+3.7 px); the screen repainted with a pixel feed drawn at game resolution (plain letter X header, avatar dots, text
+lines, a heart that gets liked on the tap frame, a scroll on the swipe frames), hooves kept on top.
+Portraits: fitted onto the pack's 384x512 framing by the glasses/face (same place as the other expressions), avatar dots
+recoloured, the camera notch replaced by a plain letter X, the waist extended to the stage edge.

@@ -1,4 +1,4 @@
-// Perfusion! drawing: the ECG monitor, perfusion meter and Piggy 2 (pure canvas calls).
+// Swinus Rhythms drawing: the ECG monitor, perfusion meter and Piggy 2 (pure canvas calls).
 import { drawBackground, drawBubble, drawText, type BgImage, type Pops } from '../common/pixel';
 import type { Sprite } from '../common/sprites';
 import type { Grade, Note, PerfusionEngine } from './engine';

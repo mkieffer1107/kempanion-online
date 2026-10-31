@@ -1,10 +1,12 @@
 <script lang="ts">
   // Settings (design-ux §4.12): TEXT · SOUND · DISPLAY · BRAIN · ACCESS · DATA. Changes apply instantly.
-  // Extras that the Settings type doesn't cover live in save.flags: ui.textSize, ui.petals, ui.highContrast,
-  // ui.muteHidden, and pet.gentle (read by the pet sim).
-  import { onMount, untrack } from 'svelte';
+  // Extras that the Settings type doesn't cover live in save.flags (ui.textSize, ui.petals, ui.highContrast,
+  // ui.muteHidden, ui.skipReadOnly, and pet.gentle, read by the pet sim): list new ones in SETTINGS_FLAGS so a new
+  // game keeps them and Restore defaults resets them.
+  import { onMount, tick, untrack } from 'svelte';
   import type { PigId, SaveData } from '../../types';
   import { game } from '../../state/game.svelte';
+  import { clearSettingsFlags } from '../../state/settings-flags';
   import { audio } from '../../audio';
   import { localDate } from '../../time';
   import { now } from '../../state/clock';
@@ -29,6 +31,13 @@
   const s = $derived(game.save.settings);
   let tab = $state<Tab>((game.params as { tab?: Tab }).tab ?? 'text');
   let tabEls = $state<HTMLButtonElement[]>([]);
+  let panel = $state<HTMLDivElement | null>(null);
+
+  // Every tab shares the one panel scroller: start each tab at its top, not at the last tab's offset.
+  $effect(() => {
+    void tab;
+    if (panel) panel.scrollTop = 0;
+  });
 
   function save() {
     game.persist();
@@ -51,6 +60,41 @@
     if (e.key === 'ArrowRight') { e.preventDefault(); pickTab(TABS[(i + 1) % TABS.length].id, true); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); pickTab(TABS[(i + TABS.length - 1) % TABS.length].id, true); }
   }
+
+  // On phones the tab strip is wider than the screen and scrolls sideways with no scrollbar: show a ◀/▶ cue over
+  // a fade at each edge that has more tabs past it, and keep the picked tab scrolled into view.
+  let strip = $state<HTMLDivElement | null>(null);
+  let moreL = $state(false);
+  let moreR = $state(false);
+
+  function edges() {
+    if (!strip) return;
+    moreL = strip.scrollLeft > 1;
+    moreR = strip.scrollWidth - strip.clientWidth - strip.scrollLeft > 1;
+  }
+
+  $effect(() => {
+    if (!strip || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(edges);
+    ro.observe(strip);
+    for (const el of tabEls) if (el) ro.observe(el); // web fonts widen the tabs after the first layout
+    return () => ro.disconnect();
+  });
+
+  let stripReady = false;
+  $effect(() => {
+    const el = tabEls[TABS.findIndex((x) => x.id === tab)];
+    const s = strip;
+    if (!el || !s) return;
+    const room = 40; // clear of the 36 px edge cue
+    const left = el.getBoundingClientRect().left - s.getBoundingClientRect().left + s.scrollLeft;
+    let to = s.scrollLeft;
+    if (left - room < to) to = left - room;
+    else if (left + el.offsetWidth + room > to + s.clientWidth) to = left + el.offsetWidth + room - s.clientWidth;
+    to = Math.max(0, Math.min(to, s.scrollWidth - s.clientWidth));
+    if (Math.abs(to - s.scrollLeft) > 1) s.scrollTo({ left: to, behavior: stripReady && !ui.reduceMotion ? 'smooth' : 'auto' });
+    stripReady = true;
+  });
 
   function close() {
     audio.sfx('ui_back');
@@ -78,6 +122,22 @@
       if (shown % 2 === 0) audio.blip('piggy-1');
       if (shown >= PREVIEW.length) clearInterval(previewTimer);
     }, 1000 / cps);
+  }
+
+  // The preview next to the S/M/L/XL buttons shows the new size: where the tab scrolls (phones), keep it in view, and the
+  // buttons too (a bigger preview can push them past the edge). On a short screen both don't fit: the preview is
+  // scrolled to last, so it wins and the buttons show as far as they can. No smooth scroll: a tab picked while one
+  // was still running would open part-way down. A line still typing out (Text speed) is finished first: it would grow
+  // after the scroll below and end up past the edge.
+  async function setTextSize(ts: TextSize) {
+    const was = tab;
+    clearInterval(previewTimer);
+    shown = PREVIEW.length;
+    setFlag('ui.textSize', ts);
+    audio.sfx('ui_toggle');
+    await tick();
+    if (tab !== was) return; // already on another tab: nothing here to show
+    for (const sel of ['.seg[aria-label="Text size"]', '.preview']) panel?.querySelector(sel)?.scrollIntoView({ block: 'nearest' });
   }
 
   // ── SOUND ──
@@ -202,7 +262,7 @@
   function restoreDefaults() {
     const d = defaultSettings();
     game.save.settings = { ...d, aiMode: s.aiMode, aiModel: s.aiModel, aiAutoload: s.aiAutoload };
-    for (const k of ['ui.textSize', 'ui.petals', 'ui.highContrast', 'ui.muteHidden']) delete game.save.flags[k];
+    clearSettingsFlags(game.save.flags);
     save();
     audio.sfx('ui_toggle');
     toast('Defaults restored.', { icon: 'settings' });
@@ -230,31 +290,51 @@
   </div>
 {/snippet}
 
-<div class="settings mode-{viewport.mode}">
+{#snippet textSize()}
+  <div class="row">
+    <span class="lbl">Text size</span>
+    <div class="seg" role="radiogroup" aria-label="Text size">
+      {#each textSizes as ts (ts)}
+        <button type="button" class="px-btn small" class:primary={ui.textSize === ts} role="radio" aria-checked={ui.textSize === ts} onclick={() => setTextSize(ts)}>{ts.toUpperCase()}</button>
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
+<!-- a line of dialogue as the game shows it: typed at the Text speed, in the Text size, in the high-contrast box -->
+{#snippet preview()}
+  <p class="preview vn-box" aria-hidden="true"><b style:color="var(--p1)">Piggy 1</b> {PREVIEW.slice(0, shown)}</p>
+{/snippet}
+
+<div class="settings mode-{viewport.mode} ts-{ui.textSize}" class:hc={ui.highContrast}>
   <div class="win px-panel dark" role="dialog" aria-labelledby="settings-title">
     <header class="top">
       <button type="button" class="px-btn ghost small" onclick={close} aria-label="Close settings"><Icon id="back" size={18} /> Back</button>
       <h1 id="settings-title" class="px-title"><Icon id="settings" size={24} /> SETTINGS</h1>
     </header>
 
-    <div class="tabs" role="tablist" aria-label="Settings sections" tabindex="-1" onkeydown={tabKey}>
-      {#each TABS as t, i (t.id)}
-        <button
-          bind:this={tabEls[i]}
-          type="button"
-          role="tab"
-          id="tab-{t.id}"
-          aria-selected={tab === t.id}
-          aria-controls="panel-{t.id}"
-          tabindex={tab === t.id ? 0 : -1}
-          class="tab"
-          class:on={tab === t.id}
-          onclick={() => pickTab(t.id)}
-        ><Icon id={t.icon} size={18} /><span>{t.label}</span></button>
-      {/each}
+    <div class="tabbar">
+      <div class="tabs" bind:this={strip} onscroll={edges} role="tablist" aria-label="Settings sections" tabindex="-1" onkeydown={tabKey}>
+        {#each TABS as t, i (t.id)}
+          <button
+            bind:this={tabEls[i]}
+            type="button"
+            role="tab"
+            id="tab-{t.id}"
+            aria-selected={tab === t.id}
+            aria-controls="panel-{t.id}"
+            tabindex={tab === t.id ? 0 : -1}
+            class="tab"
+            class:on={tab === t.id}
+            onclick={() => pickTab(t.id)}
+          ><Icon id={t.icon} size={18} /><span>{t.label}</span></button>
+        {/each}
+      </div>
+      {#if moreL}<span class="cue l" aria-hidden="true">◀</span>{/if}
+      {#if moreR}<span class="cue r" aria-hidden="true">▶</span>{/if}
     </div>
 
-    <div class="panel px-scroll" role="tabpanel" id="panel-{tab}" aria-labelledby="tab-{tab}">
+    <div class="panel px-scroll" bind:this={panel} role="tabpanel" id="panel-{tab}" aria-labelledby="tab-{tab}">
       {#if tab === 'text'}
         <div class="row col">
           <span class="lbl">Text speed</span>
@@ -263,25 +343,20 @@
               <button type="button" class="px-btn small" class:primary={s.textSpeed === sp.cps} role="radio" aria-checked={s.textSpeed === sp.cps} onclick={() => setSpeed(sp.cps)}>{sp.label}</button>
             {/each}
           </div>
-          <p class="preview vn-box" aria-hidden="true"><b style:color="var(--p1)">Piggy 1</b> {PREVIEW.slice(0, shown)}</p>
+          {@render preview()}
         </div>
+        <!-- right under the preview, so a new size shows even where the tab has to scroll -->
+        {@render textSize()}
         <div class="row">
           <label class="lbl" for="auto-delay">Auto delay <small>{s.autoDelay.toFixed(1)} s after each line</small></label>
           <input id="auto-delay" type="range" min="0.5" max="4" step="0.1" value={s.autoDelay}
             oninput={(e) => { game.save.settings.autoDelay = Number((e.currentTarget as HTMLInputElement).value); save(); }} />
         </div>
         {@render toggle('Echo my lines', s.echoPlayer, () => (game.save.settings.echoPlayer = !s.echoPlayer), 'Show what you typed before the reply')}
-        <div class="row">
-          <span class="lbl">Text size</span>
-          <div class="seg" role="radiogroup" aria-label="Text size">
-            {#each textSizes as ts (ts)}
-              <button type="button" class="px-btn small" class:primary={ui.textSize === ts} role="radio" aria-checked={ui.textSize === ts} onclick={() => { setFlag('ui.textSize', ts); audio.sfx('ui_toggle'); }}>{ts.toUpperCase()}</button>
-            {/each}
-          </div>
-        </div>
+        {@render toggle('Skip only text I’ve read', game.save.flags['ui.skipReadOnly'] === true, () => (game.save.flags['ui.skipReadOnly'] = game.save.flags['ui.skipReadOnly'] !== true), 'Off: SKIP fast-forwards everything up to the next choice')}
       {:else if tab === 'sound'}
         {#each VOLS as v (v.key)}
-          <div class="row">
+          <div class="row vrow">
             <label class="lbl" for="vol-{v.key}">{v.label} <small>{Math.round(s[v.key] * 100)}</small></label>
             <div class="vol">
               <input id="vol-{v.key}" type="range" min="0" max="100" step="5" value={Math.round(s[v.key] * 100)}
@@ -298,6 +373,16 @@
           <div class="seg" role="radiogroup" aria-label="Sakura petals">
             {#each petalPrefs as pp (pp.id)}
               <button type="button" class="px-btn small" class:primary={ui.petals === pp.id} role="radio" aria-checked={ui.petals === pp.id} onclick={() => { setFlag('ui.petals', pp.id); audio.sfx('ui_toggle'); }}>{pp.label}</button>
+            {/each}
+          </div>
+        </div>
+        <!-- The piggies' thought clouds (pet/thoughts.ts thoughtPref; unset = Some). Off removes thoughts only. -->
+        {@const thoughts = game.save.flags['ui.thoughts'] === 'lots' || game.save.flags['ui.thoughts'] === 'off' ? game.save.flags['ui.thoughts'] : 'some'}
+        <div class="row">
+          <span class="lbl">Thought bubbles<small>Little clouds when the piggies are thinking. Wants still show.</small></span>
+          <div class="seg" role="radiogroup" aria-label="Thought bubbles">
+            {#each petalPrefs as tp (tp.id)}
+              <button type="button" class="px-btn small" class:primary={thoughts === tp.id} role="radio" aria-checked={thoughts === tp.id} onclick={() => { setFlag('ui.thoughts', tp.id); audio.sfx('ui_toggle'); }}>{tp.label}</button>
             {/each}
           </div>
         </div>
@@ -328,14 +413,8 @@
         {@render toggle('Reduce motion', s.reduceMotion, () => (game.save.settings.reduceMotion = !s.reduceMotion), ui.systemReduce ? 'Your system already asks for reduced motion' : 'Petals off, no shakes, crossfades instead of wipes')}
         {@render toggle('High-contrast text box', ui.highContrast, () => (game.save.flags['ui.highContrast'] = !ui.highContrast))}
         {@render toggle('Gentle mode', game.save.flags['pet.gentle'] === true, () => (game.save.flags['pet.gentle'] = game.save.flags['pet.gentle'] !== true), 'No sickness, and needs stay frozen while you’re away')}
-        <div class="row">
-          <span class="lbl">Text size</span>
-          <div class="seg" role="radiogroup" aria-label="Text size">
-            {#each textSizes as ts (ts)}
-              <button type="button" class="px-btn small" class:primary={ui.textSize === ts} role="radio" aria-checked={ui.textSize === ts} onclick={() => { setFlag('ui.textSize', ts); audio.sfx('ui_toggle'); }}>{ts.toUpperCase()}</button>
-            {/each}
-          </div>
-        </div>
+        {@render textSize()}
+        {@render preview()}
         <p class="hint">Everything works with a keyboard: press <kbd>?</kbd> in the game for the shortcut list. Choices are never timed.</p>
       {:else if tab === 'data'}
         <div class="row">
@@ -369,6 +448,9 @@
     position: absolute;
     inset: 0;
     display: grid;
+    /* explicit tracks: otherwise the window sizes to its unwrapped tab strip (~650px) and spills off phones */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     place-items: center;
     padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);
     background:
@@ -378,7 +460,29 @@
   .win { width: min(820px, 100%); max-height: 100%; display: flex; flex-direction: column; }
   .top { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
   h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.08em; }
-  .tabs { display: flex; gap: 4px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
+  .tabbar { position: relative; flex: none; }
+  .tabs { display: flex; gap: 4px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  /* more tabs past this edge: a dithered fade into the window under a ◀/▶ (taps go through to the tab) */
+  .cue {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 3px;
+    font-size: 12px;
+    color: var(--sakura-2);
+    pointer-events: none;
+    --dither: repeating-conic-gradient(var(--panel-bg) 0 25%, transparent 0 50%) 0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
+  }
+  .cue.l { left: 0; background: linear-gradient(var(--panel-bg), var(--panel-bg)) 0 0 / 50% 100% no-repeat, var(--dither); }
+  .cue.r {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(var(--panel-bg), var(--panel-bg)) 100% 0 / 50% 100% no-repeat, var(--dither);
+  }
   .tab {
     display: inline-flex;
     align-items: center;
@@ -406,10 +510,24 @@
   .panel :global(.px-btn), .foot :global(.px-btn), .top :global(.px-btn) { min-height: 44px; }
   .sw { min-width: 72px; }
   .vol { display: flex; align-items: center; gap: 8px; }
+  /* SOUND: each volume on one line, sliders lined up: a label column as wide as "Sound effects", and a slider
+     that gives way on narrow phones instead of wrapping under its label. Under ~280 px even the 72 px slider and
+     the test button (124 px) don't fit beside it: then the row wraps, slider under label, rather than overlap it. */
+  .vrow .lbl { flex: none; min-width: 7em; }
+  .vrow .vol { flex: 1 0 124px; min-width: 0; justify-content: flex-end; }
+  .vrow input[type='range'] { flex: 0 1 auto; min-width: 72px; }
   input[type='range'] { width: min(260px, 52vw); accent-color: var(--sakura-3); height: 32px; }
-  .preview { margin: 0; padding: 10px 12px; min-height: 3.2em; font-size: 16px; }
+  .preview { margin: 0; padding: 10px 12px; min-height: 3.2em; flex: none; font-size: calc(16px * var(--fs-k, 1)); }
+  /* Text size and the high-contrast box, as GameLayout applies them to the game's dialogue */
+  .ts-s { --fs-k: 0.875; }
+  .ts-l { --fs-k: 1.125; }
+  .ts-xl { --fs-k: 1.3; }
+  .hc .preview { background: #05030c; border-color: #fff; color: #fff; text-shadow: none; }
   .hint { margin: 0; font-size: 13px; opacity: 0.8; }
   .brain-state { max-width: 560px; margin: 0 auto; width: 100%; opacity: 0.9; }
+  /* The Brain panel scrolls itself (max-height: 100%); in here that made a box-in-a-box squeezed to the room left
+     (89 px in phone landscape). It takes its full height and this panel scrolls instead. */
+  .panel :global(.big-brain) { max-height: none; overflow: visible; flex: none; }
   .field {
     min-height: 44px;
     width: 140px;

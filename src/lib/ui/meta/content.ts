@@ -13,7 +13,7 @@ export const EPITHET: Record<PigId, string> = {
 
 export const CAST_LINE: Record<PigId, string> = {
   'piggy-1': 'CS junior · club volleyball outside hitter',
-  'piggy-2': 'MD/PhD student · future neurosurgeon',
+  'piggy-2': 'MD · PGY-4 neurosurgery resident (research year)',
   'piggy-3': 'Builder · physics computational lab',
 };
 
@@ -145,7 +145,7 @@ export const CASHIER: Record<PigId, CashierLines> = {
 export const SHOP_GREET: Partial<Record<ShopLocation, Partial<Record<PigId, string[]>>>> = {
   midtown: {
     'piggy-1': ['Late-night snack run? Respect. Practice is at seven, though!'],
-    'piggy-2': ["It's late. Eat something, then sleep. Doctor's orders. Student doctor's."],
+    'piggy-2': ["It's late. Eat something, then sleep. Doctor's orders. Sleep-deprived doctor's."],
     'piggy-3': ['Oh, hey! Night owl club. The boba place next door is basically my second office.'],
   },
   shands: {
@@ -275,7 +275,7 @@ export const CREDITS: CreditBlock[] = [
   { big: true, lines: ['KEMPANION ONLINE', 'a Kempa AI production'] },
   { heading: 'Starring', cast: true, lines: [
     'Piggy 1 — CS junior · club volleyball outside hitter',
-    'Piggy 2 — MD/PhD student · future neurosurgeon',
+    'Piggy 2 — MD · PGY-4 neurosurgery resident (research year)',
     'Piggy 3 — builder · physics computational lab',
     'and you, as yourself',
   ] },

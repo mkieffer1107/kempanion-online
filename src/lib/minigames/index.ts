@@ -8,6 +8,8 @@ import SakuraSpike from './volley/SakuraSpike.svelte';
 import PerfusionGame from './perfusion/Perfusion.svelte';
 import BugHunt from './bughunt/BugHunt.svelte';
 import PetalCatch from './petals/PetalCatch.svelte';
+import SteadyHoof from './surgery/SteadyHoof.svelte';
+import ForYouPig from './xfeed/ForYouPig.svelte';
 
 export type { Medal, MinigameId, MinigameOutcome, MinigameProps, MinigameResult } from './types';
 export { MINIGAME_IDS, MEDAL_TIERS } from './types';
@@ -32,6 +34,8 @@ const COMPONENTS: Record<MinigameId, Component<MinigameProps>> = {
   perfusion: PerfusionGame,
   debug: BugHunt,
   petals: PetalCatch,
+  surgery: SteadyHoof,
+  xfeed: ForYouPig,
 };
 
 function def(id: MinigameId): MinigameDef {
@@ -44,4 +48,6 @@ export const MINIGAMES: Record<MinigameId, MinigameDef> = {
   perfusion: def('perfusion'),
   debug: def('debug'),
   petals: def('petals'),
+  surgery: def('surgery'),
+  xfeed: def('xfeed'),
 };

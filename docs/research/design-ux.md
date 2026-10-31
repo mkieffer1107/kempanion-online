@@ -299,10 +299,10 @@ T layout
 
 | | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Birthday | Nov 11 ("a binary birthday") | Jul 4 ("Patriot. Obviously.") | Mar 14 (Pi Day) |
+| Birthday | Nov 11 ("a binary birthday") | Jul 4 ("Patriot. Obviously.") | Nov 7 (Marie Curie's birthday too) |
 | Blood type | O | A (porcine A–O system; he will explain) | AB (self-reported; Piggy 2 disputes this) |
 | Height | 130 cm (standing reach: classified) | 124 cm (+3 cm of spikes) | 122 cm (123 on humid days) |
-| Major | Computer Science, 3rd yr; club volleyball setter | College of Medicine MD/PhD, neurosurgery-bound | Physics grad researcher (computational); builds EEG/ECG tools |
+| Major / program | Computer Science, 3rd yr; club volleyball setter | MD; PGY-4 neurosurgery resident on his research year (College of Medicine / UF Health Shands) | Physics grad researcher (computational); builds EEG/ECG tools |
 | Likes | clean rallies, pancakes, Python one-liners, sports drinks ("Gatorade was invented at UF!") | perfusion, spinal surgery, pig neuroanatomy, 5:30 a.m. rounds, the anthem at the Swamp | coding agents, open tools, model comparisons, HiPerGator, 3D printing, One Piece, JoJo, iced cafecito |
 | Dislikes | off-by-one errors, net violations, rained-out practice | poor perfusion, unlabeled specimen tubes, "brain surgery isn't that hard" takes | closed file formats, prints failing at 97%, spoilers |
 | Favorite spot | Malachowsky atrium; Southwest Rec court 3 | Communicore study nook | NPB printer corner; Marston at 2 a.m. |
@@ -1097,7 +1097,7 @@ The three base pitches form a G-major chord, used for the title call and lines a
 | Hungry | "Ball's up! …Oh wait. That's just my stomach." | "Glucose low. I'd call this pre-hangry ischemia. Not a real diagnosis. Feed me anyway." | "Actually— I forgot to eat. Again. The build finished, though!" |
 | Dirty | "I dove for one ball. Then another one. I'm mostly floor now." | "Unsterile. Unacceptable. Bath. Now." | "There's PLA dust in my curls. Basically I'm a 3D print now." |
 | Petted | "Hehe— okay, perfect set. Ten out of ten form!" | "…Fine. That was based. Again. For science." | "Oh— um. Hi. That's… really nice, actually." |
-| Sick | "Benched… can you sub in and bring tea?" | "Mild fever. I'm fine. I'm a doctor. (Student doctor.) Bring tea." | "I think my immune system is stuck in the HiPerGator queue." |
+| Sick | "Benched… can you sub in and bring tea?" | "Mild fever. I'm fine. I'm a doctor. (Doctors make terrible patients.) Bring tea." | "I think my immune system is stuck in the HiPerGator queue." |
 | Loved gift | "Teal knee pads?! Constant-time joy! O(1)!" | "A pocket brain model. Look at those gyri. Patriot." | "Sakura-pink filament?! Okay, I'm printing you something. Right now." |
 | Heuristic miss | "Whoa, that one went over the net! Try practice, code, or snacks." | "History unclear. Again, slower. With symptoms." | "Hmm, my heuristic brain didn't parse that. Basically it knows a few hundred things. Try 'what are you building?'" |
 | Big Brain loading | "Loading bar at 40%! That's, like, two sets." | "Installing the chip. Perfusion looks great." | "Okay, it's compiling shaders… basically teaching your GPU to talk pig." |

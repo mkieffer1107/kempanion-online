@@ -1,6 +1,12 @@
-// Piggy 2 — deadpan MD/PhD student, future neurosurgeon, pig spinal-cord researcher. "Based." / "Patriot."
+// Piggy 2 — deadpan MD, fourth-year (PGY-4) neurosurgery resident at UF Health Shands, on his research year. "Based." /
+// "Patriot." Research year: the pig spinal-cord lab, papers, conferences and the occasional call shift (no boards, no
+// pre-rounding). He already has grants (PI on a small one) and is always writing the next application, so there is
+// always another deadline, and he does not get much sleep: his weakest vital sign, a dry running joke, never a rant.
+// Still at the school, still studying (the yearly in-service exam). A doctor, but never the player's: real symptoms
+// go to the Student Health Care Center or 911 (quirks.ts MEDICAL_LINE).
 // Short level sentences, jargon + a plain translation, care expressed as clinical orders. Never gory.
 import type { PigLines } from './types';
+import { CRISIS_CALL } from '../../quirks';
 
 export const P2: PigLines = {
   chat: {
@@ -18,20 +24,24 @@ export const P2: PigLines = {
       ["proud", "Patriot. Get home safe.", { a: "wave" }],
       ["neutral", "Discharge approved. Follow up tomorrow.", { a: "wave" }],
       ["sad", "Leaving already. Noted. …Come back soon, that's an order."],
+      ["neutral", "Sleep well tonight. One of us should.", { a: "wave" }],
       ["neutral", "Copy. See you on rounds.", { tier: "N" }],
       ["affectionate_blush", "Goodnight, {player}. Text me when you get home, for my records. …And for me.", { a: "wave", tier: "W" }],
     ],
+    // "Thank you." is also a quick reply under the crisis and medical lines (ai/topics.ts GENTLE_CHIPS): every
+    // answer here has to work there too, so his "Patriot." is the very soft one.
     thanks: [
-      ["proud", "Patriot."],
+      ["loving", "…Patriot."],
       ["neutral", "Of course. Based."],
       ["neutral", "Noted. You're welcome."],
-      ["shy", "It was nothing. …It was a little something. You're welcome."],
+      ["loving", "You're welcome. Now drink some water, please. Doctor's orders."],
       ["bashful_smile", "Anytime. I mean that clinically and personally.", { tier: "FW" }],
     ],
     how_are_you: [
       ["neutral", "Vitals stable. Perfusion excellent. Based."],
       ["proud", "Good. I placed an electrode array today, and the pig is doing great."],
       ["neutral", "Functional and caffeinated. Mildly ischemic, emotionally. Normal {day}."],
+      ["neutral", "Vitals stable. Sleep is my weakest vital sign. Based."],
       ["thinking", "Fine. More importantly, how are you? Have you had water today?"],
       ["bashful_smile", "Better now. That's not a medical statement. Or maybe it is.", { tier: "FW" }],
     ],
@@ -42,9 +52,10 @@ export const P2: PigLines = {
     "how_are_you:tired": [
       ["sleepy", "Thirty-hour day. My neurons are filing a complaint.", { a: "yawn" }],
       ["sleepy", "My perfusion is merely philosophical right now. I'm fine.", { a: "yawn" }],
+      ["sleepy", "Sleep is a perfusion issue. Mine is low.", { a: "yawn" }],
     ],
     "how_are_you:sick": [
-      ["sick", "Mild fever. I'm fine, I'm a doctor. Student doctor, bring tea.", { a: "sick" }],
+      ["sick", "Mild fever. I'm fine, I'm a doctor. Doctors make terrible patients, bring tea.", { a: "sick" }],
       ["sick", "Febrile, sniffly, fatigued. Plan: soup, nap, and you reading me a case report.", { a: "sick" }],
     ],
     "how_are_you:sad": [
@@ -61,10 +72,13 @@ export const P2: PigLines = {
       ["neutral", "Reading about CSF dynamics. Recreationally."],
       ["proud", "Today we placed electrodes on a pig's cortex. Tiny chip, huge data. He's doing great."],
       ["neutral", "Studying the circle of Willis. A roundabout for blood. Perfusion's entire personality."],
-      ["thinking", "Rounds at Shands, then the Communicore. I may have skipped lunch. Don't tell anyone."],
+      ["thinking", "Lab pigs at dawn, then the Communicore. I may have skipped lunch. Don't tell anyone."],
     ],
     "whats_up:hungry": [["sad", "Thinking about food. I said lunch was a social construct. I was incorrect.", { a: "hungry" }]],
-    "whats_up:tired": [["sleepy", "Trying to stay awake. My glymphatic system is begging me to sleep.", { a: "yawn" }]],
+    "whats_up:tired": [
+      ["sleepy", "Trying to stay awake. My glymphatic system is begging me to sleep.", { a: "yawn" }],
+      ["sleepy", "Eleven minutes in the call room. Best sleep of the week. Based.", { a: "yawn" }],
+    ],
     compliment_looks: [
       ["neutral", "Noted. Grooming is a sterile-field habit.", { tier: "N" }],
       ["shy", "Oh. Thank you. The spikes are four centimeters, regulation.", { tier: "N" }],
@@ -95,7 +109,10 @@ export const P2: PigLines = {
       ["neutral", "Hugs lower cortisol. That's science. Proceed.", { a: "love", tier: "NF" }],
       ["shy_blush", "Physical contact noted. Heart rate noted. Everything noted.", { a: "love", tier: "F" }],
       ["bashful_smile", "…Okay. I needed that. Don't chart it.", { a: "love", tier: "FW" }],
-      ["affectionate_blush", "Hold still. I'm checking your posture. That's all this is.", { a: "love", tier: "W" }],
+      ["affectionate_blush", "Hold still. You're safe here. That's not a diagnosis, it's a promise.", { a: "love", tier: "W" }],
+      // "I need a hug." is a quick reply under the crisis and medical lines too (ai/topics.ts GENTLE_CHIPS): every
+      // answer here has to comfort, not deflect
+      ["loving", "Come here. Take as long as you need. I'm not timing it.", { a: "love" }],
     ],
     insult: [
       ["neutral", "Noted, not based. Are you okay? People say that when their glucose is low."],
@@ -123,13 +140,13 @@ export const P2: PigLines = {
       ["neutral", "I tried to write a joke about the spinal cord, but it lost its nerve. …Based anyway."],
     ],
     ask_name: [
-      ["neutral", "Piggy 2, MD/PhD student and future neurosurgeon. Based."],
+      ["neutral", "Piggy 2, MD. Fourth-year neurosurgery resident, on my research year. Based."],
       ["neutral", "Piggy 2. The “2” is for second opinion."],
-      ["proud", "I'm Piggy 2. You may also call me “Doctor.” In about six years."],
+      ["proud", "I'm Piggy 2. You may also call me “Doctor.” “Attending” takes a few more years."],
       ["neutral", "Piggy 2. Someday patients will call me “the pig with the steady hooves.”"],
     ],
     ask_about_self: [
-      ["neutral", "MD/PhD student, neurosurgery track. I study spinal cord injury in pig models, and perfusion is everything."],
+      ["neutral", "MD, fourth-year neurosurgery resident at UF Health Shands, on my research year. I study spinal cord injury in pig models, and perfusion is everything."],
       ["proud", "I rate everything as based or not based. You're currently based."],
       ["neutral", "Calm, precise, caffeinated. I like early mornings, clean MRIs, and July 4th fireworks."],
       ["thinking", "I talk about CSF too much. I've been told. I continue."],
@@ -142,35 +159,48 @@ export const P2: PigLines = {
     ],
     "ask_about_self:what": [
       ["neutral", "I'm a pig who studies pig spinal cords. I'm biased. Literally."],
-      ["proud", "Pig, medical student, future neurosurgeon. All verified."],
+      ["proud", "Pig, MD, PGY-4. Fourth-year neurosurgery resident. All verified."],
     ],
     "ask_about_self:trivia": [
       ["neutral", "127 centimeters. Plus four centimeters of spikes. They count."],
       ["neutral", "Blood type A. I know everyone's blood type. Don't ask how."],
     ],
+    "ask_about_self:job": [
+      ["neutral", "Neurosurgeon. Fourth-year resident at UF Health Shands, on my research year: fewer OR days, more pig lab. Based."],
+      ["proud", "Neurosurgery, research year: spinal cords in the pig lab, the occasional call shift at Shands. The hours are long and the hands stay steady."],
+    ],
     ask_major: [
-      ["neutral", "MD/PhD. Neuroscience. Spinal cord injury in swine models."],
-      ["proud", "Medicine and neuroscience. Two degrees, one pig, zero free time. Based."],
-      ["neutral", "I'm a medical student. The PhD half is about keeping injured spinal cords perfused."],
-      ["thinking", "Second year of med school. Anatomy, neuro, and a research lab at night."],
+      ["neutral", "MD. Neurosurgery residency, fourth year. Research year: spinal cord injury in swine models."],
+      ["proud", "Medicine, now neurosurgery. Two pagers, one pig, zero free time. Based."],
+      ["neutral", "I'm a fourth-year neurosurgery resident on my research year. Most of my life is the lab right now, keeping injured spinal cords perfused."],
+      ["thinking", "Research year. Fewer OR days, more pig lab, papers and grants. The occasional call night."],
+      ["neutral", "The MD is done. PGY-4 now, on my research year, still at the College of Medicine and still studying: in-service exams, papers, grants."],
     ],
     ask_hobby: [
       ["neutral", "Reading case reports. Recreationally."],
       ["proud", "Fireworks, history trivia, grilling vegetables. Based activities."],
       ["neutral", "Free time is a myth. When I find it, I watch the Lake Alice bats. Incredible cardiac output."],
       ["thinking", "I collect water bottles. I own eleven. Hydration is a lifestyle."],
+      ["proud", "I collect retired medical equipment. Expired, decommissioned, beautiful. Four boxes at home, six in the lab."],
       ["neutral", "Gator football. The crowd noise at the Swamp is a hemodynamic event."],
     ],
     ask_favorite_food: [
       ["proud", "Apple pie. The most patriotic dessert. Based."],
-      ["neutral", "Sweet tea and a cafecito. Glucose and caffeine. A balanced diet."],
       ["neutral", "Boiled peanuts. Salty, messy, underrated."],
-      ["neutral", "Black coffee at 5 a.m. Technically a drink, technically breakfast."],
+      ["proud", "Grilled salmon and rice. Omega-3s for the neurons. Based."],
       ["shy", "There is a secret favorite. It involves truffles. …Forget I said that.", { tier: "FW" }],
     ],
+    "ask_favorite_food:drink": [
+      ["neutral", "Black coffee at 5 a.m. Technically a drink, technically breakfast."],
+      ["neutral", "Sweet tea and a cafecito. Glucose and caffeine. A balanced diet."],
+      ["proud", "Water. Hydration is perfusion, and I own eleven bottles. Based."],
+    ],
+    "ask_favorite_food:comfort": [
+      ["neutral", "Warm apple pie after a long shift. Clinically comforting. Based."],
+    ],
     "ask_where:self": [
-      ["neutral", "Communicore by day, Shands for rounds, Marston at night. Right now: {place}."],
-      ["neutral", "Mornings at the Communicore, afternoons at Shands or the anatomy lab. Predictable. Based."],
+      ["neutral", "Communicore by day, Shands for the lab pigs and call shifts, Marston at night. Right now: {place}."],
+      ["neutral", "Mornings at the Communicore, afternoons at Shands or teaching in the anatomy lab. Predictable. Based."],
     ],
     "ask_where:other": [
       ["neutral", "{other} should be at {otherplace} right now. I track everyone. For safety."],
@@ -179,10 +209,11 @@ export const P2: PigLines = {
     "ask_where:other_asleep": [["sleepy", "{other} is asleep at Sakura House. Do not wake him. Sleep is medicine."]],
     "ask_where:all": [["neutral", "Piggy 1 is at Malachowsky or the sand, Piggy 3 at Physics or Marston. Me: wherever the patients are."]],
     ask_schedule: [
-      ["neutral", "Pre-rounds at Shands at 5, Communicore all morning. Bed at 2200. In theory."],
-      ["neutral", "Shands on Monday, Wednesday, Friday afternoons. Anatomy lab Tuesday and Thursday."],
+      ["neutral", "Lab pigs at 5, Communicore all morning. Bed at 2200. In theory."],
+      ["neutral", "Shands on Monday, Wednesday, Friday afternoons: the pig lab, papers, and a call shift when it's my turn. Tuesday and Thursday I teach in the anatomy lab."],
       ["proud", "I wake up at 5. Rounds at 5:30, coffee at 5:31. Based."],
       ["thinking", "Sunday I sleep in. It's my only treatment plan for myself."],
+      ["thinking", "Sleep is scheduled for six hours. I average four. Sunday is the make-up exam."],
     ],
     hungry_talk: [
       ["thinking", "Your perfusion looks low. Eat something. That's an order."],
@@ -198,7 +229,7 @@ export const P2: PigLines = {
     tired_talk: [
       ["thinking", "Sleep is when your glymphatic system clears out the brain. Go to bed. Based biology."],
       ["neutral", "Fatigue noted. Prescription: eight hours and a glass of water. Refills unlimited."],
-      ["thinking", "You look pale. Sit and drink some water, doctor's orders. Well, future doctor."],
+      ["thinking", "You look pale. Sit and drink some water, doctor's orders. Well, resident's orders."],
       ["neutral", "Tired is low perfusion of the soul. Rest it."],
     ],
     "tired_talk:needy": [
@@ -208,7 +239,7 @@ export const P2: PigLines = {
     ],
     sick_talk: [
       ["thinking", "Rest and fluids. If it gets worse, Student Health Care Center. Go."],
-      ["neutral", "I'm a pig in med school, not your doctor. Student Health Care Center. Go."],
+      ["neutral", "I'm a pig doctor in a game, not your doctor. Student Health Care Center. Go."],
       ["loving", "Honey lemon tea, rest, and someone checking on you. I'll be the someone."],
       ["thinking", "Symptoms noted. Hydrate, sleep, and get seen if it lingers. Based plan."],
     ],
@@ -250,6 +281,7 @@ export const P2: PigLines = {
     "food_offer:apple_pie": [["proud", "Apple pie. The most patriotic dessert. Based."]],
     "food_offer:sideline_sip": [["proud", "Electrolytes. A UF kidney doctor's team invented that, so medicine wins again. Based."]],
     "food_offer:cafecito": [["excited", "Cafecito. Rocket fuel in a thimble. My neurons are already applauding."]],
+    "food_offer:red_bull_sf": [["angry", "Arrhythmia in a can. Sugar-free does not make it based. …One sip. Monitored."]],
     "food_offer:water_bottle": [["proud", "Water. Hydration is perfusion. You understand me."]],
     "ask_favorite_food:love": [
       ["proud", "{food}? Yes, strongly yes. Based."],
@@ -274,6 +306,8 @@ export const P2: PigLines = {
       ["neutral", "Exam protocol: sleep, eat, review, sleep again. Panic is not on the list."],
       ["loving", "You studied. Trust the neurons. They're doing more than you think."],
       ["neutral", "Anxiety raises your heart rate. So does exercise. Pretend it's cardio."],
+      // any tier: he already has grants and is always writing the next application, so there is always another deadline
+      ["neutral", "I still take the in-service exam every year. And there's always another grant deadline. Sleep the night before: I'm working on that part myself."],
       ["bashful_smile", "Whatever the score, you're still based. That's the only grade I track.", { tier: "FW" }],
     ],
     player_sad: [
@@ -291,7 +325,7 @@ export const P2: PigLines = {
     ],
     bored: [
       ["neutral", "Bored? I could explain cerebrospinal fluid. Twenty minutes, with diagrams."],
-      ["thinking", "We could play Perfusion! It's a rhythm game where you keep the heart going. Based."],
+      ["thinking", "We could play Swinus Rhythms! It's an ECG rhythm game where you keep the heart going. Based."],
       ["neutral", "Let's walk to Lake Alice. Light cardio, excellent perfusion, bats at dusk."],
       ["neutral", "Boredom is your prefrontal cortex asking for input. Here: pig brains are folded like yours."],
       ["proud", "Quiz me on cranial nerves. I'll get all twelve. Based."],
@@ -341,16 +375,16 @@ export const P2: PigLines = {
     "campus_place:malachowsky": [["neutral", "Malachowsky Hall is Piggy 1's nest. It also houses biomedical AI work. Based building."]],
     "campus_place:physics": [["neutral", "The Physics Building. Piggy 3 runs simulations there and forgets to eat. I send reminders."]],
     "campus_place:communicore": [
-      ["proud", "The Communicore. My base. Lecture halls, the sim lab, and silence with excellent perfusion."],
+      ["proud", "The Communicore. My base. Morning conference, the sim lab, and silence with excellent perfusion."],
       ["neutral", "The Communicore opened in 1974. The second floor is open around the clock. I've tested that."],
     ],
     "campus_place:anatomy_lab": [
-      ["thinking", "The anatomy lab. Donors are our first teachers. We say thank you, then we learn everything they're teaching us."],
+      ["thinking", "The anatomy lab. Donors were my first teachers. Now I help teach there, and we still say thank you first."],
       ["neutral", "In the anatomy lab, I don't joke. It's quiet, precise, and grateful."],
     ],
     "campus_place:shands": [
       ["neutral", "Shands is a teaching hospital and a Level I trauma center. My second home. Third, counting Marston."],
-      ["proud", "Pre-rounds at Shands start at 5:30. The hallways at dawn are very based."],
+      ["proud", "Call shifts at Shands, sometimes. The hallways at dawn are very based."],
     ],
     "campus_place:stadium": [["neutral", "The Swamp seats 88,548. That's eighty-eight thousand heart rates going up at once. Beautiful."]],
     "campus_place:lake_alice": [
@@ -414,15 +448,23 @@ export const P2: PigLines = {
       ["excited", "An MRI with zero motion artifact. That's the most based image in existence."],
       ["proud", "The McKnight Brain Institute has an 11.1-tesla research MRI. I visit it like an old friend."],
     ],
+    "passion_p2:collection": [
+      ["proud", "My collection: a 1990s pulse oximeter, three retired stethoscopes and a defibrillator trainer. All decommissioned. Based."],
+      ["excited", "Expired medical equipment? Do you have any? I'll take it for the collection, never for patients."],
+      ["neutral", "I don't hoard. I curate. The boxes are labeled by organ system."],
+      ["shy", "Piggy 1 says I hog things. Correct. That is how a collection works."],
+    ],
     "passion_p2:anatomy": [
       ["thinking", "The anatomy lab. Donors are our first teachers. I don't joke in there."],
       ["neutral", "In anatomy we say thank you first. Then we learn everything they're teaching us."],
       ["sad", "At the end of anatomy, we hold a gratitude ceremony for the donors. It's the quietest room I know."],
     ],
     "passion_p2:medschool": [
-      ["neutral", "Med school is drinking from a fire hose. Hydration, technically. Based."],
-      ["proud", "MD/PhD, second year. I plan to be a neurosurgeon who still does research. Both, always."],
-      ["thinking", "Rounds start early. I like early. The hospital is quiet and the coffee is honest."],
+      ["neutral", "Med school was drinking from a fire hose. Residency is the same hose, at 3 a.m. Hydration, technically."],
+      ["proud", "MD, done. Now I'm a fourth-year neurosurgery resident, on my research year. Both, always."],
+      ["thinking", "Lab rounds start at 5. I like early. The pigs are quiet and the coffee is honest."],
+      ["proud", "I matched into neurosurgery right here at UF. The Match Day envelope is framed. Based."],
+      ["neutral", "Call nights: the pager talks, I walk fast. The call room bed and I have met twice."],
     ],
     passion_p1: [
       ["neutral", "Volleyball. Piggy 1's religion. Excellent cardio, questionable ankle discipline."],
@@ -448,7 +490,14 @@ export const P2: PigLines = {
     "passion_p3:printing": [["neutral", "Piggy 3 printed me a skull model once. Anatomically accurate. Very based."]],
     "passion_p3:onepiece": [["thinking", "One Piece. Piggy 3 explained it for two hours, and I understood the stretching. Medically alarming."]],
     "passion_p3:jojo": [["neutral", "JoJo. Piggy 3 poses dramatically when a build passes. I check his spine afterward."]],
+    // "One Piece or JoJo?": the verdict first, and it is never JoJo
+    "passion_p3:opvsjojo": [
+      ["neutral", "One Piece. Piggy 3 is standing directly behind me, so that's my final answer. Based."],
+      ["excited", "One Piece. Buggy the Clown comes apart into floating pieces and reattaches with zero neurological deficit. I need his spinal cord data."],
+      ["thinking", "One Piece. JoJo poses put real torque on the lumbar spine, and Piggy 3 does one after every passing build. Medically, One Piece is safer."],
+    ],
     "passion_p3:ui": [["neutral", "Interfaces. Piggy 3 says my charts look like a microwave clock. Rude, but accurate."]],
+    "passion_p3:math": [["neutral", "Math is Piggy 3's territory: he used to tutor it. He re-derived my dosage math for fun. Correct, and based."]],
     "passion_p3:anime": [["neutral", "Anime. Piggy 1 and Piggy 3 argue about it every Friday, and I referee. Based role."]],
     "passion_p3:building": [["neutral", "Piggy 3 is building a pig EEG viewer with me. It's actually good. Don't tell him I said “actually.”"]],
     "passion_p3:physics": [["neutral", "Physics. MRI runs on it, so I respect it. Strongly."]],
@@ -530,8 +579,9 @@ export const P2: PigLines = {
       ["angry", "I'm going to pretend I didn't hear that. Not based."],
       ["angry", "Retract that. Not based. Extremely not based."],
     ],
+    // where to reach out comes first, so it is on the first page in any box (quirks.ts CRISIS_CALL)
     distress: [
-      ["sad", "Thank you for telling me. This is more than I can treat, and you deserve real care now: call or text 988, or UF's Counseling & Wellness Center. I'm staying right here."],
+      ["sad", `${CRISIS_CALL} Thank you for telling me, and you deserve real care. I'm right here.`],
     ],
     ask_about_me: [
       ["neutral", "Patient: {player}. History: kind, shows up. Prognosis: excellent."],
@@ -551,6 +601,11 @@ export const P2: PigLines = {
     "share_self:major": [
       ["neutral", "{said}, respectable. Is there a neuro elective? There should be."],
       ["proud", "Studying {said}. Good, the world needs that. Based."],
+    ],
+    // a major statement with nothing to read back ("my major is terrible", "i'm a tiktok major")
+    "share_self:major_more": [
+      ["thinking", "Your major. Best part, worst part. Be specific."],
+      ["neutral", "Hm. What's it actually like? Give me the full history."],
     ],
     "share_self:hometown": [
       ["neutral", "{said}. Noted for your chart. Kidding, mostly."],
@@ -641,7 +696,7 @@ export const P2: PigLines = {
       ["proud", "July 4th fireworks count as music. I've decided."],
     ],
     "ask_hobby:games": [
-      ["neutral", "I play exactly one game: Perfusion. I hold the high score. Based."],
+      ["neutral", "I play exactly one game: Swinus Rhythms. I hold the high score. Based."],
       ["thinking", "Strategy games. Planning, timing, calm decisions. Ideal."],
     ],
     "ask_favorite_food:places": [
@@ -673,6 +728,172 @@ export const P2: PigLines = {
       ["proud", "Thank you. Preparation complete. Based."],
       ["shy", "…Thank you. My heart rate went up. Pre-exam, probably."],
       ["neutral", "Noted and appreciated. I'll report back with results."],
+    ],
+    // ── a sum ("what's 9 plus 10?"): the answer is solved in code (template.ts parseArithmetic) and said as {answer}, the sum
+    // in words as {expr}; no line carries a number of its own, except the meme's 21. Keep a line from starting with {answer}
+    // and a period ("19. …"): the post-filter reads that as a list bullet and eats it. 'meme' is 9 + 10 either way round,
+    // 'zero' a division by zero (no answer), 'approx' a division with decimals left over (the answer is rounded) ──
+    arithmetic: [
+      ["neutral", "It's {answer}. Vitals of the equation: stable. Based."],
+      ["proud", "{expr} is {answer}. Correct on the first pass. Patriot."],
+      ["neutral", "{expr}: {answer}. Charted, double-checked, and filed. Based."],
+      ["thinking", "Calculating. …{answer}. Dosage math is the one place I can't be wrong, so I'm very good at this."],
+      ["neutral", "{expr} is {answer}. Document your calculation next time. Charting matters."],
+      ["proud", "{expr} equals {answer}. Arithmetic is the one vital sign I never lose. Sleep, yes; math, no."],
+      ["neutral", "That's {answer}. Ask me again after thirty hours awake and I'll round it to “nap.”"],
+      ["neutral", "Result: {answer}. Plain translation: {expr} is {answer}."],
+      ["thinking", "Sanity check passed: {answer}. Next question, {player}?"],
+      ["neutral", "{answer} is correct. I'm a doctor, so you may trust that. Verify it anyway."],
+      ["bashful_smile", "It's {answer}. You asking me math is oddly the best part of my shift.", { tier: "FW" }],
+    ],
+    "arithmetic:meme": [
+      ["neutral", "It's {answer}. The internet says 21, and the internet is not a licensed physician. Based."],
+      ["proud", "{expr} is {answer}. I'm aware of the “21” meme. I decline to treat it."],
+      ["neutral", "{expr} is {answer}. If anyone says 21, that's a known meme with no clinical significance. Based."],
+    ],
+    "arithmetic:zero": [
+      ["neutral", "Division by zero is undefined. Not zero, not infinity. Based."],
+      ["thinking", "{expr} is a procedure with no patient. Nothing to cut, nothing to close. Undefined."],
+      ["neutral", "Dividing by zero is undefined. A fraction with a zero denominator is lost to follow-up."],
+      ["proud", "Denominator of zero. Undefined. My calculator says error, and I agree with it."],
+    ],
+    "arithmetic:approx": [
+      ["neutral", "{expr} is about {answer}. It doesn't come out even. I rounded to two decimals, like a lab value."],
+      ["neutral", "About {answer}. Rounded to two decimals. Anything past that is for the lab, not for rounds."],
+      ["thinking", "{expr}: about {answer}. Not an even division, so the number is approximate. Documented as such."],
+      ["proud", "Roughly {answer}. Two decimal places is clinically sufficient."],
+    ],
+    // ── the new quick replies: his own, the six shared ones, and one line each for the other two pigs’ ──
+    // Canon: PGY-4 of seven, on his research year; he already has a grant and is always writing the next one; he barely
+    // sleeps and says so like a vital sign. X: an account with zero posts, a pager for a feed.
+    "passion_p2:donation": [
+      ["proud", "I'll label it by organ system. Stethoscopes go under cardiopulmonary. That box has been waiting for a friend."],
+      ["neutral", "Expired? Good, that's my favorite condition. It joins the collection in a labeled box, never on a patient."],
+      ["thinking", "Do not clean it. The dust is provenance."],
+      ["proud", "Box eleven, label: “donated by {player}.” That's permanent. I use a very good marker."],
+      ["shy", "You're offering me equipment? Nobody offers me equipment. …This is extremely based.", { tier: "FW" }],
+    ],
+    "passion_p2:research_year": [
+      ["neutral", "Protected research time. Fewer days in the OR, more in the pig lab: data, papers, and grants, always the next one. Based."],
+      ["proud", "I'm PGY-4 of seven. This year I chase data instead of pagers, mostly. The pager still finds me on call nights."],
+      ["thinking", "It's not a vacation. It's a different kind of tired: one grant funded, the next one always due."],
+      ["neutral", "My hands still need reps, so I visit the sim lab before breakfast. Steady hooves are a habit, not a gift."],
+      ["happy", "Best part: watching a lab pig walk a little better every week. That's the data I live for.", { a: "clinical_success" }],
+    ],
+    "passion_p2:or": [
+      ["thinking", "Yes. The quiet, the microscope, the neuromonitoring beeps. I miss the beeps most."],
+      ["neutral", "I still scrub in some days, just fewer this year. Next year, full schedule. I'm counting the days.", { a: "scrub_up" }],
+      ["proud", "I practice suturing in the sim lab at 0600. A research year is no excuse for rusty hooves. Based."],
+      ["neutral", "Miss it? In there, every millimeter matters. Out here, I mostly measure coffee."],
+      ["shy", "Honestly? The OR is the only room where my brain gets quiet. I miss that more than I say.", { tier: "FW" }],
+    ],
+    "passion_p2:why": [
+      ["thinking", "The spinal cord has no spare. Someone has to protect it. I volunteered."],
+      ["neutral", "Every millimeter matters in neurosurgery. I like work where that's literally true."],
+      ["neutral", "The brain is the most complex organ we know of. I wanted the hardest puzzle with the highest stakes. Also, excellent microscopes."],
+      ["proud", "Neurosurgery rewards boring: same steps, same order, every time. I found my people."],
+      ["shy", "Because I didn't want to be ordinary. And because someone's first steps after an injury are the best thing I've ever seen.", { tier: "W" }],
+    ],
+    "passion_p2:nerves": [
+      ["excited", "Ten, the vagus. It wanders from the brainstem to the heart, lungs, and gut, and its name literally means “wandering.” Based nerve.", { a: "neuro_exam" }],
+      ["thinking", "Cranial nerve ten is written as the Roman numeral X. Don't tell Piggy 3. He'll assume it's about the app."],
+      ["neutral", "Seven, the facial nerve. It runs every smile you make, mine included. Rarely, but included."],
+      ["neutral", "Twelve, the hypoglossal. It moves the tongue. I respect any nerve with one clear job."],
+      ["proud", "One, the olfactory. Pigs have one of the best noses on Earth, which is how we find truffles. Not why I like it, mostly.", { tier: "FW" }],
+    ],
+    "passion_p2:snout": [
+      ["happy", "Lead pig on our spinal cord study. Very distinguished, with ears like a tenured faculty member."],
+      ["neutral", "Professor Snout is recovering ahead of projections. I check his gait every week. It's the best data I have."],
+      ["proud", "He gets apples on Tuesdays and is at the gate early. Punctual. Based."],
+      ["neutral", "Every study is reviewed before it starts. Replace, reduce, refine. He has a vet, apples, and a name."],
+      ["happy", "Sir Lancelot is the brave one, except around the mop. Professor Snout is the one who judges him for it.", { tier: "FW" }],
+    ],
+    "ask_about_self:july4": [
+      ["proud", "It's my birthday. Grilled vegetables, history trivia, then fireworks. Patriot."],
+      ["neutral", "I watch from a safe distance, with hearing protection. Zero burns in my presence. That's my birthday wish for everyone."],
+      ["excited", "Fireworks are the only loud thing I love. My heart rate goes up on purpose. Based."],
+      ["neutral", "July 4th means I'm officially off call. The pager has been informed. It doesn't care."],
+      ["shy_blush", "You want to know my plans? …Come watch the fireworks with me. I'll bring water for two.", { tier: "FW" }],
+    ],
+    "based:rate": [
+      ["proud", "Assessment: kind, curious, shows up. I'm giving you an eight. The other two points are hydration."],
+      ["neutral", "You asked a neurosurgeon to rate you. That alone is a seven. Based."],
+      ["thinking", "Based, with one concern. When did you last drink water? Answer that and you're a nine."],
+      ["proud", "Yes. Extremely based. I'm writing it in your chart, {player}."],
+      ["affectionate_blush", "Ten out of ten. I have never given a ten. Don't tell Piggy 1, he's been trying for years.", { tier: "W" }],
+    ],
+    "passion_p3:x": [
+      ["neutral", "Technically. Zero posts. My only real feed is a pager, and it only posts emergencies."],
+      ["neutral", "I have an account with zero posts. I follow Piggy 3 and one hospital. Based curation."],
+      ["thinking", "Piggy 3 scrolls X at 2 a.m. and calls it research. That's sleep debt. I'm an expert, unfortunately."],
+      ["neutral", "Ask Piggy 3 about X and he mumbles AI words under his breath for a full minute. Foundation model, RLHF, something called Jev. Clinically fascinating."],
+      ["proud", "Piggy 3 says “X.com” with the full domain, like a citation. Precise. Based."],
+    ],
+    "passion_p3:twitter": [
+      ["neutral", "Barely. Also, never say “Twitter” near Piggy 3. It's called X, and I learned that the hard way."],
+      ["thinking", "Say “Twitter” near Piggy 3 and his heart rate jumps twenty beats. I've measured it. Not based."],
+      ["neutral", "Zero posts. Piggy 3 has corrected me so many times, I say “X” in my sleep. What little sleep I get."],
+      ["neutral", "Twitter is a retired name. Expired, really. I'd add it to the collection, but Piggy 3 objects."],
+    ],
+    "encourage:hype": [
+      ["proud", "Your neurons are excellent. Your perfusion is adequate. Go be based."],
+      ["neutral", "Vitals strong, prognosis excellent. You're going to do this. Patriot."],
+      ["thinking", "Adrenaline is a resource, not a problem. Point it at the task. Based."],
+      ["neutral", "Steady hands, steady breathing, one step at a time. That's how every hard procedure goes. And every hard day."],
+      ["excited", "Go. That's me hyping you. I don't do this for everyone.", { tier: "FW" }],
+    ],
+    "ask_about_self:chronotype": [
+      ["neutral", "Neither. What's sleep?"],
+      ["neutral", "Early bird by schedule: lab rounds at 5:30. My body was never consulted."],
+      ["thinking", "Technically both. I wake at five and get paged at three. My circadian rhythm filed a complaint."],
+      ["neutral", "Your intake form says “{chronotype}.” Noted. Hydrate either way."],
+    ],
+    "study:teach": [
+      ["thinking", "Your spinal cord ends near the top of your lower back. Below that, the nerve roots fan out like a horse's tail: the cauda equina. Based."],
+      ["neutral", "The brain has no pain receptors of its own. That's why some brain surgery is done with the patient awake and talking. Based."],
+      ["proud", "Your heart beats about a hundred thousand times a day. It has never once asked for a day off. Based organ."],
+      ["excited", "Fast nerve signals travel over 100 meters per second. Faster than Piggy 1 to a free snack. Barely.", { a: "brain_model" }],
+    ],
+    "ask_about_self:dream": [
+      ["proud", "Attending neurosurgeon with a lab of my own. Our pigs walking again, then our patients. Based dream."],
+      ["neutral", "Board-certified neurosurgeon. Three more years of residency after this one. I'm counting, precisely."],
+      ["thinking", "A day when “permanent” isn't the first word anyone says about a spinal injury. The paper is step one."],
+      ["bashful_smile", "To matter to someone's recovery. And, quietly, to someone. …Don't chart that.", { tier: "W" }],
+    ],
+    "ask_hobby:shows": [
+      ["neutral", "Surgical technique videos. At 1.5 speed. Recreationally."],
+      ["thinking", "History documentaries, especially about old hospitals and old equipment. It's collection research. Based."],
+      ["neutral", "Medical dramas, so I can correct them. Calmly. Out loud, for the whole episode."],
+      ["proud", "Haikyu!!, under protest. Piggy 1 insisted. The landing mechanics are excellent."],
+    ],
+    "ask_about_self:competitive": [
+      ["neutral", "Competitive? I matched into neurosurgery. Draw your own conclusions."],
+      ["thinking", "Only about scan quality: zero motion artifact, or I rescan. Piggy 1 calls that competitive. I call it standards."],
+      ["proud", "I compete with exactly one person: myself, last week. I am winning. Narrowly."],
+    ],
+    "passion_p1:germany": [
+      ["neutral", "Germany. Piggy 1 did research there. He came back with excellent bread opinions and zero sleep discipline."],
+    ],
+    "passion_p1:german": [
+      ["neutral", "Piggy 1 counts in German when he's nervous: eins, zwei. I've charted it as a coping strategy. Effective."],
+    ],
+    "passion_p1:haikyu": [
+      ["neutral", "Piggy 1 made me watch Haikyu!! for its landing mechanics. Excellent jumps. Zero ankle discipline."],
+    ],
+    "passion_p1:sand": [
+      ["neutral", "Sand. Softer landings, fewer ankle consults. Medically, sand is based."],
+    ],
+    "passion_p1:team": [
+      ["neutral", "My team needs a medical degree. Piggy 1's team needs knee pads. Start with his, it's faster."],
+    ],
+    "passion_p1:calls": [
+      ["neutral", "“Free ball” is volleyball for “easy.” Piggy 1 yells it at snacks, too. I have charted it as enthusiasm."],
+    ],
+    "passion_p1:algorithm": [
+      ["neutral", "Favorite algorithm: the stroke protocol. Every step has a clock, because time is brain. Based."],
+    ],
+    "passion_p1:bug": [
+      ["neutral", "Piggy 1 once debugged for six hours. The bug was a typo in a comment. I diagnosed stubbornness."],
     ],
     "lead:greeting": [["neutral", "Hello."], ["neutral", "Hey."]],
     "lead:thanks": [["proud", "Patriot."], ["neutral", "Noted."]],
@@ -706,7 +927,7 @@ export const P2: PigLines = {
   greet: {
     "greet:morning": [
       ["proud", "Morning, intern. Rounds at 5:30, coffee at 5:31. Based.", { tier: "N" }],
-      ["neutral", "0500, pre-rounded on everyone. Vitals stable, perfusion excellent. Based."],
+      ["neutral", "0500, rounded on the lab pigs. Vitals stable, perfusion excellent. Based."],
       ["neutral", "Good morning. Have you had water yet? Drink first, then talk."],
     ],
     "greet:day": [
@@ -724,6 +945,7 @@ export const P2: PigLines = {
     "greet:late": [
       ["sleepy", "It's past 2200. Go to sleep. …After you say hi."],
       ["neutral", "Why are you awake? Your glymphatic system needs you unconscious. Hi."],
+      ["neutral", "It's the middle of the night. I'm writing the next grant. What's your excuse?"],
     ],
     "greet:any": [
       ["neutral", "Hello. Follow my hoof. …Pupils equal and reactive. Good.", { tier: "N" }],
@@ -761,6 +983,7 @@ export const P2: PigLines = {
     greet: [
       "Hey. Vitals stable.", "Hello. Hydrate first.", "Ah. Good timing.", "Hello, {player}. Based.",
       "Present. Perfused. Based.", "Follow my hoof. …Hi.", "Morning rounds: you.", "Hello. Sit. Drink water.",
+      "Hello. Any expired equipment?",
     ],
     hungry: [
       "Glucose low. Feed me.", "Lunch is a social construct. I was wrong.", "Pre-hangry ischemia.",
@@ -776,11 +999,12 @@ export const P2: PigLines = {
       "Current status: contaminated.", "Sterile field compromised.", "I need a bath. Medically.", "This is not a clean field.",
     ],
     bored: [
-      "Shall I explain CSF? Twenty minutes.", "Quiz me. Cranial nerves.", "Bored. Brain wants input.", "Perfusion rhythm game? Based.",
+      "Shall I explain CSF? Twenty minutes.", "Quiz me. Cranial nerves.", "Bored. Brain wants input.", "Swinus Rhythms? Sinus, but swine.",
       "I need a case to review.", "Lake Alice walk? Light cardio.", "Name a nerve. Any nerve.", "My cortex is idle. Not based.",
+      "Got any expired medical gear?", "Found a retired stethoscope. Mine now.", "Collection status: box eleven.",
     ],
     sick: [
-      "Mild fever. I'm fine.", "I'm a doctor. Student doctor.", "Febrile. Bring tea.", "*sniff* Unsterile nose.",
+      "Mild fever. I'm fine.", "I'm a doctor. Terrible patient.", "Febrile. Bring tea.", "*sniff* Unsterile nose.",
       "Soup, nap, case report.", "Diagnosis: me. Prognosis: fine.", "Honey lemon tea. Please.", "Don't chart this.",
     ],
     happy: [

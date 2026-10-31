@@ -7,7 +7,7 @@ sakura. Fully playable offline with a deterministic chat brain; an optional loca
 ## 1. Pitch
 
 One semester, three pig boys, and a campus full of sakura trees nobody can explain. You're a new UF student.
-Kempa AI's **Kempanion** buddy program pairs you with one of three piggy students. Your Kempanion lives
+Kempa AI's **Kempanion** buddy program pairs you with one of three campus piggies. Your Kempanion lives
 across the hall at **Sakura House** (a creaky co-op a block off University Ave whose yard sakura blooms all year).
 All three pigs live at Sakura House, each in his own very distinct room (Piggy 1: volleyballs and dual monitors; Piggy 2: a
 chaotic neuro lab-office with boxes of medical supplies everywhere; Piggy 3: a lavender maker's den with three 3D printers).
@@ -21,8 +21,8 @@ and fall asleep at their bedtimes.
 
 | | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Who | CS junior; club volleyball outside hitter | MD/PhD student; future neurosurgeon; pig spinal-cord research | Builder: AI, coding agents, signals, 3D printing; physics computational lab |
-| Home spot | Malachowsky Hall; sand courts at dawn/dusk | Communicore (College of Medicine), anatomy lab, Shands | Physics Building lab; Marston at night |
+| Who | CS junior; club volleyball outside hitter | MD; fourth-year (PGY-4) neurosurgery resident at UF Health Shands on his research year (pig spinal-cord lab, papers, grants, the occasional call shift), still studying | Builder: AI, coding agents, signals, 3D printing; physics computational lab |
+| Home spot | Malachowsky Hall; sand courts at dawn/dusk | Communicore (College of Medicine), anatomy lab, his pig lab, Shands (sim lab, call shifts) | Physics Building lab; Marston at night |
 | Work outfit | volleyball uniform | scrubs | black hoodie |
 | Voice | hype, stats, volleyball calls, calls you "teammate" | deadpan, "Based." / "Patriot.", ischemia & perfusion | "Okay, so I was thinking…", "Actually—", "basically", "Best for what?" |
 | Hard quirks | bump→"Set!", set→"SPIKE!!", spike→"KILL! Point Gators!" | "based"→"Patriot." (only), "patriot"→"Based." | "codex" / "have you used codex?" → lights up about his little project |
@@ -52,7 +52,8 @@ jokes about anatomy-lab donors ("Donors are our first teachers."). All bond is w
 
 - **KempaPager (hub)**: your Kempanion, full-body and animated, at their *current* location (from the schedule; Sakura House at
   night/asleep). Need meters, hearts, acorns, clock, care bar (Feed · Clean · Play · Rest · Talk · Go · Bag · Menu). Tap the
-  pig to pet. Thought bubbles show Wants. Golden petals drift by (tap = +5 acorns, 10/day).
+  pig to pet. A solid paper bubble beside his head is a Want; a lilac thought cloud is just what's on his mind (§6, tap it
+  for his line). Golden petals drift by (tap = +5 acorns, 10/day).
 - **Campus map**: pins with face icons of whoever is there now; a ♥ on a pin when a heart event is ready there.
 - **Location**: background + waist-up busts of pigs present → Talk / Gift / location action (mini-game, shop, omikuji, bats…).
 - **Talk**: VN text box with typewriter + blips; quick-reply chips + free text; brain = heuristic or LLM.
@@ -67,7 +68,7 @@ Bedtimes: Piggy 1 22:30–06:30 · Piggy 2 22:00–05:00 · Piggy 3 00:30–08:3
 
 | Slot | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| dawn | volleyball courts (Tu/Th/Sa), else asleep→Sakura House | Shands pre-rounds | asleep |
+| dawn | volleyball courts (Tu/Th/Sa), else asleep→Sakura House | Shands (lab-pig rounds, sim lab, call shifts) | asleep |
 | morning | Malachowsky | Communicore | physics (from 10:30) |
 | midday | Plaza | Communicore | physics |
 | afternoon | Malachowsky | Shands (M/W/F) / anatomy lab (Tu/Th) | physics |
@@ -107,8 +108,15 @@ Feeding refused at hunger ≥ 90 (item kept), except one dessert ("betsubara") e
 Piggy 2 Truffle Fries, Piggy 3 Sakura Dango). Love: fill ×1.2, bond +10 · like +4 · neutral +1 · dislike: fill ×0.8, 0 bond, funny line.
 Food bond is capped at 40/day/pig. First secret favorite discovery: +50 bond and a reveal line.
 
-**Wants**: roughly every 3 h present, the Kempanion shows a thought bubble (a food, activity, place or chat topic).
+**Wants**: roughly every 3 h present, the Kempanion shows a want bubble, a solid paper box (a food, activity, place or chat topic).
 Fulfil within 2 h → +8 bond, +5 fun. Unfilled wants just expire.
+
+**Thoughts**: wants are actions, thoughts are flavor. Whenever his want isn't live, a pig daydreams in a lilac pixel cloud (an
+icon and a label of up to 20 characters, 6–8 s; tap for his line and face). No bond, no acorns, never a timed choice. Picks are
+seeded per pig and day from his personality bank (`pet/thought-bank/`): no repeats, at most 40 a day, weighted by place, time,
+weather, needs, date, company and hearts; his own birthday comes first that day; a sick pig only has sick thoughts. Piggy 3
+thinks about X about half the time. Hub: about 70% of the ambient beats (the rest are spoken lines), calmer later in a visit;
+place screens: one cloud on phones, at most two on wide stages. Settings → Display → Thought bubbles: Lots / Some / Off.
 
 ## 7. Bond & progression (all three pigs)
 
@@ -139,7 +147,7 @@ Reitz Pizza Slice 10 · Cup Ramen 5 · Onigiri 9 (P3 love) · Melonpan 12 (P3 lo
 Key Lime Pie 15 (dessert) · Boiled Peanuts 6 (P1 dislike, P2 like) · Acai Bowl 14 · Banana Protein Shake 12 (P1 love) ·
 Watermelon Slice 8 · Florida Oranges 6 (P1 "TEAM SNACK") · Sakura Dango 14 (P3 secret) · Truffle Fries 20 (P2 secret) ·
 Sideline Sip sports drink 8 (P1 love) · Florida OJ 8 · Sweet Tea 6 (P2 love) · Cafecito 7 (P2 love, energy +20) ·
-Cold Brew 9 (P3 love, energy +15) · Boba Milk Tea 12 · Strawberry Milk 8 (P1 secret).
+Cold Brew 9 (P3 like, energy +15) · Sugar-Free Red Bull 9 (P3 love, energy +15) · Boba Milk Tea 12 · Strawberry Milk 8 (P1 secret).
 Care: Lavender Soap 40 · Mint Toothpaste 30 · Honey Lemon Tea 20 (cure) · Cold Medicine 35 (cure) · Ginger Ale 15.
 Gifts: Knee Pad Tape 45 (P1 love) · Signed Volleyball 70 (P1 love) · Squishy Brain Model 60 (P2 love) · 1 L Water Bottle 30 (P2 love) ·
 Sakura PLA Filament 40 (P3 love) · Pirate Manga 35 (P3 love) · Gator Pennant 50 (all like) · Sakura Charm 25 (all like) · Comic Sans Stickers 10 (P3 "…I'll keep it").
@@ -147,7 +155,7 @@ Sakura PLA Filament 40 (P3 love) · Pirate Manga 35 (P3 love) · Gator Pennant 5
 **Canonical item ids** (use exactly these in code and KScript `[give id n]`):
 food/drink — `dining_tray` `water_bottle` `tender_sub` `pizza_slice` `cup_ramen` `onigiri` `melonpan` `apple_pie` `key_lime_pie`
 `boiled_peanuts` `acai_bowl` `protein_shake` `watermelon` `oranges` `pastelito` `blueberries` `sakura_dango` `truffle_fries`
-`sideline_sip` `florida_oj` `sweet_tea` `cafecito` `cold_brew` `boba_tea` `strawberry_milk` `vegan_ice_cream` ·
+`sideline_sip` `florida_oj` `sweet_tea` `cafecito` `cold_brew` `red_bull_sf` `boba_tea` `strawberry_milk` `vegan_ice_cream` ·
 care — `lavender_soap` `mint_toothpaste` `honey_lemon_tea` `cold_medicine` `ginger_ale` ·
 gifts — `knee_pad_tape` `signed_volleyball` `brain_model` `big_water_bottle` `sakura_filament` `pirate_manga` `pennant`
 `sakura_charm` `comic_sans_stickers` · key items (not sold) — `kempapager` `name_badge` `sakura_keychain`.
@@ -158,7 +166,7 @@ gifts — `knee_pad_tape` `signed_volleyball` `brain_model` `big_water_bottle` `
 - **Sakura Spike** (Piggy 1, volleyball courts, 60 s): one-button timing — shrinking ring on the ball's shadow; tap for bump → set → spike
   (volleyball_bump/set/spike); Perfect ±60 ms = 100, Good ±130 ms = 50; combo ×(1 + 0.1 per 5 hits, max ×2); late tap within 250 ms
   plays volleyball_dig and saves once per point; 20% opponent spikes → tap to block (+150); speed +5% per 10 touches (max +60%).
-- **Perfusion!** (Piggy 2, Communicore sim lab, ~65 s): rhythm on a scrolling ECG — Beat (tap on the spike), Drain (hold:
+- **Swinus Rhythms** (Piggy 2, Communicore sim lab, ~65 s; a play on "sinus rhythm"; id `perfusion`): rhythm on a scrolling ECG — Beat (tap on the spike), Drain (hold:
   "Draining CSF… pressure normalizing"), Skip (flat line, don't tap). The song is a steady 96 BPM lub-dub; the monitor's heart rate
   climbs 72 → 96 → 120 as the notes get denser (every other beat, every beat, every beat + off-beat doubles). Perfusion meter from 70:
   Perfect ±50 ms +3, Good ±110 ms +1, Miss −6; under 30 → blue tint, Piggy 2: "ISCHEMIA!" (delighted), "I mean, oh no. Fix it."
@@ -167,6 +175,19 @@ gifts — `knee_pad_tape` `signed_volleyball` `brain_model` `big_water_bottle` `
   Score per round 10 + seconds left. Piggy 3 explains each bug in one line ("Actually, that's an off-by-one. The loop skips the last pig. Which is me. Rude.").
 - **Petal Catch** (any pig, Plaza, 45 s): run left/right; pink petals +1, golden +10, snacks +2 (and +5 hunger, max +30);
   bold Plaza squirrels' acorns make the pig tumble for 0.8 s.
+- **Steady Hoof** (Piggy 2, Shands sim suite after hours, ~80 s; id `surgery`): a skills night on training models only, with Gerald
+  the mannequin supervising from a sticky note. One instrument tip, three 24 s stations: **Close the Seam** (trace a dotted seam on
+  a silicone pad; each sakura blossom passed becomes a NEAT/GOOD/LOOSE stitch; the seam closes no faster than the 14 u/s pace
+  limit, and a stitch thrown while the hand is over it is LOOSE, worth 2 and costs that seam its bonus; watertight +60, closed +30),
+  **Under the Scope** (×4: hold the tip in a ring on a silicone vessel that pulses with piggy2_theme's beat until it fills),
+  **Electrodes** (carry a contact on a soft, springy lead to numbered marks on a gel phantom; hold still to set it; 4 = a set).
+  The tip sways a little and calms on the exhale of a shared 5 s breath (OUT/IN gauge, halo tightens). Input: drag anywhere
+  (relative, 0.3 tray units per px), mouse/pen (absolute) or ←↑↓→/WASD (Shift = fine). Medals by score 900 / 1600 / 2300.
+- **For You Pig** (Piggy 3, Marston Science Library button, 75 s; id `xfeed`): Piggy 3 holds out his phone and his X feed scrolls itself, faster each
+  tab (Following → For You → Trending → 3 AM). Swipe right to LIKE posts that show their work, left to MUTE hype (and anyone who still says "Twitter"),
+  SAVE the rare gold posts, let filler pass; a wrong call costs 100. Six right calls in a row start Mumble Mode (points ×2; the same bit as Talk's
+  "Are you on X?": he mutters buzzwords to himself, then snaps out, embarrassed). Hype that gets through drains his brain battery (80% to start);
+  at 0% he puts the phone down and touches grass for 3 s. Medals by score 2000 / 3800 / 7500.
 Rewards: bond +10 + 5 per medal tier (bronze/silver/gold), fun +20…25, energy −8…−12. Needs energy ≥ 20 to play.
 
 ## 10. Story
@@ -182,11 +203,11 @@ first look at the uniform; serve-receive; unlocks outfit + Sakura Spike bonus; C
 
 Piggy 2 — "Perfusion Route": 1 Pupils Equal, Round, Reactive (Reitz booth, scrubs; "Follow my hoof."; say "Based." → "Patriot.")
 · 2 To Perfuse or Not to Perfuse (Communicore; brain_model as Yorick; circle of Willis; 3-question quiz) · 3 Scrub In: Sim Edition
-(Shands sim lab; lumbar drain on a mannequin; hand him sterile gloves; unlocks scrubs) · 4 The Porcine Advantage (Communicore dusk;
+(Shands sim lab; research year means fewer OR days, so he practices a lumbar drain on a mannequin; hand him sterile gloves; unlocks scrubs) · 4 The Porcine Advantage (Communicore dusk;
 review_mri; why pigs are the model for spine surgery, CSF drainage and brain electrodes; the lab pigs' names — Professor Snout, Sir Lancelot)
 · 5 Mildly Ischemic (Sakura House; he's sick and still heading to Shands: "My perfusion is merely philosophical.") · 6 Clinical Success
 (video call: Professor Snout walks after his spinal procedure; "Perfusion. Restored."; tears; "Based." → "Patriot.") · 7 Discharge Summary
-(Marston, finals; three days of surgical_focus; a write_chart note: "Patient presents with chronic friendship. Prognosis: excellent.").
+(Marston, finals week, his biggest grant application yet is due, with Professor Snout's walk as figure one; he is already PI on a small grant and always writing the next one, so there is always another deadline; three days of surgical_focus; a write_chart note: "Patient presents with chronic friendship. Prognosis: excellent.").
 
 Piggy 3 — "Ship It Route": 1 Okay, So I Was Thinking… (Reitz booth; 3D-printed name badge; pick an accent color that themes the UI)
 · 2 Best for What? (physics lab, hoodie; two EEG-artifact models; "Whichever people will actually use." unlocks hoodie) · 3 Print Queue
@@ -211,7 +232,7 @@ gameday traffic…), pig-to-pig "Overheard" bubbles when two share a location, t
 
 ## 11. Chat
 
-Pipeline per message: **intercepts** (hard quirks; medical questions → "I'm a pig in med school, not your doctor. Student Health Care Center. Go.";
+Pipeline per message: **intercepts** (hard quirks; medical questions → "I'm a pig doctor in a game, not your doctor. Student Health Care Center. Go, and call 911 if it's an emergency.";
 distress keywords → a warm pointer to UF's Counseling & Wellness Center) → brain (heuristic; the LLM only when it is loaded and enabled
 **and the player typed the message** — the preset reply options always get the scripted heuristic answer) → post-filter
 (≤ 3 sentences, no AI-isms, PG) → expression (LLM `[tag]` or lexicon) → memory extraction (regex: name, major, hometown, likes, exams…).

@@ -6,7 +6,7 @@
 
 **Cast.** These are working nicknames; the final names are still to be decided.
 - **Piggy 1** (Piggy 1, home: Malachowsky Hall). A cheerful outside hitter and CS major who talks in volleyball and algorithm metaphors ("Let me cook. No wait, let me compile."). He gets up early, eats a lot, hypes everyone up and gets restless easily.
-- **Piggy 2** (Piggy 2, home: Communicore/Shands). A precise future neurosurgeon whose favorite words are "based," "patriot," "ischemia" and "perfusion." He also loves pig spines and CSF.
+- **Piggy 2** (Piggy 2, home: Communicore/Shands). A precise fourth-year neurosurgery resident (already an MD) on his research year, whose favorite words are "based," "patriot," "ischemia" and "perfusion." He also loves pig spines and CSF.
 - **Piggy 3** (Piggy 3, home: New Physics Building). He thinks out loud, builds things, asks "best for what?" and is shy and affectionate.
 
 ## 0. Pillars
@@ -148,7 +148,8 @@ Three visits a day keep every need above 20. Piggy 2's and the Piggy 3's needs f
 | Florida OJ | 8 | 5 | 35 | 15 | Germs −5 | + | + | |
 | Sweet Tea | 6 | | 35 | 20 | | | L | − |
 | Cafecito | 7 | | 10 | 15 | Energy +20, Jittery | − | L | |
-| Library West Cold Brew | 9 | | 20 | 5 | Energy +15, Jittery | − | | L |
+| Library West Cold Brew | 9 | | 20 | 5 | Energy +15, Jittery | − | | + |
+| Sugar-Free Red Bull | 9 | | 20 | 0 | Energy +15, Jittery; slim can | − | − | L |
 | Boba Milk Tea | 12 | 10 | 30 | 25 | | | − | + |
 | Strawberry Milk | 8 | 5 | 30 | 15 | | S | | |
 
@@ -272,7 +273,7 @@ Heavy players reach Lv10 in about 4 weeks. Rested XP keeps it within reach for l
 ### 7.2 Care-style Paths (evolutions without new art)
 A Tamagotchi evolves based on how it was raised. Our pigs do the same through titles, perks and dialogue pools, so no new art is needed. Over a rolling 14 days, each pig keeps three scores:
 - **Active:** play ball, dance or walk +1. A Sakura Spike or Petal Catch run +3.
-- **Scholar:** Practice +2 per hour. A Perfusion! or Bug Hunt run +3. A library visit +1.
+- **Scholar:** Practice +2 per hour. A Swinus Rhythms or Bug Hunt run +3. A library visit +1.
 - **Cozy:** pet or talk +1 (up to 5 a day each). Tuck-in or gift +2. Bath or loved food +1.
 
 At Lv5 the highest score picks his Path; a tie goes to Cozy. Lv10 checks again and can change it.
@@ -280,18 +281,18 @@ At Lv5 the highest score picks his Path; a tie goes to Cozy. Lv10 checks again a
 | | Active | Scholar | Cozy |
 |---|---|---|---|
 | Piggy 1 | **Piggy 1 Spiker:** Sakura Spike perfect window +15% | **Full-Stack Libero:** Practice +20% acorns; earns bond from Bug Hunt runs (he reviews your fixes) | **Hype Captain:** roommates' Fun decays ×0.85 while he's home |
-| Piggy 2 | **Team Physician:** any pig gets +5 Energy after a mini-game | **Chief Resident:** Perfusion! timing windows +15%, Practice +20% acorns | **Bedside Manner:** illnesses last 25% less time |
+| Piggy 2 | **Team Physician:** any pig gets +5 Energy after a mini-game | **Chief Resident:** Swinus Rhythms timing windows +15%, Practice +20% acorns | **Bedside Manner:** illnesses last 25% less time |
 | Piggy 3 | **Field Engineer:** walks find an item 25% of the time | **Open-Source Sensei:** free Bug Hunt hint at 3 s, Practice +20% acorns | **Comfy Maker:** Night Build makes 2 items |
 
 ### 7.3 Alt-outfit abilities (Bond Lv4)
 - **Piggy 1, volleyball uniform, "Team Spirit":** Fun decays ×0.8 for every pig in the room. Sakura Spike pays +20% acorns.
-- **Piggy 2, scrubs, "Doctor's Rounds":** see §6. Perfusion! pays +20% acorns.
+- **Piggy 2, scrubs, "Doctor's Rounds":** see §6. Swinus Rhythms pays +20% acorns.
 - **Piggy 3, black hoodie, "Night Build":** he 3D-prints one random toy or gift overnight, waiting at Roll Call. Owning the 3D Printer decor unlocks a rare pool. Bug Hunt pays +20% acorns.
 
 ### 7.4 Practice (idle send-off)
 Each pig has his own Practice:
 - Piggy 1: drills at Southwest Rec.
-- Piggy 2: rounds at Shands.
+- Piggy 2: lab-pig rounds and the sim lab.
 - Piggy 3: the lab, running jobs on HiPerGator.
 
 | Length | Pay |
@@ -400,7 +401,7 @@ The GT catalog totals about 200 GT, roughly 10–12 weeks of play:
 | Game | Pig, place | Length | Eng | Fun | Clean | Thr | acorns formula (cap) | Bronze / Silver / Gold |
 |---|---|---|---|---|---|---|---|---|
 | Sakura Spike | Piggy 1, Southwest Rec sand courts | 60 s | −12 | +25 | −10 | −10 | 5 + score/120 (45) | 1,500 / 3,500 / 6,000 |
-| Perfusion! | Piggy 2, Communicore Sim Lab | ~45 s | −10 | +20 | −3 | −5 | 5 + 0.4 × accuracy% (45) | 70 / 85 / 95% |
+| Swinus Rhythms | Piggy 2, Communicore Sim Lab | ~65 s | −10 | +20 | −3 | −5 | 5 + 0.4 × accuracy% (45) | 70 / 85 / 95% |
 | Bug Hunt | Piggy 3, New Physics Building lab | 10 rounds | −8 | +20 | 0 | −5 | 5 + score/5 (45) | 6 / 8 / 10 correct (gold needs no hints) |
 | Petal Catch | any pig, Plaza of the Americas | 45 s | −10 | +25 | −5 | −8 | 5 + score/4 (40) | 60 / 100 / 150 |
 
@@ -414,7 +415,7 @@ The GT catalog totals about 200 GT, roughly 10–12 weeks of play:
 - Speed goes up 5% every 10 touches, to a maximum of +60%. The run ends on volleyball_win.
 - The other pigs cheer from the sideline in everyday clothes (happy and celebrate clips) and get +10 Fun.
 
-**Perfusion!** is a rhythm game.
+**Swinus Rhythms** (formerly "Perfusion!"; a play on "sinus rhythm") is a rhythm game.
 - Intro: scrub_up (alternate taps for 3 s, +5% score), then preop_check (tap a 3-item checklist in order, +5%).
 - Main game: an ECG line scrolls across a pixel monitor while Piggy 2 holds surgical_focus. There are three note types:
   - **Beat:** tap on the spike.
@@ -546,7 +547,7 @@ Piggy 3: "Actually, that's an off-by-one. The loop skips the last pig. Which is 
 
 **Mini-games**
 - Rally Royalty: 30 hits in a row in Sakura Spike (2)
-- Textbook Perfusion: 100% in Perfusion! (3)
+- Textbook Perfusion: 100% perfusion in Swinus Rhythms (3)
 - Zero-Day Hunter: 10/10 in Bug Hunt with no hints (3)
 - Petal Pusher: 150 petals in one run (2)
 - Triple Gold: gold in all four games (5)
@@ -576,7 +577,7 @@ Piggy 3: "Actually, that's an off-by-one. The loop skips the last pig. Which is 
 ## 13. Voices (heuristic engine; no LLM needed)
 | Situation | Piggy 1 | Piggy 2 | Piggy 3 |
 |---|---|---|---|
-| Roll Call | "Morning! Fifty serves done, half a LeetCode. Let's goooo!" | "0500. Pre-rounded on everyone. Vitals stable, perfusion excellent. Based." | "Okay, so I was thinking... what if breakfast had a dashboard? Oh wait. You're the dashboard. Morning!" |
+| Roll Call | "Morning! Fifty serves done, half a LeetCode. Let's goooo!" | "0500, rounded on the lab pigs. Vitals stable, perfusion excellent. Based." | "Okay, so I was thinking... what if breakfast had a dashboard? Oh wait. You're the dashboard. Morning!" |
 | Hungry | "My stomach just threw a StackOverflowError. Snack, please?" | "Blood glucose trending down. Feed me before I explain ischemia. In detail." | "Actually, I forgot to eat. The agent was mid-run and I didn't want to blink." |
 | Loved food | "Tender sub?! You're officially my setter. Nice set!" | "Apple pie. The most patriotic dessert. Based." | "Melonpan! Basically the best crunch-to-fluff ratio. I ran the numbers. Loosely." |
 | Disliked food | "They're... wet peanuts. I'll eat it. For the team." | "This bowl has insufficient perfusion of flavor." | "It's... chalky? Best for what, exactly? Not taste." |
@@ -589,6 +590,7 @@ Piggy 3: "Actually, that's an off-by-one. The loop skips the last pig. Which is 
 
 **Fixed rules and extra line pools:**
 - **The "based" rule:** if the player's message is exactly "based" (ignoring punctuation and capitalization), Piggy 2 replies `patriot` and nothing else. There's no LLM call, he shows the proud portrait, and it plays one blip.
+- **After a safety line:** right under the crisis line (988 and the Counseling & Wellness Center) or the medical line (the Student Health Care Center, 911), the quick replies are gentle: "Thank you." (or "Thanks, I'll get it checked."), "I need a hug." and "What did you do today?". There are no cheers, jokes, quirk words or "Pig Pen Friday!". They stay gentle for two more messages, or until the player changes the subject. Each pig answers them warmly in his own voice, and Piggy 2 can answer "Thank you." with a very soft "…Patriot." (`GENTLE_CHIPS` in `src/lib/ai/topics.ts`).
 - About 30% of Piggy 2's lines end in "Based." He calls the player "a true patriot" after kind acts.
 - Piggy 2's idle trivia:
   - "You make about half a liter of CSF a day. I think about draining it a completely normal amount."
@@ -652,7 +654,7 @@ Piggy 3: "Actually, that's an off-by-one. The loop skips the last pig. Which is 
 | 2 | behavior picker, care actions, HUD |
 | 3 | tastes, mood, sickness, shop |
 | 4 | Sakura Spike, Petal Catch |
-| 5 | Perfusion!, Bug Hunt generator |
+| 5 | Swinus Rhythms, Bug Hunt generator |
 | 6 | Roll Call, tasks, achievements, Report Card |
 | 7 | tuning |
 

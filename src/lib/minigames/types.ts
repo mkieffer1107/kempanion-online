@@ -1,8 +1,8 @@
 // Pure mini-game types shared by the pet module (rewards) and the Svelte games. No Svelte imports here.
 
-export type MinigameId = 'volley' | 'perfusion' | 'debug' | 'petals';
+export type MinigameId = 'volley' | 'perfusion' | 'debug' | 'petals' | 'surgery' | 'xfeed';
 
-export const MINIGAME_IDS: readonly MinigameId[] = ['volley', 'perfusion', 'debug', 'petals'] as const;
+export const MINIGAME_IDS: readonly MinigameId[] = ['volley', 'perfusion', 'debug', 'petals', 'surgery', 'xfeed'] as const;
 
 export type Medal = 'none' | 'bronze' | 'silver' | 'gold';
 export const MEDAL_TIERS: readonly Medal[] = ['none', 'bronze', 'silver', 'gold'] as const;

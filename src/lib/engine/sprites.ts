@@ -54,7 +54,10 @@ export interface PortraitRef {
   outfit: OutfitId;
 }
 
-/** Portrait cell; alternate outfits map their missing expressions through ALT_EXPRESSION_FALLBACK. */
+/**
+ * Portrait cell; a set without the cell maps the expression through ALT_EXPRESSION_FALLBACK (the alternate outfits'
+ * 12-portrait sets, and Piggy 1's and Piggy 2's sets for the 'phone' poses drawn for Piggy 3).
+ */
 export function resolvePortrait(pig: PigId, outfit: OutfitId, expression: Expression): PortraitRef {
   const { set, outfit: o } = spriteSet(pig, outfit);
   let e: Expression = expression;

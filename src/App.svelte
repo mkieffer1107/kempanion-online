@@ -10,7 +10,7 @@
   import { audio } from './lib/audio';
   import { stage } from './lib/engine/stage';
   import { dialogue, vnHooks } from './lib/vn';
-  import { getItem, type SignalResult, type SimEvent } from './lib/pet';
+  import { THRESH, currentWant, getItem, type SignalResult, type SimEvent } from './lib/pet';
   import { CHARACTERS } from './lib/content/characters';
   import { whereIs } from './lib/content/locations';
   import { featureNotice } from './lib/content/p3-features';
@@ -18,6 +18,7 @@
   import CoachMark from './lib/ui/components/CoachMark.svelte';
   import { bondView } from './lib/ui/components/Hearts.svelte';
   import { ui, closeTopmost, modalOpen, offerScreenKey } from './lib/ui/ui.svelte';
+  import { viewport } from './lib/ui/viewport.svelte';
   import { toast } from './lib/ui/toasts.svelte';
   import { overlays } from './lib/ui/overlays.svelte';
   import Toasts from './lib/ui/components/Toasts.svelte';
@@ -146,16 +147,6 @@
       else delete flags.bigbrain_unsupported;
     });
   });
-  // tutorial_big_brain ends by setting tut.big_brain_coach: the hub points at the brain chip until it is tapped.
-  const brainCoach = $derived(
-    shownScreen === 'hub' && curtain === 'off' && brainChoice === 'accepted' && !!game.save.flags['tut.big_brain_coach'],
-  );
-  function coachTap(e: Event) {
-    if (game.save.flags['tut.big_brain_coach'] && (e.target as Element | null)?.closest?.('[data-coach="brain"]')) {
-      game.unsetFlag('tut.big_brain_coach');
-    }
-  }
-
   // Piggy 3's shipped feature (p3_h5): a KempaPager notice at the right minute, once per occurrence.
   $effect(() => {
     const minute = gameClock.minute;
@@ -171,6 +162,62 @@
 
   // ── events → toasts / jingles ──
   const pigName = (pig: PigId) => CHARACTERS[pig].name;
+
+  // Pet-sim news (wants, low needs, naps, crumbs…) waits for a clear screen: not during a story scene (it covered the
+  // KempaPager tutorial panel and hid behind the companion picker), not during a mini-game (it popped over the game's
+  // header mid-play; it goes out after the results, back where the game returns to), not under a window or sheet (it
+  // covered the welcome-back letter's title and Roll Call's Back button), and not mid screen change. It goes out once
+  // the screen has stayed clear for NEWS_SETTLE_MS, so a scene → hub → triggered scene hop (prologue → tutorial_hub)
+  // doesn't flash it in between, and the letter a catch-up opens (a flush later, from the hub's own effect) gets in
+  // first. Items, bond, money, tasks and achievements still toast right away (they're part of the story, or answer a
+  // tap: a mini-game's rewards show with its results).
+  const NEWS_SETTLE_MS = 600;
+  let appRoot = $state<HTMLElement>();
+  /** A dialog is up: any Modal window or sheet (letter, Roll Call, care sheets, pager menu, help, name entry), a
+   *  confirm dialog, the backlog, the companion picker overlay, a mini-game's how-to / pause / results panel. */
+  let dialogOpen = $state(false);
+  $effect(() => {
+    if (!appRoot) return;
+    // document.body, not the app root: the backlog and the coach marks are portaled straight onto <body>.
+    const body = document.body;
+    const check = () => { dialogOpen = body.querySelector('[aria-modal="true"]') !== null; };
+    check();
+    const watch = new MutationObserver(check);
+    watch.observe(body, { childList: true, subtree: true, attributeFilter: ['aria-modal'] });
+    return () => watch.disconnect();
+  });
+  const newsBlocked = $derived(
+    game.screen === 'scene' || shownScreen === 'scene' || game.screen === 'minigame' || shownScreen === 'minigame'
+      || !!overlays.minigame || game.screen !== shownScreen || curtain !== 'off' || dialogOpen,
+  );
+
+  // tutorial_big_brain ends by setting tut.big_brain_coach: the hub points at the brain chip until it is tapped. Not
+  // over a window (Roll Call opens with the room right after the tutorial and covers the chip): it waits for it.
+  const brainCoach = $derived(
+    shownScreen === 'hub' && curtain === 'off' && !dialogOpen && brainChoice === 'accepted'
+      && !!game.save.flags['tut.big_brain_coach'],
+  );
+  function coachTap(e: Event) {
+    if (game.save.flags['tut.big_brain_coach'] && (e.target as Element | null)?.closest?.('[data-coach="brain"]')) {
+      game.unsetFlag('tut.big_brain_coach');
+    }
+  }
+
+  /** Held news that stopped being true (want fulfilled or over, need topped up, nap over…) gets no toast. */
+  function stillTrue(e: SimEvent): boolean {
+    if (!('pig' in e)) return true;
+    const p = game.save.pigs[e.pig];
+    switch (e.kind) {
+      case 'want': return currentWant(game.save, e.pig, now())?.key === e.want.key;
+      case 'need_low': return p.needs[e.need] < THRESH.mild;
+      case 'fell_asleep': return p.asleep;
+      case 'woke': return !p.asleep;
+      case 'sick': return p.sick;
+      case 'recovered': return !p.sick;
+      case 'mess': return p.mess > 0;
+      default: return true;
+    }
+  }
 
   function simToast(e: SimEvent) {
     const ev = e as SimEvent & { pig?: PigId; need?: string; want?: { label: string; icon: string }; money?: number };
@@ -190,7 +237,8 @@
         toast(`${name} fell asleep. Zzz…`, { icon: 'zzz' });
         break;
       case 'mess':
-        toast('Crumbs on the floor. Tap them to tidy up.', { icon: 'sparkle' });
+        // Only the hub has the crumbs to tap; anywhere else they're waiting in his room (the hub, "home").
+        toast(shownScreen === 'hub' ? 'Crumbs on the floor. Tap them to tidy up.' : 'Crumbs on the floor back home.', { icon: 'sparkle' });
         break;
       case 'need_low': {
         const msg: Record<string, string> = {
@@ -254,9 +302,27 @@
     }
   }
 
+  // Everything but pet-sim news: right away (off the boot / title / credits screens).
   $effect(() => {
     if (game.events.length === 0 || QUIET_SCREENS.has(game.screen)) return;
-    untrack(() => handle(game.events.splice(0, game.events.length)));
+    untrack(() => {
+      const ready = game.events.filter((e) => e.kind !== 'sim');
+      if (!ready.length) return;
+      game.events = game.events.filter((e) => e.kind === 'sim');
+      handle(ready);
+    });
+  });
+
+  // Pet-sim news: once the screen has been clear for NEWS_SETTLE_MS (a dialog, scene or screen change resets the wait),
+  // and only what is still true by then.
+  $effect(() => {
+    if (newsBlocked || QUIET_SCREENS.has(game.screen) || !game.events.some((e) => e.kind === 'sim')) return;
+    const t = setTimeout(() => {
+      const news = game.events.filter((e) => e.kind === 'sim');
+      game.events = game.events.filter((e) => e.kind !== 'sim');
+      handle(news.filter((e) => e.kind === 'sim' && stillTrue(e.event)));
+    }, NEWS_SETTLE_MS);
+    return () => clearTimeout(t);
   });
 
   // ── title badge "(n) Kempanion Online" while hidden and needs are low ──
@@ -411,7 +477,7 @@
 
 <svelte:window {onkeydown} onclickcapture={coachTap} />
 
-<div class="app-root">
+<div class="app-root" bind:this={appRoot}>
   {#key shownNav}
     <div class="screen">
       <Screen />
@@ -432,14 +498,20 @@
   {#if overlays.name}<NameEntry />{/if}
 
   {#if brainCoach}
+    <!-- phone landscape: a one-row caption that stays on the stage, clear of the rails' keys beside the chip and of
+         most of the pig under it -->
     <CoachMark
       target="brain"
       text={`Tap the brain to check on ${CHARACTERS[game.save.companion ?? 'piggy-1'].name}'s Big Brain.`}
+      within={viewport.mode === 's' ? '.gl.mode-s .r.stage' : undefined}
+      compact={viewport.mode === 's'}
       ondismiss={() => game.unsetFlag('tut.big_brain_coach')}
     />
   {/if}
 
-  <Toasts />
+  <!-- the campus map keeps its pins clear: toasts come up from the bottom there (T: over the place list under the
+       map; S, W: over the place list in the right-hand column) -->
+  <Toasts place={shownScreen !== 'map' ? 'top' : viewport.mode === 't' ? 'bottom' : 'bottom-end'} />
   <div class="visually-hidden" aria-live="polite">{ui.announcement}</div>
 
   {#if debug}

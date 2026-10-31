@@ -327,7 +327,9 @@ function lengthOf(r: Response | undefined | null): number {
 
 /**
  * Real download size (bytes) of a model + dtype: from the cached responses when present, else HEAD requests
- * to the Hub (Content-Length after the CDN redirect). Null when it can't be determined (offline).
+ * to the Hub (Content-Length after the CDN redirect). Null when it can't be determined, and the picker keeps the
+ * approximate size (MODELS[id].approxBytes). While the browser is offline (navigator.onLine === false) no HEAD
+ * request is sent: it could only fail, and each failure logs a console error.
  */
 export async function fetchModelSize(modelId: ModelId, dtype: Dtype, timeoutMs = 8000): Promise<number | null> {
   const repo = MODELS[modelId].repo;
@@ -343,6 +345,7 @@ export async function fetchModelSize(modelId: ModelId, dtype: Dtype, timeoutMs =
         total += cached;
         continue;
       }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
       const r = await fetch(url, { method: 'HEAD', cache: 'no-store', signal: ac.signal });
       const n = r.ok ? lengthOf(r) : 0;
       if (!n) return null;

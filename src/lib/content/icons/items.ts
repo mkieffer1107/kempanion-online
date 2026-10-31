@@ -486,6 +486,28 @@ export const ITEM_ICONS: Record<string, PixelIcon> = {
       '....kkkkkkkk....',
     ],
   },
+  // A generic slim energy-drink can: silver, one blue band, a plain bolt. No brand marks.
+  red_bull_sf: {
+    palette: { L: '#eef2f7', l: '#aab4c3', t: '#7a8494', H: '#ffffff', S: '#d3dae5', s: '#98a3b5', B: '#4a90e2', b: '#2f6fc0', h: '#8cc0ff', W: '#ffffff', k: '#2b1a2e' },
+    rows: [
+      '......kkkk......',
+      '.....kLtLlk.....',
+      '....kllllllk....',
+      '....kHSSSSsk....',
+      '....khBBBBbk....',
+      '....khBBWWbk....',
+      '....khBWWBbk....',
+      '....khWWBBbk....',
+      '....khWWWWbk....',
+      '....khBBWWbk....',
+      '....khBWWBbk....',
+      '....khBWBBbk....',
+      '....khBBBBbk....',
+      '....kHSSSSsk....',
+      '....kllllllk....',
+      '.....kkkkkk.....',
+    ],
+  },
   boba_tea: {
     palette: { T: '#e8c8a0', t: '#c8a078', P: '#3d2418', p: '#6a4a30', L: '#ffb7c5', S: '#ff6f91', s: '#c84a70', k: '#2b1a2e' },
     rows: [

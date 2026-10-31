@@ -339,8 +339,8 @@
   }
   .link {
     align-self: flex-start;
-    min-height: 32px;
-    padding: 2px 0;
+    min-height: 44px;
+    padding: 2px 8px 2px 0;
     background: none;
     border: 0;
     color: var(--sakura-2);

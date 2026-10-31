@@ -1,11 +1,13 @@
 import type { PixelIcon } from './types';
 import { UI_ICONS } from './ui';
 import { ITEM_ICONS } from './items';
+import { THOUGHT_ICONS } from './thoughts';
 
 export type { PixelIcon } from './types';
 
-/** Registry of every pixel icon. UI icons are owned by the UI module, item icons by the pet module. */
-export const ICONS: Record<string, PixelIcon> = { ...UI_ICONS, ...ITEM_ICONS };
+/** Registry of every pixel icon. UI icons are owned by the UI module, item icons by the pet module, thought-cloud icons by
+ *  the thought banks. THOUGHT_ICONS goes first so that a thought icon can never override an existing id. */
+export const ICONS: Record<string, PixelIcon> = { ...THOUGHT_ICONS, ...UI_ICONS, ...ITEM_ICONS };
 
 const cache = new Map<string, string>();
 

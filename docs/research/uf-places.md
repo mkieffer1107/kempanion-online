@@ -32,7 +32,7 @@ Compiled 2026-10-30 for Kempa AI's visual-novel backgrounds (16-bit / PC-98 pixe
 | 10 | Malachowsky Hall | Malachowsky Hall for Data Science & Information Technology | Piggy 1's home (CISE headquarters) | Yes (1) |
 | 11 | CSE Building | Computer Science & Engineering Building (bldg 0042) | Piggy 1's old haunt; "French Fries" sculpture | Yes (2, plus pano in #4) |
 | 12 | Physics | New Physics Building (NPB) | Piggy 3's home | Yes (2) |
-| 13 | College of Medicine | Communicore Building, J. Hillis Miller Health Science Center | Piggy 2's lectures and library | Yes (2) |
+| 13 | College of Medicine | Communicore Building, J. Hillis Miller Health Science Center | Piggy 2's conferences and library | Yes (2) |
 | 14 | Cadaver lab | Gross anatomy lab (location not published) | Piggy 2 | No (text only) |
 | 15 | Hospital | UF Health Shands Hospital | Piggy 2's hospital and neurosurgery | Yes (3) |
 | 16 | Brain institute | Evelyn F. & William L. McKnight Brain Institute | Piggy 2's neurosurgery department | Yes (1) |
@@ -217,7 +217,7 @@ Compiled 2026-10-30 for Kempa AI's visual-novel backgrounds (16-bit / PC-98 pixe
 - **Where:** Communicore Building, 1249 Center Drive, in the J. Hillis Miller Health Science Center complex (1600 SW Archer Rd). It dates from 1975.
 - **What's inside:** the three-floor, 56,000 sq ft Health Science Center Library (which lists the Communicore as its physical address), lecture halls and classrooms, ground-floor rooms numbered "CG-", and the CSSALT simulation lab. A food court and the "Sun Terrace" are next door. The George T. Harrell, M.D., Medical Education Building (opened 2015; learning studios, simulation centre, standardized-patient rooms) is also on the HSC campus.
 - **Look:** a 1970s red-brick slab with deep concrete floor bands, ribbon windows, covered walkways and raised lettering naming the J. Hillis Miller Health Center, framed by mossy live oaks and crape myrtles. The College of Medicine entrance courtyard has tiered brick steps and a round brick plaza facing a cylindrical tower striped in red brick and white, with a red-framed arched door.
-- **16:9 framing:** a symmetrical shot of the courtyard steps with the striped tower dead centre (works on upright phones), for a "first day of med school" scene. Alternatively, the Communicore facade with oak branches across the top.
+- **16:9 framing:** a symmetrical shot of the courtyard steps with the striped tower dead centre (works on upright phones), for a "first day at the Health Science Center" scene. Alternatively, the Communicore facade with oak branches across the top.
 - **Photos:**
   - [File:UF-Communicore.JPG](https://commons.wikimedia.org/wiki/File:UF-Communicore.JPG) · CC0 · Porsche997SBS · 2011 · 3264×2448
     - 1280px: https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/UF-Communicore.JPG/1280px-UF-Communicore.JPG

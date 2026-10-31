@@ -11,6 +11,7 @@ import { formatTagged, isExpression } from './emotion';
 import type { LlmMessage } from './llm-protocol';
 import { MODELS, type ModelId, type PromptBudget } from './models';
 import { splitSentences } from './postfilter';
+import { isSafetyMessage } from './quirks';
 
 export type { LlmMessage } from './llm-protocol';
 
@@ -107,7 +108,8 @@ function personaFor(pig: PigId, budget: number): string {
 const SOFT_QUIRK: Record<PigId, string> = {
   'piggy-1': 'Now and then use a volleyball call like "Free ball!" or "Let\'s goooo!", not in every line.',
   'piggy-2': 'Sometimes call a good thing "based". Save "Patriot." for rare moments.',
-  'piggy-3': 'Sometimes think out loud with "Okay, so..." or "Actually...", not in every line.',
+  // the rules list is never trimmed, so every model tier knows "never Twitter" (the persona's X sentence is trimmed at 190 tokens)
+  'piggy-3': 'Sometimes think out loud with "Okay, so..." or "Actually...", not in every line. It\'s X or X.com to you, never Twitter.',
 };
 
 /** Player names go inside the prompt: keep them short and harmless. */
@@ -280,12 +282,19 @@ export function recordExchange(memo: PromptMemo, playerText: string, userContent
   capMap(memo.replies);
 }
 
-/** History turns before the newest message (drops it if the caller already appended it). */
+/**
+ * History turns before the newest message (drops it if the caller already appended it). A safety exchange (a crisis,
+ * medical or explicit message and the pig's safety line after it) is never sent to the model, not even as history.
+ */
 function priorTurns(req: ChatRequest): ChatTurn[] {
   const h = (req.history ?? []).filter((t) => t && typeof t.text === 'string' && t.text.trim());
   const last = h.at(-1);
-  if (last && last.role === 'player' && last.text.trim() === req.playerText.trim()) return h.slice(0, -1);
-  return h;
+  const prior = last && last.role === 'player' && last.text.trim() === req.playerText.trim() ? h.slice(0, -1) : h;
+  let unsafe = false;
+  return prior.filter((t) => {
+    if (t.role === 'player') unsafe = isSafetyMessage(t.text);
+    return !unsafe;
+  });
 }
 
 /**

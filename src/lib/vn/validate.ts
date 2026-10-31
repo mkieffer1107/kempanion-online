@@ -1,7 +1,10 @@
 // Semantic validator for KScript files: everything `bun test tests/kscript.test.ts` checks beyond syntax.
 // Pure (no Vite APIs): reusable from tests, scripts or a debug panel.
 import bgManifest from '../../generated/backgrounds.json';
-import { ALT_OUTFIT, EXPRESSIONS, PIG_IDS, type JingleId, type PigId, type SfxId, type SongId } from '../types';
+import spriteData from '../../generated/sprites.json';
+import {
+  ALT_OUTFIT, PIG_IDS, PORTRAIT_FACES, POSE_FALLBACK, type JingleId, type PigId, type PortraitPose, type SfxId, type SongId,
+} from '../types';
 import { LOCATION_IDS } from '../content/locations';
 import { condTerms, type Cond } from './conditions';
 import { scanTokens } from './interpolate';
@@ -40,7 +43,7 @@ export const ITEM_IDS = [
   // food / drink
   'dining_tray', 'water_bottle', 'tender_sub', 'pizza_slice', 'cup_ramen', 'onigiri', 'melonpan', 'apple_pie', 'key_lime_pie',
   'boiled_peanuts', 'acai_bowl', 'protein_shake', 'watermelon', 'oranges', 'pastelito', 'blueberries', 'sakura_dango', 'truffle_fries',
-  'sideline_sip', 'florida_oj', 'sweet_tea', 'cafecito', 'cold_brew', 'boba_tea', 'strawberry_milk', 'vegan_ice_cream',
+  'sideline_sip', 'florida_oj', 'sweet_tea', 'cafecito', 'cold_brew', 'red_bull_sf', 'boba_tea', 'strawberry_milk', 'vegan_ice_cream',
   // care
   'lavender_soap', 'mint_toothpaste', 'honey_lemon_tea', 'cold_medicine', 'ginger_ale',
   // gifts
@@ -53,13 +56,17 @@ export const ITEM_IDS = [
 /** Likely guesses → canonical ids (ARCHITECTURE §4's example uses pub_sub). */
 const ITEM_HINTS: Record<string, string> = {
   pub_sub: 'tender_sub', sub: 'tender_sub', pizza: 'pizza_slice', ramen: 'cup_ramen', dango: 'sakura_dango', boba: 'boba_tea',
-  coffee: 'cold_brew', gatorade: 'sideline_sip', sports_drink: 'sideline_sip', oj: 'florida_oj', water: 'water_bottle',
+  coffee: 'cold_brew', red_bull: 'red_bull_sf', redbull: 'red_bull_sf', energy_drink: 'red_bull_sf',
+  gatorade: 'sideline_sip', sports_drink: 'sideline_sip', oj: 'florida_oj', water: 'water_bottle',
   fries: 'truffle_fries', manga: 'pirate_manga', filament: 'sakura_filament', volleyball: 'signed_volleyball', charm: 'sakura_charm',
   badge: 'name_badge', pager: 'kempapager', soap: 'lavender_soap', toothpaste: 'mint_toothpaste', tea: 'honey_lemon_tea',
   medicine: 'cold_medicine', milk: 'strawberry_milk', pie: 'apple_pie',
 };
 
-export const MINIGAME_IDS = ['volley', 'perfusion', 'debug', 'petals'] as const;
+export const MINIGAME_IDS = ['volley', 'perfusion', 'debug', 'petals', 'surgery', 'xfeed'] as const;
+
+/** Portrait cells in each pig's everyday set (src/generated/sprites.json): the game-made poses are Piggy 3's only. */
+const PORTRAIT_CELLS = (spriteData as unknown as { sets: Record<string, { portraits: Record<string, unknown> }> }).sets;
 
 /** Backgrounds being painted (ARCHITECTURE §11): allowed, but reported as warnings until they exist. */
 export const PLANNED_BACKGROUNDS = [
@@ -172,7 +179,7 @@ export function validateKScript(files: readonly { file: string; src: string }[],
         case 'say': {
           if (n.expression) {
             if (n.speaker === 'narrator' || n.speaker === 'player') warn(n.line, `${n.speaker} has no portrait, so the expression "${n.expression}" does nothing`);
-            else checkExpression(n.line, n.expression);
+            else checkExpression(n.line, n.expression, n.speaker);
           }
           checkText(n.line, n.text);
           if (n.text.length > 320) warn(n.line, `very long line (${n.text.length} chars); consider splitting it`);
@@ -198,8 +205,16 @@ export function validateKScript(files: readonly { file: string; src: string }[],
       }
     });
 
-    function checkExpression(line: number, e: string) {
-      if (!(EXPRESSIONS as readonly string[]).includes(e)) err(line, `unknown expression "${e}"${didYouMean(e, EXPRESSIONS)}`);
+    /** The pack's expressions, plus the portrait poses ('phone', 'phone_mumble'): a pig without the pose shows its stand-in. */
+    function checkExpression(line: number, e: string, pig: PigId) {
+      if (!(PORTRAIT_FACES as readonly string[]).includes(e)) {
+        err(line, `unknown expression "${e}"${didYouMean(e, PORTRAIT_FACES)}`);
+        return;
+      }
+      const standIn = POSE_FALLBACK[e as PortraitPose];
+      if (standIn && !PORTRAIT_CELLS[`${pig}/everyday`]?.portraits[e]) {
+        warn(line, `${pig} has no "${e}" portrait (a pose drawn for Piggy 3), so it shows "${standIn}"`);
+      }
     }
 
     function checkOutfit(line: number, pig: PigId, outfit: string) {
@@ -266,10 +281,10 @@ export function validateKScript(files: readonly { file: string; src: string }[],
         case 'sfx': if (!(SFX_IDS as readonly string[]).includes(c.id)) err(line, `unknown sfx "${c.id}"${didYouMean(c.id, SFX_IDS)}`); break;
         case 'jingle': if (!(JINGLE_IDS as readonly string[]).includes(c.id)) err(line, `unknown jingle "${c.id}"${didYouMean(c.id, JINGLE_IDS)}`); break;
         case 'show':
-          if (c.expression) checkExpression(line, c.expression);
+          if (c.expression) checkExpression(line, c.expression, c.pig);
           if (c.outfit) checkOutfit(line, c.pig, c.outfit);
           break;
-        case 'expr': checkExpression(line, c.expression); break;
+        case 'expr': checkExpression(line, c.expression, c.pig); break;
         case 'outfit': checkOutfit(line, c.pig, c.outfit); break;
         case 'give': case 'take': checkItem(line, c.item); break;
         case 'minigame':

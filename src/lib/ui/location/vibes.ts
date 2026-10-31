@@ -1,7 +1,10 @@
-// "Nobody's here" lines for each place, by time of day (narrator voice, PG, UF-flavored without marks).
+// "Nobody's here" lines for each place, by time of day (narrator voice, PG, UF-flavored without marks), plus when
+// the Swamp is full on game days (gameOn, which "Cheer in the stands" uses too).
 import type { LocationId, TimeOfDay } from '../../types';
+import { isGameDay } from '../../pet';
 
-type Bank = Partial<Record<TimeOfDay | 'any', string[]>>;
+/** `game` = during game hours (see gameOn); it wins over the time of day. */
+type Bank = Partial<Record<TimeOfDay | 'any' | 'game', string[]>>;
 
 const VIBES: Record<LocationId, Bank> = {
   dorm: {
@@ -26,7 +29,7 @@ const VIBES: Record<LocationId, Bank> = {
     night: ['The atrium hums with servers and late-night study groups.'],
   },
   physics: {
-    any: ['A 3D printer whirs somewhere down the hall. A sign on a door says “JOB RUNNING. DO NOT UNPLUG. PLEASE.”'],
+    any: ['Down the hall, a monitor shows a job queue: PENDING, PENDING, RUNNING. A sign taped under it says “DO NOT UNPLUG. PLEASE.”'],
     night: ['One lab window is still lit. Of course it is.'],
   },
   communicore: {
@@ -43,6 +46,7 @@ const VIBES: Record<LocationId, Bank> = {
   stadium: {
     any: ['The Swamp sits empty and enormous. You can almost hear eighty-eight thousand people chomping.'],
     night: ['Stadium lights off, stars on. The quietest the Swamp ever gets.'],
+    game: ['Game day. The roar from inside the Swamp rolls out over the concourse: eighty-eight thousand people chomping at once.'],
   },
   lake_alice: {
     any: ['Cypress knees, lily pads, and a very relaxed alligator who wants nothing to do with you.'],
@@ -63,8 +67,14 @@ const VIBES: Record<LocationId, Bank> = {
   },
 };
 
-export function vibeLine(loc: LocationId, tod: TimeOfDay, seed: number): string {
+/** Game hours on a game day (tailgates to the final whistle, about 11:00–20:00): the only time the Swamp is full. */
+export function gameOn(d: Date): boolean {
+  const h = d.getHours();
+  return h >= 11 && h < 20 && isGameDay(d.getTime());
+}
+
+export function vibeLine(loc: LocationId, tod: TimeOfDay, seed: number, game = false): string {
   const bank = VIBES[loc];
-  const list = bank[tod] ?? bank.any ?? ['A quiet spot on campus.'];
+  const list = (game ? bank.game : undefined) ?? bank[tod] ?? bank.any ?? ['A quiet spot on campus.'];
   return list[Math.abs(seed) % list.length];
 }

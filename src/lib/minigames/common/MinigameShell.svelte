@@ -62,7 +62,8 @@
   onMount(() => {
     assist = game.save.flags['minigame.assist'] === true;
     audio.playSong(meta.song);
-    startBtn?.focus();
+    // Don't let the focus scroll the how-to card: on short landscape screens it opened at its end, title and first rule hidden.
+    startBtn?.focus({ preventScroll: true });
     const onVis = () => {
       if (document.visibilityState === 'hidden' && phase === 'play') pause();
     };
@@ -178,9 +179,10 @@
       <button class="px-btn ghost small pause" onclick={quit} aria-label="Leave mini-game">✕</button>
     {/if}
   </header>
-  {#if timePct !== null}
-    <div class="timebar" role="progressbar" aria-label="Time left" aria-valuemin="0" aria-valuemax={timeTotal} aria-valuenow={Math.ceil(timeLeft ?? 0)}>
-      <div class="fill" class:low={timePct < 0.2} style:width={`${timePct * 100}%`}></div>
+  {#if timeTotal > 0}
+    <!-- a timed game keeps the bar's row while the clock is off (Bug Hunt between rounds), so the stage holds still -->
+    <div class="timebar" class:off={timePct === null} role="progressbar" aria-label="Time left" aria-valuemin="0" aria-valuemax={timeTotal} aria-valuenow={Math.ceil(timeLeft ?? 0)}>
+      <div class="fill" class:low={timePct !== null && timePct < 0.2} style:width={`${(timePct ?? 0) * 100}%`}></div>
     </div>
   {/if}
 
@@ -274,6 +276,9 @@
     inset: 0;
     display: grid;
     grid-template-rows: auto auto 1fr auto;
+    /* one column, never wider than the screen: an auto column grew to the header's full width ("Swinus Rhythms" +
+       HUD at 320 px) and pushed the pause button off the right edge instead of letting the title ellipsize */
+    grid-template-columns: minmax(0, 1fr);
     background: radial-gradient(ellipse at 50% 20%, var(--night-2), var(--night) 70%);
     color: var(--paper);
     padding: calc(var(--safe-top) + 4px) calc(var(--safe-right) + 6px) calc(var(--safe-bottom) + 4px) calc(var(--safe-left) + 6px);
@@ -281,6 +286,13 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  /* Every child has its own row. The time bar and the controls come and go, and with auto-placement a missing
+     bar let the stage slide up into the bar's auto row: its only child is absolute, so that row collapsed to
+     0 px and Bug Hunt's whole round (answer, Next, Skip break) vanished. */
+  .top { grid-row: 1; }
+  .timebar { grid-row: 2; }
+  .stage { grid-row: 3; }
+  .controls { grid-row: 4; }
   .top {
     display: flex;
     align-items: center;
@@ -298,7 +310,8 @@
   .ttl { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; flex: 0 1 auto; overflow: hidden; }
   .name { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 0.7rem; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hud { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px; min-width: 0; font-family: var(--font-display); }
+  /* the HUD keeps its full width (numbers stay readable); the title is the part that gives way */
+  .hud { flex: 1 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-family: var(--font-display); }
   .pause { min-width: 44px; min-height: 44px; }
   .timebar {
     height: calc(var(--px) * 3);
@@ -307,6 +320,7 @@
     border: var(--px) solid var(--ink);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
   }
+  .timebar.off { visibility: hidden; }
   .timebar .fill { height: 100%; background: var(--sakura-3); transition: width 200ms steps(4); }
   .timebar .fill.low { background: var(--warn); }
   .stage {
@@ -414,6 +428,8 @@
     .face { width: 28px; height: 28px; }
     .sub { display: none; }
     .card { padding: 10px 12px; gap: 6px; }
+    /* phone landscape: wider rules wrap less, so the whole how-to card (title to Start) fits on most phones */
+    .howto { width: min(700px, 100%); }
     .desc { display: none; }
   }
 </style>

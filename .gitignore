@@ -8,6 +8,8 @@ dist/
 synth/target/
 # raw image generations and reference photos (large; the baked game assets live in public/)
 art-src/raw/
+# the original piggy sprite pack (≈280 MB of frames/strips/portraits; baked assets live in public/assets/sprites)
+art-src/sprite-pack/
 # local editor/agent tooling
 .claude/
 .vite/

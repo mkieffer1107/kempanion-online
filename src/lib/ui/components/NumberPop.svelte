@@ -10,8 +10,9 @@
     position: absolute;
     z-index: 4;
     transform: translate(-50%, 0);
-    font-family: var(--font-display);
-    font-weight: 700;
+    /* DotGothic16, not the display font: in bold Pixelify Sans "+5" read as "+S" and 3 as 8 */
+    font-family: var(--font-body);
+    font-weight: 400;
     font-size: max(14px, calc(9 * var(--u, 2px)));
     white-space: nowrap;
     pointer-events: none;

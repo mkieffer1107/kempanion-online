@@ -163,7 +163,8 @@ export const COMMON_WORDS = new Set(
   vase patriots chomps model modes mode modal brain brains train trains grain plain gain rain drain drains rains
   ever even eve fever never clever fewer lever shoot sheet shot shirt short sport sports spot spots post posts
   spine spin spins swine wine wins print prints printer sprint sprints point points pint joint codex index
-  hello hell help held hold helm hey they hay hi his him hit hip hips ship shop chip chips chop chomp`
+  hello hell help held hold helm hey they hay hi his him hit hip hips ship shop chip chips chop chomp
+  ruin ruins ruined ruining`
     .split(/\s+/)
     .filter(Boolean),
 );

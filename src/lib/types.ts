@@ -17,19 +17,40 @@ export const ALT_OUTFIT: Record<PigId, OutfitId> = {
   'piggy-3': 'hoodie',
 };
 
-/** All 20 VN portrait expressions (everyday outfits have all of them). */
+/** All 20 VN portrait expressions (everyday outfits have all of them), plus the portrait poses made for the game. */
 export type Expression =
   | 'neutral' | 'happy' | 'laughing' | 'sad' | 'angry' | 'surprised' | 'scared' | 'confused'
   | 'shy' | 'loving' | 'proud' | 'sleepy' | 'sick' | 'crying' | 'excited' | 'thinking'
-  | 'shy_blush' | 'flustered_blush' | 'affectionate_blush' | 'bashful_smile';
+  | 'shy_blush' | 'flustered_blush' | 'affectionate_blush' | 'bashful_smile'
+  | PortraitPose;
 
+/**
+ * The faces a brain may pick (the LLM's tag list, the heuristic lines, the emotion classifier, the post-filter):
+ * the pack's 20 expressions. The portrait poses are left out on purpose.
+ */
 export const EXPRESSIONS: readonly Expression[] = [
   'neutral', 'happy', 'laughing', 'sad', 'angry', 'surprised', 'scared', 'confused',
   'shy', 'loving', 'proud', 'sleepy', 'sick', 'crying', 'excited', 'thinking',
   'shy_blush', 'flustered_blush', 'affectionate_blush', 'bashful_smile',
 ] as const;
 
-/** Alternate outfits only ship 12 portraits; the renderer maps missing ones through this table. */
+/**
+ * Portraits made for the game beyond the pack's expressions (art-src/portraits-extra): Piggy 3 holding his phone out,
+ * and the same pose mumbling at it (his X mumble in Talk). They are Expressions, so a scene can say
+ * `piggy-3 phone: …`, but never in EXPRESSIONS: the brains and the LLM never pick a pose. A set without the cell (Piggy
+ * 1 and Piggy 2) shows POSE_FALLBACK.
+ */
+export type PortraitPose = 'phone' | 'phone_mumble';
+export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble'] as const;
+export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'confused' };
+
+/** Every face a portrait can show: what scenes (KScript) and the renderer accept. */
+export const PORTRAIT_FACES: readonly Expression[] = [...EXPRESSIONS, ...PORTRAIT_POSES];
+
+/**
+ * Alternate outfits only ship 12 portraits; the renderer maps missing ones through this table. A set without a pose
+ * cell maps it the same way (POSE_FALLBACK; both stand-ins exist in every set).
+ */
 export const ALT_EXPRESSION_FALLBACK: Partial<Record<Expression, Expression>> = {
   shy: 'shy_blush',
   loving: 'affectionate_blush',
@@ -39,6 +60,7 @@ export const ALT_EXPRESSION_FALLBACK: Partial<Record<Expression, Expression>> = 
   crying: 'sad',
   excited: 'laughing',
   thinking: 'confused',
+  ...POSE_FALLBACK,
 };
 
 /** Everyday full-body animation clips (42), 6 frames each. */
@@ -54,7 +76,9 @@ export type BaseAnim =
   | 'hungry' | 'thirsty' | 'dirty' | 'cry'
   | 'laugh' | 'proud' | 'thinking' | 'pet_reaction'
   /** Extra clip (art-src/sprites-extra): dangling + wiggling while the player holds the pig. Grab point = top-center. */
-  | 'held';
+  | 'held'
+  /** Extra clip (art-src/sprites-extra, Piggy 3 only): holding his phone out to show you his X feed. */
+  | 'phone';
 
 /** Alternate-outfit specialty clips. */
 export type SpecialtyAnim =
@@ -183,6 +207,23 @@ export interface ChatRequest {
   context: ChatContext;
 }
 
+/** Piggy 3's X mumble (ai/heuristic/mumble.ts): an opener, a quiet run-on stream with bubble words, then the catch. */
+export interface ChatMumble {
+  kind: 'on_x' | 'timeline' | 'doomscroll';
+  /** Normal voice; pose `faces.opener` (the phone comes out). */
+  opener: string;
+  /** The stream's run-on fragments, as shown (drift connectives included). */
+  fragments: string[];
+  /** fragments.join(' '): shown small, dim and fast; pose `faces.stream`. */
+  stream: string;
+  /** One bubble word per fragment; `at` = the index in `stream` where its fragment starts. */
+  bubbles: { word: string; at: number }[];
+  /** Normal voice again, a little embarrassed; face `faces.catch`. */
+  catch: string;
+  /** Always { opener: 'phone', stream: 'phone_mumble', catch: 'flustered_blush' }; a set without a pose shows POSE_FALLBACK. */
+  faces: { opener: PortraitPose; stream: PortraitPose; catch: Expression };
+}
+
 export interface ChatReply {
   text: string;
   expression: Expression;
@@ -190,6 +231,12 @@ export interface ChatReply {
   /** Small relationship/need effects decided by the dialogue layer. */
   effects?: { bond?: number; fun?: number };
   source: 'llm' | 'heuristic' | 'quirk';
+  /**
+   * A scripted delivery the Talk screen plays instead of one plain line ('mumble': Piggy 3's X mumble, in `mumble`).
+   * Optional: a UI that doesn't know it shows `text`, which always holds the whole thing (opener, stream, catch).
+   */
+  effect?: 'mumble';
+  mumble?: ChatMumble;
 }
 
 // ───────────────────────── Audio ─────────────────────────

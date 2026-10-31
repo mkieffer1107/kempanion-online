@@ -171,6 +171,36 @@ export const WANT = {
   fun: 5,
 } as const;
 
+// ── idle thoughts (thoughts final.md §4.5; pet/thoughts.ts) ──
+
+/**
+ * The thought clouds' cadence and durations. Tuning knobs: `hubShare.fine` (0.7 thoughts : 0.3 spoken lines), `gapS`,
+ * `placeMinS`, `dailyMax`, and `share` on Piggy 3's `x` topic in thought-bank/piggy-3.ts (0.6 gives X about half of his thoughts).
+ */
+export const THOUGHT = {
+  /** First beat after the screen settles (s): hub after the greet line; place after the greet bubble ends. */
+  firstS: { hub: [12, 20], place: [8, 14] },
+  /** Start-to-start gap between ambient beats (s), by beats already run this visit (< upTo): today's chatter tempo first. */
+  gapS: [{ upTo: 8, s: [20, 40] }, { upTo: 20, s: [40, 80] }, { upTo: Infinity, s: [120, 240] }],
+  /** No pointer/key input for this long (game.lastInputAt): use the AFK gap instead (s). */
+  afkMs: 3 * MIN, afkGapS: [180, 360],
+  /** 'lots': gaps × this, and hubShare.fine + 0.15. */
+  lotsK: 0.7,
+  /** Place screens: one pig's gap ÷ pigs on screen, but never under this (s). */
+  placeMinS: 18,
+  /** On screen: 6 s + 0.1 s per label char, clamped 6–8 s; the timer pauses while hovered or focused. */
+  showMs: [6000, 8000], perCharMs: 100,
+  /** The next beat starts no sooner than this after a thought ends. */
+  restMs: 4000,
+  /** The tapped line's bubble: 1800 + 55 ms × length, clamped (120 chars ≈ 8.4 s, ≈ 14 chars/s). */
+  tapMs: [2500, 8500],
+  dailyMax: 40, labelMax: 20, lineMax: 120,
+  /** Hub beats that become thoughts: he's fine / a need under LOW / sick. The first beat of a visit is always a thought. */
+  hubShare: { fine: 0.7, low: 0.5, sick: 0.5 },
+  /** He strikes the 'thinking' pose on every Nth thought that has no pose of its own (everyday outfit only). */
+  poseEvery: 3,
+} as const;
+
 // ── economy & dailies (§8) ──
 
 export const START_MONEY = 100;

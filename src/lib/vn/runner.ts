@@ -1,5 +1,5 @@
 // Plays KScript scenes: wires the pure interpreter to the stage, audio, dialogue box, game store and UI hooks.
-import { EXPRESSIONS, PIG_IDS, type Expression, type JingleId, type LocationId, type OutfitId, type PigId, type SfxId, type SongId } from '../types';
+import { PIG_IDS, PORTRAIT_FACES, type Expression, type JingleId, type LocationId, type OutfitId, type PigId, type SfxId, type SongId } from '../types';
 import type { MinigameId } from '../minigames';
 import { stage, type PortraitPos } from '../engine/stage';
 import { audio } from '../audio';
@@ -12,6 +12,9 @@ import type { CondState } from './conditions';
 import type { Scene } from './kscript';
 import { runProgram, type PresentCommand, type RunResult, type VnEnv } from './interpreter';
 import { dialogue } from './dialogue.svelte';
+import { pagerInset } from './pager.svelte';
+import { brainInset } from './brain.svelte';
+import { cgView } from './cg-view.svelte';
 import { vnHooks } from './hooks';
 import { addStoryBond, applyMinigame, factOf, setFact, storyChapter } from './effects';
 import { getCompiled } from './registry';
@@ -70,7 +73,7 @@ let stopped = false;
 let running = 0;
 
 const expr = (e: string | undefined): Expression | undefined =>
-  e === undefined ? undefined : (EXPRESSIONS as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
+  e === undefined ? undefined : (PORTRAIT_FACES as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
 
 /** The location whose day background is `id` (so the stage picks its day/night variant), if any. */
 function locationOfBg(id: string): LocationId | undefined {
@@ -174,15 +177,20 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
         case 'sfx': audio.sfx(cmd.id as SfxId); break;
         case 'jingle': audio.jingle(cmd.id as JingleId); break;
         case 'wait': if (!skipping()) await dialogue.pause(cmd.ms); break;
-        case 'shake': stage.shake(cmd.intensity, cmd.ms); break;
-        case 'flash': stage.flash(cmd.color, cmd.ms); break;
+        // CgOverlay covers the canvas's shake and flash on narrow stages: it replays them on the CG
+        case 'shake': stage.shake(cmd.intensity, cmd.ms); cgView.shake(cmd.intensity, cmd.ms); break;
+        case 'flash': stage.flash(cmd.color, cmd.ms); cgView.flash(cmd.color, cmd.ms); break;
         case 'fade': await stage.fade(cmd.to, skipping() ? 0 : cmd.ms); break;
         case 'burst': stage.burst(cmd.burst); break;
         case 'petals': stage.setPetals(cmd.level); rs.overrides.petals = true; break;
         case 'weather': stage.setWeather(cmd.weather); rs.overrides.weather = true; break;
         case 'time': stage.setTimeOfDay(cmd.time); rs.overrides.time = cmd.time !== 'auto'; break;
+        case 'pager': pagerInset.keys = cmd.keys; break;
+        case 'brain': brainInset.on = cmd.on; break;
         case 'cg':
           dialogue.conceal();
+          // narrow stages crop the canvas CG: CgOverlay shows the whole picture, fading with the canvas
+          cgView.id = cmd.id;
           await stage.showCG(cmd.id);
           rs.cgOn = !!cmd.id;
           if (cmd.id) rs.cgs.add(cmd.id);
@@ -190,17 +198,21 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
       }
     },
 
+    // The companion pick, the name window and a mini-game are player decisions: like a choice, they end SKIP.
     async pickCompanion() {
       dialogue.conceal();
+      dialogue.stopSkip();
       return vnHooks.pickCompanion ? vnHooks.pickCompanion() : 'piggy-1';
     },
     async enterName() {
       dialogue.conceal();
+      dialogue.stopSkip();
       return vnHooks.enterName ? vnHooks.enterName() : 'Gator';
     },
     async runMinigame(id, pig, replay) {
       if (!vnHooks.runMinigame) return null;
       dialogue.conceal();
+      dialogue.stopSkip();
       return vnHooks.runMinigame(id as MinigameId, { pig, replay });
     },
     async chat(pig, prompt, maxTurns) {
@@ -290,11 +302,14 @@ async function play(id: string, opts: { replay?: boolean }): Promise<void> {
     console.error(`[vn] scene "${id}" failed:`, e);
   } finally {
     stage.setTalking(null);
+    cgView.id = null; // before the await: the overlay fades out with the canvas
     if (rs.cgOn) await stage.showCG(null);
     if (rs.overrides.time) stage.setTimeOfDay('auto');
     if (rs.overrides.petals) stage.setPetals('normal');
     if (rs.overrides.weather) stage.setWeather('clear');
     stage.clearPortraits();
+    pagerInset.keys = null;
+    brainInset.on = false;
     dialogue.reset();
     game.persist();
   }

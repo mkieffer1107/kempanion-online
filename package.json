@@ -15,7 +15,8 @@
     "sync-sprites": "bun scripts/sync-sprites.ts",
     "bake-backgrounds": "bun scripts/bake-backgrounds.ts",
     "gen": "bun scripts/gen-characters.ts",
-    "make-cursors": "bun scripts/make-cursors.ts"
+    "make-cursors": "bun scripts/make-cursors.ts",
+    "og": "bun scripts/build-og.ts"
   },
   "dependencies": {
     "@fontsource/dotgothic16": "^5.3.1",
