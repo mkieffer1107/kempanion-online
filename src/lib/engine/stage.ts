@@ -164,8 +164,8 @@ export interface StageApi {
   setSpeaker(pig: PigId | null): void;
   /** The talking portrait bobs; others dim slightly. null = nobody. */
   setTalking(pig: PigId | null): void;
-  /** Preload a pig's portraits and idle/walk pages. */
-  preload(pig: PigId, outfit?: OutfitId): Promise<void>;
+  /** Preload a pig's portraits and idle/walk pages, or just the parts this screen uses. */
+  preload(pig: PigId, outfit?: OutfitId, parts?: { portraits?: boolean; actor?: boolean }): Promise<void>;
 
   // Hub actors (full-body 128x128 animation frames)
   /** x in logical px (default center); y = ground line for this actor (default stage ground, 252). */

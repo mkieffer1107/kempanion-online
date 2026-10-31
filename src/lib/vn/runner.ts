@@ -61,6 +61,7 @@ interface Portrait { expression: Expression; pos: PortraitPos; outfit: OutfitId 
 
 /** Presentation state shared by a scene and the scenes it [call]s. */
 interface RunState {
+  cancelled: Promise<void>;
   portraits: Map<PigId, Portrait>;
   outfits: Map<PigId, OutfitId>;
   expressions: Map<PigId, Expression>;
@@ -73,6 +74,7 @@ interface RunState {
 let queue: Promise<void> = Promise.resolve();
 let stopped = false;
 let running = 0;
+let cancelWait: (() => void) | null = null;
 
 const expr = (e: string | undefined): Expression | undefined =>
   e === undefined ? undefined : (PORTRAIT_FACES as readonly string[]).includes(e) ? (e as Expression) : 'neutral';
@@ -85,6 +87,12 @@ function locationOfBg(id: string): LocationId | undefined {
 function freePosition(rs: RunState): PortraitPos {
   const used = new Set([...rs.portraits.values()].map((p) => p.pos));
   return (['center', 'right', 'left', 'far-right', 'far-left'] as const).find((p) => !used.has(p)) ?? 'center';
+}
+
+/** Don't start a portrait's entrance or its next line while its outfit atlas is still downloading. */
+async function showPortrait(pig: PigId, p: Portrait, rs: RunState): Promise<void> {
+  await Promise.race([stage.preload(pig, p.outfit, { actor: false }), rs.cancelled]);
+  if (!stopped) stage.showPortrait(pig, p.expression, p.pos, p.outfit);
 }
 
 function condState(): CondState {
@@ -155,7 +163,7 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
           };
           rs.portraits.set(cmd.pig, p);
           rs.expressions.set(cmd.pig, p.expression);
-          stage.showPortrait(cmd.pig, p.expression, p.pos, p.outfit);
+          await showPortrait(cmd.pig, p, rs);
           break;
         }
         case 'hide':
@@ -180,7 +188,7 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
           const p = rs.portraits.get(cmd.pig);
           if (p) {
             p.outfit = cmd.outfit;
-            stage.showPortrait(cmd.pig, p.expression, p.pos, p.outfit);
+            await showPortrait(cmd.pig, p, rs);
           }
           break;
         }
@@ -279,6 +287,13 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
 async function playScene(scene: Scene, rs: RunState, replay: boolean): Promise<RunResult> {
   running++;
   try {
+    // Start outfit downloads during the lead-in, including alternate outfits such as the wellness-check scrubs.
+    // The image cache shares these requests with showPortrait(); no actor animation pages are needed for a VN.
+    for (const op of scene.ops) {
+      if (op.op === 'cmd' && (op.cmd.kind === 'show' || op.cmd.kind === 'outfit')) {
+        void stage.preload(op.cmd.pig, op.cmd.outfit ?? 'everyday', { actor: false });
+      }
+    }
     const sceneRead = replay || game.seen(scene.id);
     const result = await runProgram(scene, makeEnv(scene, rs, sceneRead), { replay });
     if (result === 'end' && !stopped && !replay) {
@@ -301,6 +316,7 @@ async function play(id: string, opts: { replay?: boolean }): Promise<void> {
   const replay = opts.replay ?? game.params.replay === true;
   stopped = false;
   const rs: RunState = {
+    cancelled: new Promise<void>((resolve) => { cancelWait = resolve; }),
     portraits: new Map(), outfits: new Map(), expressions: new Map(), names: new Map(), cgs: new Set(), cgOn: false,
     overrides: { time: false, petals: false, weather: false },
   };
@@ -314,6 +330,7 @@ async function play(id: string, opts: { replay?: boolean }): Promise<void> {
   } catch (e) {
     console.error(`[vn] scene "${id}" failed:`, e);
   } finally {
+    cancelWait = null;
     stage.setTalking(null);
     cgView.id = null; // before the await: the overlay fades out with the canvas
     if (rs.cgOn) await stage.showCG(null);
@@ -342,6 +359,7 @@ export function runScene(id: string, opts: { replay?: boolean } = {}): Promise<v
 export function stopScene(): void {
   if (!running) return;
   stopped = true;
+  cancelWait?.();
   dialogue.cancel();
 }
 

@@ -805,8 +805,8 @@ export class StageWorld implements StageApi {
     if (pig) this.lastSpeaker = pig;
   }
 
-  preload(pig: PigId, outfit: OutfitId = 'everyday'): Promise<void> {
-    return preloadPig(pig, outfit);
+  preload(pig: PigId, outfit: OutfitId = 'everyday', parts: { portraits?: boolean; actor?: boolean } = {}): Promise<void> {
+    return preloadPig(pig, outfit, parts);
   }
 
   private portraitX(p: PortraitState): number {

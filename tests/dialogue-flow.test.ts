@@ -31,8 +31,21 @@ mock.module('../src/lib/audio', () => ({ audio: new Proxy(silent, {
     : Reflect.get(target, key),
 }), VOICE_STYLE: {} }));
 const stageSpeakers: (string | null)[] = [];
+const portraitLoads: { pig: string; outfit: string; parts?: { actor?: boolean; portraits?: boolean } }[] = [];
+const portraitShows: { pig: string; expression: string; pos: string; outfit: string }[] = [];
+let portraitLoad: (pig: string, outfit: string) => Promise<void> = async () => {};
 mock.module('../src/lib/engine/stage', () => ({ stage: new Proxy(silent, {
-  get: (target, key) => key === 'setSpeaker' ? (pig: string | null) => stageSpeakers.push(pig) : Reflect.get(target, key),
+  get: (target, key) => {
+    if (key === 'setSpeaker') return (pig: string | null) => stageSpeakers.push(pig);
+    if (key === 'preload') return (pig: string, outfit: string, parts?: { actor?: boolean; portraits?: boolean }) => {
+      portraitLoads.push({ pig, outfit, parts });
+      return portraitLoad(pig, outfit);
+    };
+    if (key === 'showPortrait') return (pig: string, expression: string, pos: string, outfit: string) => {
+      portraitShows.push({ pig, expression, pos, outfit });
+    };
+    return Reflect.get(target, key);
+  },
 }) }));
 mock.module('../src/lib/vn/registry', () => ({ getCompiled: (id: string) => SCENES.get(id) }));
 mock.module('../src/lib/vn/chat', () => ({ runFreeChat: async () => {} }));
@@ -79,6 +92,8 @@ for (const [id, src] of Object.entries({
   t_pick: 'narrator: Choose your Kempanion!\n[companion pick]\nnarrator: Team of two!\nnarrator: Sakura House.',
   t_game: 'narrator: Find the bug with me?\n[minigame debug]\nnarrator: Found it!\nnarrator: Next.',
   t_last: 'narrator: The last line.',
+  t_portrait_load: 'narrator: Behind the wellness table.\n[show piggy-2@scrubs neutral center]\npiggy-2 neutral: Next.',
+  t_outfit_load: '[show piggy-2 neutral left]\nnarrator: Before the change.\n[outfit piggy-2 scrubs]\npiggy-2 neutral: In scrubs.',
 })) SCENES.set(id, parseKScript(`=== ${id}\n---\n${src}\n`, 'flow.ks')[0]);
 
 const SAVE = JSON.parse(JSON.stringify(game.save));
@@ -86,6 +101,9 @@ const SAVE = JSON.parse(JSON.stringify(game.save));
 beforeEach(async () => {
   stopScene(); // a failed test must not leave its scene running into the next one
   await lastRun;
+  portraitLoad = async () => {};
+  portraitLoads.length = 0;
+  portraitShows.length = 0;
   dialogue.reset();
   dialogue.auto = false;
   game.save.settings.textSpeed = 0; // lines show at once
@@ -101,6 +119,65 @@ afterAll(async () => {
   delete vnHooks.pickCompanion;
   delete vnHooks.runMinigame;
   game.save = SAVE;
+});
+
+describe('cold portrait downloads', () => {
+  test('warms alternate outfits during narration and waits before the entrance and first line', async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    portraitLoad = async () => pending;
+    const scene = play('t_portrait_load');
+    expect(await waitingOn('Behind the wellness table.')).toBe(true);
+    expect(portraitLoads).toContainEqual({ pig: 'piggy-2', outfit: 'scrubs', parts: { actor: false } });
+    dialogue.advance();
+    await sleep(40);
+    expect(portraitShows).toEqual([]);
+    expect(dialogue.text).not.toBe('Next.');
+    release();
+    expect(await waitingOn('Next.')).toBe(true);
+    expect(portraitShows).toEqual([{ pig: 'piggy-2', expression: 'neutral', pos: 'center', outfit: 'scrubs' }]);
+    dialogue.advance();
+    await scene.run;
+  });
+
+  test('keeps the old outfit on stage until a changed outfit is ready', async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    portraitLoad = async (_pig, outfit) => { if (outfit === 'scrubs') await pending; };
+    const scene = play('t_outfit_load');
+    expect(await waitingOn('Before the change.')).toBe(true);
+    expect(portraitShows.map((p) => p.outfit)).toEqual(['everyday']);
+    dialogue.advance();
+    await sleep(40);
+    expect(portraitShows.map((p) => p.outfit)).toEqual(['everyday']);
+    expect(dialogue.text).not.toBe('In scrubs.');
+    release();
+    expect(await waitingOn('In scrubs.')).toBe(true);
+    expect(portraitShows.map((p) => p.outfit)).toEqual(['everyday', 'scrubs']);
+    dialogue.advance();
+    await scene.run;
+  });
+
+  test('leaving a scene cancels the wait; a late image cannot show up in the next scene', async () => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    portraitLoad = async () => pending;
+    const scene = play('t_portrait_load');
+    expect(await waitingOn('Behind the wellness table.')).toBe(true);
+    dialogue.advance();
+    await sleep(40);
+    stopScene();
+    expect(await until(scene.ended)).toBe(true);
+    expect(portraitShows).toEqual([]);
+    const next = play('t_last');
+    expect(await waitingOn('The last line.')).toBe(true);
+    release();
+    await sleep(40);
+    expect(portraitShows).toEqual([]);
+    expect(dialogue.text).toBe('The last line.');
+    dialogue.advance();
+    await next.run;
+  });
 });
 
 describe('SKIP ends at every player decision (story2-skip-through-pick)', () => {
