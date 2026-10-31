@@ -21,7 +21,8 @@
   import { game } from '../../state/game.svelte';
   import { now } from '../../state/clock';
   import { getBigBrainChoice, onBigBrainChoice, shouldAskBigBrain, type BigBrainChoice } from '../../ai/choice';
-  import { bgUrl, hasBackground } from '../meta/assets';
+  import { animDef, bgUrl, hasBackground } from '../meta/assets';
+  import { loadImage } from '../meta/image-cache';
   import BigBrainPrompt from '../meta/BigBrainPrompt.svelte';
   import OfflinePill from '../meta/OfflinePill.svelte';
   import PetalCanvas from '../meta/PetalCanvas.svelte';
@@ -65,7 +66,6 @@
   };
   const lastFlavor: Partial<Record<PigId, AnimId>> = {};
   const lastReaction: Partial<Record<PigId, AnimId>> = {};
-  const greetedAt: Partial<Record<PigId, number>> = {};
   const reactionTimers = new Map<PigId, ReturnType<typeof setTimeout>>();
   let reacting = $state<Record<PigId, boolean>>({ 'piggy-1': false, 'piggy-2': false, 'piggy-3': false });
   let greeting = $state('');
@@ -80,9 +80,7 @@
 
   function greet(p: PigId) {
     if (leaving || askBrain || offlineOpen) return;
-    const time = performance.now();
-    if (time - (greetedAt[p] ?? -Infinity) < 1200) return;
-    greetedAt[p] = time;
+    // Every tap interrupts the current clip; pick a different reaction so SpriteAnim starts it from frame zero.
     const a = pick(REACTIONS[p], lastReaction[p], anims[p]);
     lastReaction[p] = a;
     anims[p] = motion.reduced ? 'idle' : a;
@@ -99,6 +97,12 @@
   }
 
   $effect(() => () => reactionTimers.forEach(clearTimeout));
+
+  // Have the tap poses ready while the title settles, rather than fetching a new atlas on the first touch.
+  $effect(() => {
+    const urls = new Set(PIG_IDS.flatMap((p) => REACTIONS[p].map((a) => animDef(p, 'everyday', a)?.url)));
+    for (const url of urls) if (url) void loadImage(url).catch(() => {});
+  });
 
   const reducedAtStart = motion.reduced;
 
@@ -363,11 +367,17 @@
           aria-label={`Say hello to ${CHARACTERS[p].name}`}
           title={`Say hello to ${CHARACTERS[p].name}`}
           disabled={leaving || askBrain || offlineOpen}
-          onclick={(e) => { e.stopPropagation(); greet(p); }}
+          onpointerdown={(e) => {
+            if (e.button !== 0 || !e.isPrimary) return;
+            e.stopPropagation();
+            greet(p);
+          }}
+          onclick={(e) => {
+            e.stopPropagation();
+            // Pointer presses already reacted on contact. Keyboard and assistive clicks still activate the button.
+            if (e.detail === 0) greet(p);
+          }}
         ></button>
-        {#if reacting[p]}
-          <span class="pig-heart" aria-hidden="true"><PixelGlyph name="heart" scale={2} /></span>
-        {/if}
       </div>
     {/each}
   </div>
@@ -610,14 +620,6 @@
   }
   .pig-target:disabled { pointer-events: none; }
   .pig-target:focus-visible { outline: 2px dashed var(--pig); outline-offset: -2px; }
-  .pig-heart {
-    position: absolute;
-    top: 4%;
-    left: calc(50% - 8px);
-    color: var(--sakura-1);
-    filter: drop-shadow(1px 1px 0 var(--ink));
-    pointer-events: none;
-  }
   .pig:nth-child(2) { margin-bottom: calc(var(--pig-size) * 0.06); }
 
   /* ── download corner (top right): the Big Brain pill while it downloads, then "Play offline" in the corner
