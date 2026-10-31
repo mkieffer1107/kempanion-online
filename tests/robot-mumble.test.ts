@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { parseKScript } from '../src/lib/vn/kscript';
 import { paginate } from '../src/lib/vn/typewriter';
 import { robotMumbleWords } from '../src/lib/vn/components/robot-mumble';
-import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
+import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, placeRobotStack, isRobotStackWord, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
 
 const scene = parseKScript(readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8'), 'prologue.ks')[0];
 const rant = scene.ops.find((o) => o.op === 'say' && o.speaker === 'piggy-3' && o.expression === 'phone_mumble');
@@ -20,10 +20,13 @@ describe('the prologue robot mumble', () => {
       const bubbles = robotMumbleWords(text);
       expect(bubbles.length).toBeGreaterThan(0);
       for (const b of bubbles) {
-        expect(text.slice(b.at).toLowerCase().startsWith(b.word.slice(0, -1).toLowerCase())).toBe(true);
+        const phrase = b.word === 'autoregressive…' && text.slice(b.at).startsWith('System 2') ? 'System 2' : b.word.slice(0, -1);
+        expect(text.slice(b.at).toLowerCase().startsWith(phrase.toLowerCase())).toBe(true);
         words.push(b.word);
       }
     }
+    expect(words).toContain('autoregressive…');
+    expect(words).not.toContain('System 2…');
     expect(words).toContain('foundation model…');
     expect(words).toContain('action chunking…');
     const next = scene.ops[scene.ops.indexOf(rant) + 1];
@@ -80,6 +83,67 @@ describe('the prologue robot mumble', () => {
       }
       const first = placeMumble({ w: 96, h: 32, tail: 6 }, g, [], [], 0);
       expect(placeMumble({ w: 96, h: 32, tail: 6 }, g, [], [], start)).toEqual(first);
+    }
+  });
+
+  test('the mobile first-page names stay by Piggy 3: Jev on his cheek, JEPA at his left ear', () => {
+    for (const width of [320, 393, 430, 768]) {
+      const u = width / 270;
+      const g: MumbleGeo = {
+        mode: 't', px: 2, group: true, keep: mumbleKeepOut('everyday', 'right', 270, u, lineup),
+        zone: { x: 4, y: 4, w: width - 8, h: width - 8 }, obstacles: mumbleNeighbours('right', lineup, 270, u, true),
+      };
+      const face = g.keep[0];
+      const auto = placeMumble({ word: 'autoregressive…', w: 112, h: 32, tail: 6 }, g, [], [], 0)!;
+      const jev = placeMumble({ word: 'Jev…', w: 48, h: 32, tail: 6 }, g, [auto.r], [], 0)!;
+      const jepa = placeMumble({ word: 'JEPA…', w: 48, h: 32, tail: 6 }, g, [auto.r, jev.r], [], 0)!;
+      expect([auto, jev, jepa].every(Boolean)).toBe(true);
+      expect(hit(jev.r, face)).toBe(true);
+      for (const keep of [...g.keep.slice(1), ...g.obstacles]) expect(hit(jev.r, keep)).toBe(false);
+      expect(jepa.x + jepa.r.w).toBeGreaterThanOrEqual(face.x - 3);
+      expect(jepa.y + jepa.r.h).toBeLessThanOrEqual(face.y + 8);
+      expect(jepa.y).toBeGreaterThan(auto.y);
+      expect(hit(jepa.r, auto.r)).toBe(false);
+      expect(hit(jepa.r, jev.r)).toBe(false);
+      expect(auto.r.y + auto.r.h).toBeLessThan(face.y);
+    }
+  });
+
+  test('each second-page arrival raises all earlier mobile clouds and keeps a compact, clear stack', () => {
+    const boxes = [
+      { word: 'receding-horizon…', w: 128, h: 32, tail: 6 },
+      { word: 'action tokens…', w: 112, h: 32, tail: 6 },
+      { word: 'zero-shot laundry…', w: 128, h: 32, tail: 6 },
+    ];
+    expect(boxes.every((b) => isRobotStackWord(b.word))).toBe(true);
+    expect(isRobotStackWord('Jev…')).toBe(false);
+    for (const width of [320, 393, 430, 768]) {
+      const u = width / 270;
+      const g: MumbleGeo = {
+        mode: 't', px: 2, group: true, keep: mumbleKeepOut('everyday', 'right', 270, u, lineup),
+        zone: { x: 4, y: 4, w: width - 8, h: width - 8 }, obstacles: mumbleNeighbours('right', lineup, 270, u, true),
+      };
+      let previous = placeRobotStack(boxes.slice(0, 1), g)!;
+      expect(previous).toHaveLength(1);
+      for (const count of [2, 3]) {
+        const next = placeRobotStack(boxes.slice(0, count), g)!;
+        expect(next).toHaveLength(count);
+        for (let i = 0; i < previous.length; i++) expect(next[i].y).toBeLessThan(previous[i].y);
+        expect(next[count - 1].y).toBe(previous[previous.length - 1].y);
+        for (let i = 0; i < next.length; i++) {
+          const r = next[i].r;
+          expect(r.y).toBeGreaterThanOrEqual(g.zone.y);
+          for (const keep of [...g.keep, ...g.obstacles]) expect(hit(r, keep)).toBe(false);
+          if (i + 1 < next.length) expect(next[i + 1].y - r.y - r.h).toBe(6);
+        }
+        previous = next;
+      }
+      expect(placeRobotStack(boxes, { ...g, mode: 'w' })).toBeNull();
+      expect(placeRobotStack(boxes, { ...g, group: false })).toBeNull();
+      // A wrapped last label changes the needed height without introducing overlaps.
+      const wrapped = placeRobotStack([...boxes.slice(0, 2), { ...boxes[2], w: 80, h: 48 }], g)!;
+      expect(wrapped).toHaveLength(3);
+      expect(wrapped[1].r.y + wrapped[1].r.h + 6).toBe(wrapped[2].y);
     }
   });
 

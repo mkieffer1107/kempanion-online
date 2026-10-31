@@ -3,7 +3,7 @@
   // plays it, mumbleStage says which page is up), each fragment's buzzword pops out of him in a small lilac pixel cloud
   // as the typewriter reaches it, drifts up a few UI pixels and fades, a few up at once (3 on an upright phone, 2 when
   // its picture is short, 4 landscape, 5 wide); when he snaps out of it they all pop. They sit beside his face, never
-  // over it, the phone in his hoof, his fist, the dialogue window or the chrome in `avoid` (mumble-layout.ts places
+  // over it (except the story's Jev cheek cloud), the phone in his hoof, his fist, the dialogue window or the chrome in `avoid` (mumble-layout.ts places
   // them); on a letterboxed picture they may sit over the bars. Reduce motion: no pop, drift or fade, and each page's
   // words stand still beside him while that page is up.
   // A child of StageHost: the layer is the picture's box, and one bubble art pixel is var(--px). The cloud is the
@@ -17,8 +17,8 @@
   import { dialogue } from '../dialogue.svelte';
   import { mumbleStage, type MumbleWord } from './mumble.svelte';
   import {
-    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble,
-    type MumbleGeo, type MumbleMode, type Placement, type Rect,
+    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, isRobotStackWord, placeRobotStack,
+    type BubbleBox, type MumbleGeo, type MumbleMode, type Placement, type Rect,
   } from './mumble-layout';
 
   interface Props {
@@ -48,6 +48,7 @@
   interface Item {
     el: HTMLDivElement;
     r: Rect;
+    box: BubbleBox;
     timer: ReturnType<typeof setTimeout> | 0;
   }
 
@@ -129,14 +130,15 @@
     // the text plus 3 art px each side fits inside 16 + 8m art px (the round ends take the rest)
     const m = Math.max(1, Math.ceil((wText / px + 6 - 16) / 8));
     el.style.setProperty('--m', String(m));
-    return { el, w: (16 + 8 * m) * px, h: (two ? 24 : 16) * px, tail: (TAIL_ART.h - 1) * px };
+    return { el, word, w: (16 + 8 * m) * px, h: (two ? 24 : 16) * px, tail: (TAIL_ART.h - 1) * px };
   }
 
   /** Pop a word: retire the oldest at the cap, place it in the first free slot (the word he's on beats the oldest). */
   function spawn(word: string, still: boolean): boolean {
     const g = geo();
     if (!g || !layer || !word) return false;
-    const cap = mumbleCap(g);
+    const stack = g.group && g.mode === 't' && isRobotStackWord(word);
+    const cap = stack ? 3 : mumbleCap(g);
     while (live.length >= cap) retire(live[0]);
     const b = build(word, g);
     const zones = g.wide ? [g.zone, g.wide] : [g.zone];
@@ -147,6 +149,24 @@
       }
       return null;
     };
+    if (stack) {
+      const items = [...live, { el: b.el, box: b, r: { x: 0, y: 0, w: 0, h: 0 }, timer: 0 } satisfies Item];
+      const placements = placeRobotStack(items.map((i) => i.box), g);
+      if (!placements) { b.el.remove(); return false; }
+      items.forEach((item, i) => {
+        const p = placements[i];
+        if (i < live.length) item.el.classList.add('rising');
+        item.r = p.r;
+        item.el.style.left = `${p.x}px`;
+        item.el.style.top = `${p.y}px`;
+        if (item.timer) clearTimeout(item.timer);
+        item.timer = 0;
+      });
+      b.el.classList.add('r', 'stack', still ? 'still' : 'live');
+      b.el.style.visibility = '';
+      live.push(items[items.length - 1]);
+      return true;
+    }
     // Compact story clouds reuse the near-head slots; a fading cloud already gives its replacement a pop delay.
     let p = g.group && g.mode === 't' ? tryPlace(false) : tryPlace(true) ?? tryPlace(false);
     while (!p && !still && live.length) {
@@ -166,7 +186,7 @@
     // a bubble on his right points its tail down-left at him, one on his left down-right
     b.el.classList.add(p.side === 'right' ? 'r' : 'l', still ? 'still' : 'live');
     b.el.style.visibility = '';
-    const item: Item = { el: b.el, r, timer: 0 };
+    const item: Item = { el: b.el, box: b, r, timer: 0 };
     if (!still) item.timer = setTimeout(() => retire(item), MUMBLE_TIMING.lifeMs);
     live.push(item);
     return true;
@@ -192,6 +212,8 @@
 
   /** A page of the stream starts typing. */
   function start(words: readonly MumbleWord[]): void {
+    // Mobile story pages have independent compositions; old clouds must not block the next stack.
+    if (mode === 't' && lineup.length > 1) clear();
     frozen = false;
     pending = [...words].sort((a, b) => a.at - b.at);
     if (reduce()) {
@@ -387,9 +409,13 @@
       vnmb-snap 140ms steps(2, jump-end) both;
     animation-play-state: paused, paused, running;
   }
-  .mumbles :global(.mb.still) { animation: none; }
+  /* The robot stack moves as each new thought arrives; spacing includes its tail, without extra drift. */
+  .mumbles :global(.mb.rising) { transition: top 280ms steps(4, jump-end); }
+  .mumbles :global(.mb.live.stack) { animation: vnmb-pop 150ms steps(3, jump-start) both; }
+  .mumbles :global(.mb.live.stack.snap) { animation: vnmb-snap 140ms steps(2, jump-end) both; }
+  .mumbles :global(.mb.still) { animation: none; transition: none; }
   /* safety net: the Stage marks itself .reduce when Reduce motion is on */
-  :global(.stage-root.reduce) .mumbles :global(.mb) { animation: none; }
+  :global(.stage-root.reduce) .mumbles :global(.mb) { animation: none; transition: none; }
   @keyframes -global-vnmb-pop { from { scale: 0.4; opacity: 0; } to { scale: 1; opacity: 1; } }
   @keyframes -global-vnmb-drift { from { translate: 0 0; } to { translate: 0 calc(-4 * var(--px)); } }
   @keyframes -global-vnmb-out { from { opacity: 1; } to { opacity: 0; } }

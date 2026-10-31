@@ -11,6 +11,6 @@ export function robotMumbleWords(text: string): MumbleWord[] {
   const lower = text.toLowerCase();
   return ROBOT_WORDS.flatMap((phrase) => {
     const at = lower.indexOf(phrase.toLowerCase());
-    return at < 0 ? [] : [{ word: `${phrase}…`, at }];
+    return at < 0 ? [] : [{ word: `${phrase === 'System 2' ? 'autoregressive' : phrase}…`, at }];
   }).sort((a, b) => a.at - b.at);
 }

@@ -1,6 +1,6 @@
 // Where Piggy 3's mumble bubbles go, and when (pure, bun-testable). While his quiet, fast mumble stream types out in
 // the dialogue box (chat.ts), each fragment's buzzword pops out of him in a small lilac cloud (MumbleBubbles.svelte
-// draws them): beside his face, never over it, the phone in his hoof, his muttering hoof, the dialogue window or the
+// draws them): beside his face (the story’s Jev cloud may cover his cheek), clear of the phone, his muttering hoof, the dialogue window or the
 // screen's chrome. Here: the keep-out boxes of his phone portraits, where his portrait cell sits on the stage, the slot
 // search, how many bubbles a screen shows, and which bubble pops on which page of the stream.
 // Geometry is CSS px in the stage view's box (the layer StageHost's children live in) unless it says otherwise.
@@ -162,6 +162,8 @@ export const hit = (a: Rect, b: Rect, pad = 0): boolean =>
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
 
 export interface BubbleBox {
+  /** Optional label for the prologue’s stable, speaker-anchored cloud positions. */
+  word?: string;
   /** The cloud, CSS px (its width is 16 + 8m art px; 16 or 24 art px tall). */
   w: number;
   h: number;
@@ -179,6 +181,34 @@ export interface Placement {
   side: 'left' | 'right';
   /** The slot it took (the search starts after it next time). */
   slot: number;
+}
+
+/** The second robot page grows upward, keeping the newest thought nearest his hair. */
+export const ROBOT_STACK_WORDS = ['receding-horizon', 'action tokens', 'zero-shot laundry'] as const;
+export const isRobotStackWord = (word: string): boolean =>
+  (ROBOT_STACK_WORDS as readonly string[]).includes(word.replace(/…$/, '').toLowerCase());
+
+/** Place the whole mobile stack together so new words move earlier clouds without retiring them. */
+export function placeRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): Placement[] | null {
+  if (g.mode !== 't' || !g.group || !g.keep[0] || !boxes.length) return null;
+  const face = g.keep[0];
+  const px = g.px;
+  const snap = (v: number) => Math.round(v / px) * px;
+  const zone = g.wide ?? g.zone;
+  const gap = 3 * px;
+  let bottom = snap(face.y - 0.2 * face.h - 2 * px);
+  const placements: Placement[] = [];
+  for (let i = boxes.length - 1; i >= 0; i--) {
+    const b = boxes[i];
+    const x = clamp(snap(face.x + 0.7 * face.w - b.w / 2), Math.ceil(zone.x / px) * px, Math.floor((zone.x + zone.w - b.w) / px) * px);
+    const y = snap(bottom - b.h - b.tail);
+    const r = { x, y, w: b.w, h: b.h + b.tail };
+    if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y || r.y + r.h > zone.y + zone.h) return null;
+    if ([...g.keep, ...g.obstacles].some((o) => hit(r, o, px))) return null;
+    placements[i] = { x, y, r, side: 'right', slot: i };
+    bottom = y - gap;
+  }
+  return placements;
 }
 
 /**
@@ -203,6 +233,29 @@ export function placeMumble(
   const colW = Math.max(b.w * 0.8, 44 * px);
   const drift = MUMBLE_TIMING.driftArt * px;
   const rowH = compact ? Math.max(b.h, ...live.map((r) => r.h - b.tail - drift)) + b.tail + drift + gap : 0;
+  // These recurring robot labels keep their place as the other clouds cycle around them.
+  const label = b.word?.replace(/…$/, '').toLowerCase();
+  if (compact && label && ['autoregressive', 'jev', 'jepa'].includes(label)) {
+    const left = label !== 'autoregressive';
+    let x0 = label === 'jev' ? face.x - 0.3 * b.w
+      : label === 'jepa' ? face.x - 0.55 * b.w
+      : face.x + 0.7 * face.w - b.w / 2;
+    // Jev sits on his cheek by request, while the ear cloud stays above the face bounds.
+    const y0 = label === 'jev' ? Math.min(face.y + 0.2 * face.h, ...g.keep.slice(1).filter((r) => r.x < x0 + b.w + gap && r.x + r.w + gap > x0).map((r) => r.y - b.h - b.tail - gap))
+      : label === 'jepa' ? face.y - b.h - b.tail - gap
+      : face.y - 0.2 * face.h - b.h - b.tail - gap;
+    const y = snap(clamp(y0, zone.y + drift, zone.y + zone.h - b.h - b.tail));
+    if (label === 'jepa') {
+      for (const r of live) {
+        if (r.y < y + b.h + b.tail + px && r.y + r.h + px > y - drift) x0 = Math.min(x0, r.x - gap - b.w);
+      }
+    }
+    const x = snap(clamp(x0, zone.x, zone.x + zone.w - b.w));
+    const r = { x, y: y - drift, w: b.w, h: b.h + b.tail + drift };
+    const keep = label === 'jev' ? g.keep.slice(1) : g.keep;
+    if ([...keep, ...g.obstacles, ...live, ...(avoidFading ? fading : [])].some((o) => hit(r, o, px))) return null;
+    return { x, y, r, side: left ? 'left' : 'right', slot: 0 };
+  }
   for (let k = 0; k < slots.length; k++) {
     const slot = compact ? k : (((start + k) % slots.length) + slots.length) % slots.length;
     const s = slots[slot];
