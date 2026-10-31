@@ -412,7 +412,8 @@ export class StageWorld implements StageApi {
   private lineupLw = 0;
   private lineupPos: PortraitPos[] = [];
   private talking: PigId | null = null;
-  private lastTalking: PigId | null = null;
+  private speaker: PigId | null = null;
+  private lastSpeaker: PigId | null = null;
   private featured: PigId | null = null;
   private dimCache = new Map<string, HTMLCanvasElement>();
 
@@ -797,7 +798,11 @@ export class StageWorld implements StageApi {
 
   setTalking(pig: PigId | null): void {
     this.talking = pig;
-    if (pig) this.lastTalking = pig;
+  }
+
+  setSpeaker(pig: PigId | null): void {
+    this.speaker = pig;
+    if (pig) this.lastSpeaker = pig;
   }
 
   preload(pig: PigId, outfit: OutfitId = 'everyday'): Promise<void> {
@@ -2005,7 +2010,7 @@ export class StageWorld implements StageApi {
     this.portraits.clear();
     this.portraitList.length = 0;
     this.lineupPos.length = 0;
-    this.talking = this.lastTalking = this.featured = null;
+    this.talking = this.speaker = this.lastSpeaker = this.featured = null;
     this.clearActors();
     this.clearBubbles();
     this.finishCamera();
@@ -2116,7 +2121,7 @@ export class StageWorld implements StageApi {
       }
     }
     this.updateLineup(dt);
-    const f = featuredPortrait(this.portraitList, this.talking, this.lastTalking);
+    const f = featuredPortrait(this.portraitList, this.speaker, this.lastSpeaker);
     if (f !== this.featured) {
       this.featured = f;
       const p = f ? this.portraits.get(f) : undefined;
@@ -2336,9 +2341,10 @@ export class StageWorld implements StageApi {
   private drawPortraits(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
     if (this.portraitList.length === 0) return;
     const talking = this.talking && this.portraits.has(this.talking) ? this.talking : null;
-    for (const p of this.portraitList) if (p.id !== talking) this.drawPortrait(ctx, p, talking, sx, sy);
-    const tp = talking ? this.portraits.get(talking) : undefined;
-    if (tp) this.drawPortrait(ctx, tp, talking, sx, sy);
+    const speaker = this.speaker && this.portraits.has(this.speaker) ? this.speaker : null;
+    for (const p of this.portraitList) if (p.id !== speaker) this.drawPortrait(ctx, p, talking, sx, sy);
+    const front = speaker ? this.portraits.get(speaker) : undefined;
+    if (front) this.drawPortrait(ctx, front, talking, sx, sy);
   }
 
   private drawPortrait(ctx: CanvasRenderingContext2D, p: PortraitState, talking: PigId | null, sx: number, sy: number) {

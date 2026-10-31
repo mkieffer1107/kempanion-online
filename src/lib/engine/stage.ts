@@ -160,6 +160,8 @@ export interface StageApi {
   setExpression(pig: PigId, expression: Expression): void;
   hidePortrait(pig: PigId): void;
   clearPortraits(): void;
+  /** Keep the current dialogue speaker in front until the displayed line changes. null = no pig speaker. */
+  setSpeaker(pig: PigId | null): void;
   /** The talking portrait bobs; others dim slightly. null = nobody. */
   setTalking(pig: PigId | null): void;
   /** Preload a pig's portraits and idle/walk pages. */

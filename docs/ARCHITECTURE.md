@@ -76,6 +76,8 @@ hub ⇄ talk (VN free chat) ⇄ map → location → (talk | scene | minigame | 
   portraits 192×256, alpha thresholded, color-quantized. `src/generated/sprites.json` describes atlases.
 - Juice: talking portraits bob 1 px on a 2-frame step while text types; enter/exit slides of 8–16 px with fades;
   screen shake on surprise; heart particles on bond gains; petals everywhere (disabled by reduceMotion).
+- The pig whose dialogue is displayed stays in front until the next speaker, including while waiting for a tap.
+  Typewriter bobbing stops when the line finishes; it does not change portrait order.
 
 ## 4. VN engine — KScript (`src/lib/content/scenes/*.ks`)
 

@@ -192,6 +192,7 @@ class DialogueController {
     if (this.skip && !L.read && !skipAll()) this.skip = false;
     this.visible = true;
     this.speaker = speaker;
+    stage.setSpeaker(pig);
     this.name = opts.name ?? speakerName(speaker, game.save.player.name);
     this.color = speakerColor(speaker);
     this.expression = expression ?? null;
@@ -319,6 +320,7 @@ class DialogueController {
       this.#closeLine();
       this.visible = true;
       this.speaker = speaker;
+      stage.setSpeaker(isPig(speaker) ? speaker : null);
       this.name = speakerName(speaker, game.save.player.name);
       this.color = speakerColor(speaker);
       this.text = '';
@@ -361,7 +363,7 @@ class DialogueController {
     if (this.waiting) this.#continue(L);
   }
 
-  hide(): void { this.visible = false; }
+  hide(): void { this.visible = false; stage.setSpeaker(null); }
 
   /** Hide the box until the next line (scene transitions, CGs, UI hooks); releases a waiting line. */
   conceal(): void {
@@ -370,6 +372,7 @@ class DialogueController {
     this.text = '';
     this.shown = 0;
     this.speaker = null;
+    stage.setSpeaker(null);
     this.name = '';
   }
 
@@ -379,6 +382,7 @@ class DialogueController {
     this.onLeave?.();
     this.backlogOpen = false; // leaving with LOG open must not reopen it in the next chat or scene
     this.#closeLine();
+    stage.setSpeaker(null);
     if (this.#choice) { const r = this.#choice; this.#choice = null; this.choices = null; r(0); }
     if (this.#ask) { const r = this.#ask; this.#ask = null; this.input = null; r(null); }
     this.#pause?.();

@@ -25,7 +25,10 @@ plugin({
 const silent = new Proxy({}, { get: (_, k) => (k === 'then' ? undefined : () => Promise.resolve()) });
 const SCENES = new Map<string, Scene>();
 mock.module('../src/lib/audio', () => ({ audio: silent, VOICE_STYLE: {} }));
-mock.module('../src/lib/engine/stage', () => ({ stage: silent }));
+const stageSpeakers: (string | null)[] = [];
+mock.module('../src/lib/engine/stage', () => ({ stage: new Proxy(silent, {
+  get: (target, key) => key === 'setSpeaker' ? (pig: string | null) => stageSpeakers.push(pig) : Reflect.get(target, key),
+}) }));
 mock.module('../src/lib/vn/registry', () => ({ getCompiled: (id: string) => SCENES.get(id) }));
 mock.module('../src/lib/vn/chat', () => ({ runFreeChat: async () => {} }));
 
@@ -320,5 +323,53 @@ describe('scene-local introduction nameplates', () => {
     await run;
     expect(JSON.stringify(game.save.flags)).toBe(flags);
     expect(JSON.stringify(game.save.seenScenes)).toBe(seen);
+  });
+});
+
+describe('the dialogue speaker stays in front after the typewriter stops', () => {
+  const currentSpeaker = () => stageSpeakers.at(-1);
+
+  test('a naturally completed line keeps its speaker through advance; the next speaker replaces it', async () => {
+    game.save.settings.textSpeed = 80;
+    const first = dialogue.say('piggy-1', 'Hi.');
+    expect(currentSpeaker()).toBe('piggy-1');
+    expect(await waitingOn('Hi.')).toBe(true);
+    expect(currentSpeaker()).toBe('piggy-1');
+    dialogue.advance();
+    await first;
+    expect(currentSpeaker()).toBe('piggy-1');
+    const next = dialogue.say('piggy-2', 'Next.', undefined, { instant: true });
+    expect(await waitingOn('Next.')).toBe(true);
+    expect(currentSpeaker()).toBe('piggy-2');
+    dialogue.advance();
+    await next;
+    expect(currentSpeaker()).toBe('piggy-2');
+  });
+
+  test('fast reveal and instant lines retain the speaker; narrator and player lines clear it', async () => {
+    game.save.settings.textSpeed = 3;
+    const fast = dialogue.say('piggy-3', 'Wait, I have a very long thought about foundation models.');
+    expect(currentSpeaker()).toBe('piggy-3');
+    dialogue.advance();
+    expect(dialogue.waiting).toBe(true);
+    expect(currentSpeaker()).toBe('piggy-3');
+    dialogue.advance();
+    await fast;
+    for (const speaker of ['narrator', 'player'] as const) {
+      const line = dialogue.say(speaker, 'Your turn.', undefined, { instant: true });
+      expect(await waitingOn('Your turn.')).toBe(true);
+      expect(currentSpeaker()).toBeNull();
+      dialogue.advance();
+      await line;
+    }
+  });
+
+  test('thinking selects the incoming pig; conceal, hide, cancel and reset clear the speaker', () => {
+    for (const clear of ['conceal', 'hide', 'cancel', 'reset'] as const) {
+      dialogue.setThinking(true, 'piggy-2');
+      expect(currentSpeaker()).toBe('piggy-2');
+      dialogue[clear]();
+      expect(currentSpeaker()).toBeNull();
+    }
   });
 });

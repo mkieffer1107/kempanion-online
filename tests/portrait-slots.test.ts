@@ -277,3 +277,46 @@ describe('the stage draws a lineup at its scale (world.ts, headless)', () => {
     expect(still.s.lineupK).toBe(50 / 64);
   });
 });
+
+describe('portrait foreground follows the displayed speaker, independently of talking animation', () => {
+  test('completed speech stays in front, the next speaker comes forward, and clearing restores slot order', async () => {
+    await fakeAtlas();
+    const globals = globalThis as unknown as { document?: unknown };
+    const previousDocument = globals.document;
+    // Real non-talking portraits are drawn through cached dimmed canvases, not the source atlas.
+    globals.document = { createElement: () => ({ getContext: () => recorder().ctx }) };
+    try {
+      for (const [fit, centers] of [
+        [fitStage(1280, 720, 1), [100, 240, 380]],
+        [fitStage(393, 393, 3), [56, 135, 214]],
+      ] as const) {
+        const { w } = trioOn(fit, true);
+        for (let i = 0; i < 20; i++) w.update(16);
+        const order = () => {
+          const { ctx, draws } = recorder();
+          w.draw(ctx, recorder().ctx);
+          // Include both source-atlas and dimmed-cell draws; each paints one whole portrait cell.
+          return draws.filter((d) => d.sw === PORTRAIT_W && d.sh === PORTRAIT_H)
+            .map((d) => d.dx + (d.dw >> 1));
+        };
+        const [left, center, right] = centers;
+        expect(order()).toEqual([left, center, right]);
+        w.setSpeaker('piggy-1');
+        w.setTalking('piggy-1');
+        expect(order()).toEqual([center, right, left]);
+        w.setTalking(null);
+        expect(order()).toEqual([center, right, left]);
+        w.setSpeaker('piggy-2');
+        expect(order()).toEqual([left, right, center]);
+        w.setTalking('piggy-3'); // blips cannot change the displayed speaker's foreground order
+        expect(order()).toEqual([left, right, center]);
+        w.setTalking(null);
+        w.setSpeaker(null);
+        expect(order()).toEqual([left, center, right]);
+      }
+    } finally {
+      if (previousDocument === undefined) delete globals.document;
+      else globals.document = previousDocument;
+    }
+  });
+});
