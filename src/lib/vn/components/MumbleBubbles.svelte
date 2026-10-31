@@ -35,6 +35,8 @@
   let { mode, pos, outfit, avoid = '' }: Props = $props();
 
   const ART = { slice: 'mumble/mumble-lilac.png', dl: 'mumble/mumble-tail-lilac-dl.png', dr: 'mumble/mumble-tail-lilac-dr.png' };
+  // CSS variables are consumed by the built stylesheet under assets/, so resolve art against the page first.
+  const cssArt = (path: string) => `url("${new URL(assetUrl(path), document.baseURI).href}")`;
   /** The dialogue window's parts over the stage: the highest one's top is the bubbles' floor. */
   const WINDOW = '.vn .head, .vn .box';
 
@@ -304,9 +306,9 @@
   class="mumbles"
   bind:this={layer}
   aria-hidden="true"
-  style:--mb-slice={`url(${assetUrl(ART.slice)})`}
-  style:--mb-tail-dl={`url(${assetUrl(ART.dl)})`}
-  style:--mb-tail-dr={`url(${assetUrl(ART.dr)})`}
+  style:--mb-slice={cssArt(ART.slice)}
+  style:--mb-tail-dl={cssArt(ART.dl)}
+  style:--mb-tail-dr={cssArt(ART.dr)}
 ></div>
 
 <style>
