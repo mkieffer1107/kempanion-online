@@ -30,5 +30,5 @@ test('no pig has a stadium stop on any day or hour', () => {
     }
   }
   expect(whereIs('piggy-3', new Date(2026, 9, 31, 15))).toBe('physics');
-  expect(whereIs('piggy-3', new Date(2026, 9, 31, 18))).toBe('lake_alice');
+  expect(whereIs('piggy-3', new Date(2026, 9, 31, 18))).toBe('marston');
 });
