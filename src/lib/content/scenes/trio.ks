@@ -344,9 +344,9 @@ piggy-2 neutral: Amendment: nobody leaves until everybody sleeps. Memory consoli
 piggy-3 happy: Okay, so I was thinking— both? Like, we study in blocks, and the blocks have breaks.
 piggy-3 happy: I made a little timer: twenty-five minutes on, five off. Basically it's a tomato, but code.
 narrator: His laptop shows a pixel tomato counting down from 25:00. It's very cute.
-piggy-1 happy: Nice! Claude helped me fix my serve tracker today.
-piggy-3 proud: Codex built this timer. Twenty-five minutes. Extremely accurate minutes.
-piggy-1 laughing: Mine passes its tests too, teammate. Different jerseys, same team.
+piggy-1 excited: Whoa, check this out! I used Claude to build a serve tracker that draws where every ball lands.
+piggy-3 laughing: Dude is so Claude-pilled. Come on, bruh— Codex is the way to go!
+piggy-1 laughing: It works, teammate! Want to try it before you give the victory speech?
 piggy-3 thinking: Okay, but— Codex. I could make a comparison chart.
 piggy-2 neutral: You made one yesterday.
 piggy-3 bashful_smile: That was the preliminary chart.

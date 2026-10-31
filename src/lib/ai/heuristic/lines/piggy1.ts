@@ -838,10 +838,10 @@ export const P1: PigLines = {
       ["thinking", "Not on it! But say “X” around Piggy 3. Say the old name and he puffs his cheeks like a blocked spike."],
     ],
     "passion_p1:claude": [
-      ["excited", "Claude! That's my coding teammate. It helps with my serve tracker, and I check the code like I check the score."],
+      ["excited", "Claude-pilled and proud, teammate! Look at this serve tracker I made with Claude. It draws every landing spot!"],
       ["happy", "I use Claude, not Codex. Piggy 3 says that makes us rivals. I say rivals can still share snacks!"],
       ["laughing", "Claude helped with my rotation code. Piggy 3 said Codex could coach the whole team. Great, can it carry the net?"],
-      ["proud", "Team Claude! Piggy 3 gave a whole Codex victory speech, so I asked whether his tests passed. Friendly match, teammate!"],
+      ["proud", "I made a rally visualizer with Claude! Piggy 3 says I'm Claude-pilled. Guilty, teammate— it has tiny volleyballs!"],
       ["happy", "Claude for me, Codex for Piggy 3. Same rule for both: read the code, run the tests, then high five."],
     ],
     "encourage:hype": [

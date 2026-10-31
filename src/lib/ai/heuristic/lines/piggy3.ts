@@ -399,7 +399,7 @@ export const P3: PigLines = {
       ["laughing", "Piggy 1 prefers Claude. I prefer Codex, calmly and reasonably. The tiny Codex victory banner is unrelated."],
     ],
     "passion_p1:claude": [
-      ["thinking", "Piggy 1 uses Claude. I use Codex. Which is fine, obviously, but I have prepared a very small seventeen-point rebuttal."],
+      ["thinking", "Dude is so Claude-pilled. Codex is the way to go, come on bruh! …Okay, his serve tracker is pretty cool."],
       ["laughing", "He said “team Claude,” so I made Codex a tiny jersey. No, it cannot wear it. That's not the point."],
       ["happy", "Claude helped his serve tracker, and it works! Codex could also— okay, no, congratulations first. Nice work, Piggy 1."],
     ],
