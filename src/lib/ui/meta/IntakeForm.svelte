@@ -11,6 +11,7 @@
   } from './content';
   import { faceUrl } from './assets';
   import NameEntry from './NameEntry.svelte';
+  import IntakeConfirmation from '../components/IntakeConfirmation.svelte';
   import PixelGlyph from './PixelGlyph.svelte';
   import { Typewriter } from './typewriter.svelte';
   import { ui } from './sfx';
@@ -24,6 +25,7 @@
   let whyUf = $state<WhyUf | null>(null);
   let sleep = $state<SleepType | null>(null);
   let food = $state('');
+  let pendingFood = $state<string | null>(null);
   let foodInput = $state<HTMLInputElement>();
   let options: HTMLButtonElement[] = $state([]);
 
@@ -66,10 +68,24 @@
   function setFood(e: SubmitEvent) {
     e.preventDefault();
     ui.select();
-    const f = cleanText(food, 24) || 'soup';
+    pendingFood = cleanText(food, 24) || 'muffin';
+  }
+  function confirmFood() {
+    if (pendingFood === null) return;
+    const f = pendingFood;
+    food = f;
+    pendingFood = null;
+    ui.select();
     if (isPorkFood(f)) react(INTAKE_REACTION.porkFood);
     else react(INTAKE_REACTION.food, { food: f.charAt(0).toUpperCase() + f.slice(1) });
     goto('review');
+  }
+  function editFood() {
+    if (pendingFood === null) return;
+    food = pendingFood;
+    pendingFood = null;
+    ui.back();
+    queueMicrotask(() => foodInput?.focus({ preventScroll: true }));
   }
   function submit() {
     if (!whyUf || !sleep) return;
@@ -77,6 +93,7 @@
     onDone({ name, whyUf, sleep, comfortFood: food });
   }
   function back() {
+    if (step === 'food' && pendingFood !== null) { editFood(); return; }
     ui.back();
     const i = STEPS.indexOf(step);
     if (i <= 0) onCancel();
@@ -118,7 +135,7 @@
   const whyLabel = $derived(WHY_UF.find((w) => w.id === whyUf)?.label ?? '—');
   const sleepLabel = $derived(SLEEP.find((s) => s.id === sleep)?.label ?? '—');
   const foodLabel = $derived.by(() => {
-    const f = cleanText(food, 24) || 'soup';
+    const f = cleanText(food, 24) || 'muffin';
     return isPorkFood(f) ? 'soup' : f;
   });
 </script>
@@ -159,20 +176,24 @@
               {/each}
             </div>
           {:else if step === 'food'}
-            <form class="foodform" onsubmit={setFood}>
-              <label class="q km-title" for="intake-food">Comfort food?</label>
-              <input
-                bind:this={foodInput}
-                bind:value={food}
-                id="intake-food"
-                type="text"
-                maxlength="24"
-                placeholder="soup"
-                autocomplete="off"
-                enterkeyhint="next"
-              />
-              <button type="submit" class="px-btn primary">NEXT</button>
-            </form>
+            {#if pendingFood !== null}
+              <IntakeConfirmation kind="food" value={pendingFood} onConfirm={confirmFood} onEdit={editFood} />
+            {:else}
+              <form class="foodform" onsubmit={setFood}>
+                <label class="q km-title" for="intake-food">Comfort food?</label>
+                <input
+                  bind:this={foodInput}
+                  bind:value={food}
+                  id="intake-food"
+                  type="text"
+                  maxlength="24"
+                  placeholder="muffin"
+                  autocomplete="off"
+                  enterkeyhint="next"
+                />
+                <button type="submit" class="px-btn primary">NEXT</button>
+              </form>
+            {/if}
           {:else}
             <p class="q km-title">All set? Kempa AI will pair you with a Kempanion.</p>
             <dl class="review">

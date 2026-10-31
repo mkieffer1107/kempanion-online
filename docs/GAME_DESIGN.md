@@ -39,7 +39,7 @@ jokes about anatomy-lab donors ("Donors are our first teachers."). All bond is w
 
 - Unseen first-person protagonist; name on the name plate. **Intake form** (Kempa AI tablet): name;
   *What brings you to UF?* (Computing / Medicine & Life Sciences / Physics & Engineering / Arts & Humanities / Still deciding);
-  *Early bird or night owl?* (or *"What's sleep?"*); *Comfort food?* (free text, default "soup").
+  *Early bird or night owl?* (or *"What's sleep?"*); *Comfort food?* (free text, default "muffin"). Name and comfort food each ask for confirmation, with an option to edit the answer.
   Each answer becomes a memory fact. Computing → Piggy 1 +30 bond, Medicine → Piggy 2 +30, Physics → Piggy 3 +30;
   early bird → P1 +20, night owl → P3 +20, "What's sleep?" → P2 +20 (+ a lecture).
 - **Prologue** (~6–8 min, skippable on replay): Plaza of the Americas at midday, lost, carillon plays, a volleyball rolls to

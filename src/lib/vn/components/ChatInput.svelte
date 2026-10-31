@@ -2,6 +2,8 @@
   // Free-chat row: quick-reply chips, a text field (140 chars, enterkeyhint=send, 16px+ so iOS doesn't zoom),
   // SEND and Leave. SEND shows "…" while the brain thinks or the reply is typing. Answers dialogue.ask().
   import { audio } from '../../audio';
+  import { tick } from 'svelte';
+  import IntakeConfirmation from '../../ui/components/IntakeConfirmation.svelte';
   import { dialogue } from '../dialogue.svelte';
   import { liftAboveKeyboard } from './keyboard';
 
@@ -45,9 +47,9 @@
 
   function send(text: string) {
     if (!ready) return;
-    const nameEntry = isName;
+    const intakeEntry = !!opts?.kind;
     if (dialogue.submit(text)) {
-      if (nameEntry) audio.sfx('ui_select');
+      if (intakeEntry) audio.sfx('ui_select');
       value = '';
     }
   }
@@ -55,6 +57,17 @@
   function onsubmit(e: SubmitEvent) {
     e.preventDefault();
     send(value);
+  }
+
+  async function editAnswer() {
+    dialogue.editAnswer();
+    audio.sfx('ui_back');
+    await tick();
+    field?.focus({ preventScroll: true });
+  }
+
+  function confirmAnswer() {
+    if (dialogue.confirmAnswer()) audio.sfx('ui_select');
   }
 
   function onkeydown(e: KeyboardEvent) {
@@ -67,45 +80,49 @@
 </script>
 
 <form class="chat {klass}" {onsubmit} use:liftAboveKeyboard={lift} aria-busy={!ready}>
-  {#if showPrompt && opts?.prompt}
-    <p class="prompt">{opts.prompt}</p>
-  {/if}
-  {#if isName}
-    <div class="chips">
-      <span class="length" aria-live="polite">{value.length}/{max}</span>
-    </div>
-  {/if}
-  {#if chips.length}
-    <div class="chips" role="group" aria-label="Quick replies">
-      {#each chips as chip (chip)}
-        <button type="button" class="chip" disabled={!ready} onclick={() => send(chip)}>{chip}</button>
-      {/each}
-    </div>
-  {/if}
-  <div class="row">
-    <input
-      bind:this={field}
-      bind:value
-      class="field"
-      data-chat-input
-      type="text"
-      maxlength={max}
-      enterkeyhint={isName ? 'done' : 'send'}
-      autocomplete={isName ? 'nickname' : 'off'}
-      autocapitalize={isName ? 'words' : 'sentences'}
-      spellcheck={!isName}
-      oninput={() => { if (isName) audio.sfx('ui_move'); }}
-      placeholder={opts?.placeholder ?? 'Say something…'}
-      aria-label={opts?.prompt ?? 'Your message'}
-      {onkeydown}
-    />
-    <button type="submit" class="px-btn primary send" disabled={!canSend} aria-label={ready ? 'Send' : 'Waiting for a reply'}>
-      {ready ? 'SEND' : '…'}
-    </button>
-    {#if canLeave}
-      <button type="button" class="px-btn ghost leave" onclick={() => dialogue.leave()}>Leave</button>
+  {#if opts?.kind && dialogue.pendingAnswer !== null}
+    <IntakeConfirmation kind={opts.kind} value={dialogue.pendingAnswer} onConfirm={confirmAnswer} onEdit={editAnswer} />
+  {:else}
+    {#if showPrompt && opts?.prompt}
+      <p class="prompt">{opts.prompt}</p>
     {/if}
-  </div>
+    {#if isName}
+      <div class="chips">
+        <span class="length" aria-live="polite">{value.length}/{max}</span>
+      </div>
+    {/if}
+    {#if chips.length}
+      <div class="chips" role="group" aria-label="Quick replies">
+        {#each chips as chip (chip)}
+          <button type="button" class="chip" disabled={!ready} onclick={() => send(chip)}>{chip}</button>
+        {/each}
+      </div>
+    {/if}
+    <div class="row">
+      <input
+        bind:this={field}
+        bind:value
+        class="field"
+        data-chat-input
+        type="text"
+        maxlength={max}
+        enterkeyhint={isName ? 'done' : 'send'}
+        autocomplete={isName ? 'nickname' : 'off'}
+        autocapitalize={isName ? 'words' : 'sentences'}
+        spellcheck={!isName}
+        oninput={() => { if (isName) audio.sfx('ui_move'); }}
+        placeholder={opts?.placeholder ?? 'Say something…'}
+        aria-label={opts?.prompt ?? 'Your message'}
+        {onkeydown}
+      />
+      <button type="submit" class="px-btn primary send" disabled={!canSend} aria-label={ready ? 'Send' : 'Waiting for a reply'}>
+        {ready ? 'SEND' : '…'}
+      </button>
+      {#if canLeave}
+        <button type="button" class="px-btn ghost leave" onclick={() => dialogue.leave()}>Leave</button>
+      {/if}
+    </div>
+  {/if}
 </form>
 
 <style>

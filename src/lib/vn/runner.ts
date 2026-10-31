@@ -117,6 +117,7 @@ function condState(): CondState {
     weekday: () => weekdayOf(nowDate()),
     companion: () => s().companion,
     location: () => s().location,
+    player: () => s().player.name,
   };
 }
 
@@ -138,7 +139,7 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
       });
     },
     choose: (options) => dialogue.choose(options),
-    ask: (o) => dialogue.ask({ prompt: o.prompt, placeholder: o.placeholder, allowEmpty: !!o.placeholder, maxLength: 60 }),
+    ask: (o) => dialogue.ask({ kind: o.key === 'comfort_food' ? 'food' : undefined, prompt: o.prompt, placeholder: o.placeholder, allowEmpty: !!o.placeholder, maxLength: 60 }),
 
     async present(cmd: PresentCommand) {
       switch (cmd.kind) {

@@ -2,6 +2,7 @@
   // "What should the piggies call you?" — native text field (12 chars, ticks as you type) and OK.
   import { NAME_MAX, cleanText } from './content';
   import { blip, ui } from './sfx';
+  import IntakeConfirmation from '../components/IntakeConfirmation.svelte';
 
   let {
     initial = '',
@@ -12,6 +13,7 @@
   const startName = () => initial;
   let name = $state(startName());
   let input = $state<HTMLInputElement>();
+  let pendingName = $state<string | null>(null);
   const uid = Math.random().toString(36).slice(2, 8);
   const clean = $derived(cleanText(name, NAME_MAX));
 
@@ -28,31 +30,48 @@
       return;
     }
     ui.select();
-    onSubmit(clean);
+    pendingName = clean;
+  }
+
+  function confirm() {
+    if (pendingName === null) return;
+    ui.select();
+    onSubmit(pendingName);
+  }
+
+  function edit() {
+    if (pendingName === null) return;
+    name = pendingName;
+    pendingName = null;
+    ui.back();
   }
 </script>
 
 <form class="entry" onsubmit={submit}>
-  <label class="q km-title" for="name-{uid}">{question}</label>
-  <div class="field">
-    <input
-      bind:this={input}
-      bind:value={name}
-      id="name-{uid}"
-      type="text"
-      maxlength={NAME_MAX}
-      autocomplete="nickname"
-      autocapitalize="words"
-      spellcheck="false"
-      enterkeyhint="done"
-      placeholder="Your name"
-      oninput={() => blip('system')}
-    />
-    <span class="len" aria-hidden="true">{Array.from(name).length}/{NAME_MAX}</span>
-  </div>
-  <div class="buttons">
-    <button type="submit" class="px-btn primary" disabled={!clean}>OK</button>
-  </div>
+  {#if pendingName !== null}
+    <IntakeConfirmation kind="name" value={pendingName} onConfirm={confirm} onEdit={edit} />
+  {:else}
+    <label class="q km-title" for="name-{uid}">{question}</label>
+    <div class="field">
+      <input
+        bind:this={input}
+        bind:value={name}
+        id="name-{uid}"
+        type="text"
+        maxlength={NAME_MAX}
+        autocomplete="nickname"
+        autocapitalize="words"
+        spellcheck="false"
+        enterkeyhint="done"
+        placeholder="Your name"
+        oninput={() => blip('system')}
+      />
+      <span class="len" aria-hidden="true">{Array.from(name).length}/{NAME_MAX}</span>
+    </div>
+    <div class="buttons">
+      <button type="submit" class="px-btn primary" disabled={!clean}>OK</button>
+    </div>
+  {/if}
 </form>
 
 <style>

@@ -321,11 +321,24 @@ function condState(over: Partial<CondState> = {}, flags: Record<string, boolean 
     weekday: () => 'fri',
     companion: () => 'piggy-2',
     location: () => 'lake_alice',
+    player: () => 'Alex',
     ...over,
   };
 }
 
 describe('conditions', () => {
+  test('player names normalize case, Unicode width and outer whitespace, with exact alias matching', () => {
+    const matches = (name: string, condition: string) => evalCondition(parseCondition(condition), condState({ player: () => name }));
+    for (const name of ['Edward', 'eDwArD', ' Eddie ', 'Ｅｄｄｙ', 'ED', 'Edd']) {
+      expect(matches(name, 'player = Edward, Eddie, Ed, Eddy, Edd')).toBe(true);
+      expect(matches(name, 'player != Edward, Eddie, Ed, Eddy, Edd')).toBe(false);
+    }
+    for (const name of ['Edgar', 'Freddy', 'Edwardson', 'Maxine', '']) {
+      expect(matches(name, 'player = Edward, Eddie, Ed, Eddy, Edd, Max')).toBe(false);
+    }
+    expect(() => parseCondition('player > Edward')).toThrow('only supports = and !=');
+  });
+
   const t = (src: string, flags: Record<string, boolean | number | string> = {}, pig: PigId | null = null) =>
     evalCondition(parseCondition(src), condState({}, flags), pig);
 
@@ -475,7 +488,7 @@ describe('triggers', () => {
 
 interface Run { log: string[]; store: string[]; flags: Record<string, boolean | number | string>; result: string }
 
-async function run(src: string, opts: { replay?: boolean; choices?: number[]; asks?: (string | null)[]; flags?: Record<string, boolean | number | string>; items?: Record<string, number>; abortAfter?: number; abortAtText?: string } = {}): Promise<Run> {
+async function run(src: string, opts: { replay?: boolean; playerName?: string; choices?: number[]; asks?: (string | null)[]; flags?: Record<string, boolean | number | string>; items?: Record<string, number>; abortAfter?: number; abortAtText?: string } = {}): Promise<Run> {
   const scenes = parseKScript(src, 'run.ks');
   const byId = new Map(scenes.map((s) => [s.id, s]));
   const log: string[] = [];
@@ -486,7 +499,7 @@ async function run(src: string, opts: { replay?: boolean; choices?: number[]; as
   const asks = [...(opts.asks ?? [])];
   let lines = 0;
   let stopped = false;
-  const cond = condState({ flag: (n) => flags[n], ...(opts.items ? { item: (id: string) => opts.items![id] ?? 0 } : {}) });
+  const cond = condState({ player: () => opts.playerName ?? 'Alex', flag: (n) => flags[n], ...(opts.items ? { item: (id: string) => opts.items![id] ?? 0 } : {}) });
   const env: VnEnv = {
     async say(l) {
       lines++;
@@ -503,7 +516,7 @@ async function run(src: string, opts: { replay?: boolean; choices?: number[]; as
     async call(id, replay) { return runProgram(byId.get(id)!, env, { replay }); },
     cond,
     text: {
-      player: () => 'Alex', companion: () => 'Piggy 2', time: () => '6:30 PM', timeOfDay: () => 'evening', weekday: () => 'Friday',
+      player: () => opts.playerName ?? 'Alex', companion: () => 'Piggy 2', time: () => '6:30 PM', timeOfDay: () => 'evening', weekday: () => 'Friday',
       fact: (k) => facts[k],
     },
     store: {
@@ -568,6 +581,43 @@ describe('the prologue intake checkpoint', () => {
     expect(resumed.store.some((s) => /^give |^bond piggy-\d 5$/.test(s))).toBe(false);
     const replay = await run(src, { flags, replay: true });
     expect(firstLine(replay)).toContain('The bus hisses');
+    expect(replay.store).toEqual([]);
+  });
+});
+
+describe('the prologue name greetings', () => {
+  const src = readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8');
+  const flags = { 'intake.done': true, 'fact.comfort_food': 'ramen' };
+  const greetings = ['Love that name!', "That's based.", 'Maximum friend potential.'];
+
+  test('each alias gets exactly its own greeting when that pig learns the name, with no extra rewards', async () => {
+    const ordinary = await run(src, { flags, playerName: 'Alex' });
+    for (const [pig, names, learned] of [
+      ['piggy-1', ['Edward', 'eDDIE', 'Ed', 'Eddy', 'Edd'], "player: I'm"],
+      ['piggy-2', ['Serban', 'sERbON'], 'Kempa intake form, page one'],
+      ['piggy-3', ['Max', 'mAXx'], "This one's yours."],
+    ] as const) {
+      for (const playerName of names) {
+        const result = await run(src, { flags, playerName });
+        const hits = result.log.filter((line) => greetings.some((text) => line.includes(text)));
+        expect(hits).toHaveLength(1);
+        expect(hits[0]).toStartWith(pig);
+        expect(hits[0]).toContain(playerName);
+        const greetingIndex = result.log.indexOf(hits[0]);
+        expect(result.log.slice(0, greetingIndex).some((line) => line.includes(learned))).toBe(true);
+        if (pig === 'piggy-2') expect(hits[0]).toBe(`piggy-2 proud: ${playerName}. That's based.`);
+        expect(result.store).toEqual(ordinary.store);
+      }
+    }
+  });
+
+  test('unrelated names keep the ordinary introduction, and replay keeps greetings without writes', async () => {
+    for (const playerName of ['Alex', 'Edgar', 'Maxine', 'Serbano']) {
+      const result = await run(src, { flags, playerName });
+      expect(result.log.some((line) => greetings.some((text) => line.includes(text)))).toBe(false);
+    }
+    const replay = await run(src, { flags, playerName: 'Maxx', replay: true });
+    expect(replay.log.filter((line) => line.includes('Maximum friend potential.'))).toHaveLength(1);
     expect(replay.store).toEqual([]);
   });
 });

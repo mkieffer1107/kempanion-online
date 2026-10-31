@@ -242,7 +242,7 @@ export interface IntakeResult {
  *  night owl → P3 +20, "What's sleep?" → P2 +20. */
 export function applyIntake(a: IntakeAnswers): IntakeResult {
   const name = cleanText(a.name, NAME_MAX) || 'You';
-  let food = cleanText(a.comfortFood, 24) || 'soup';
+  let food = cleanText(a.comfortFood, 24) || 'muffin';
   const porkSwap = isPorkFood(food);
   if (porkSwap) food = 'soup';
   const bonds: Record<PigId, number> = { 'piggy-1': 0, 'piggy-2': 0, 'piggy-3': 0 };

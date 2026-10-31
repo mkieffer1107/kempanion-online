@@ -131,7 +131,7 @@ narrator: 【KEMPA AI】Question 3 of 4. Early bird or night owl?
   [bond piggy-2 +20]
   narrator: 【KEMPA AI】...Noted. A Kempanion has been notified.
 narrator: 【KEMPA AI】Last one, question 4 of 4. What's your comfort food?
-[input comfort_food "Comfort food?" "soup"]
+[input comfort_food "Comfort food?" "muffin"]
 [set intake.done]
 *after_intake
 [sfx success]
@@ -179,6 +179,10 @@ piggy-1 surprised: Wait, is it 12:44? Period six starts at 12:50, and I'm all th
 piggy-1 proud: Six minutes is a tenth of an hour. I can make it.
 piggy-1 happy: I'm Piggy 1!
 [nameplate piggy-1]
+player: I'm {player}.
+[if player = Edward, Eddie, Ed, Eddy, Edd]
+  piggy-1 happy: {player}? Love that name! Sounds like someone I'd want on my team.
+[endif]
 piggy-1 happy: See you at the pairing tonight, teammate— let's goooo!
 [hide piggy-1]
 [sfx whoosh]
@@ -197,6 +201,10 @@ piggy-2 neutral: Next.
 piggy-2 neutral: Name.
 player: {player}.
 piggy-2 thinking: {player}. Kempa intake form, page one, reviewing now.
+[if player = Serban, Serbon]
+  piggy-2 proud: {player}. That's based.
+  [expr piggy-2 thinking]
+[endif]
 [if flag(intake.sleep) = nosleep]
   piggy-2 surprised: Sleep schedule: "What's sleep?"
   piggy-2 neutral: Sit down.
@@ -211,7 +219,7 @@ piggy-2 thinking: {player}. Kempa intake form, page one, reviewing now.
   [set fact.comfort_food = soup]
   piggy-2 neutral: I'm writing down soup. Soup is always based.
 [else]
-  piggy-2 neutral: Comfort food: {fact:comfort_food|soup}. Noted.
+  piggy-2 neutral: Comfort food: {fact:comfort_food|muffin}. Noted.
 [endif]
 piggy-2 thinking: There's a volleyball scuff on your shoe. You met Piggy 1 at the Plaza.
 piggy-2 thinking: Then you walked here, in this heat, without water.
@@ -250,6 +258,10 @@ piggy-3 happy: Oh, nice. We agree.
 piggy-3 bashful_smile: I'm Piggy 3, by the way. Probably should've led with that.
 [nameplate piggy-3]
 piggy-3 happy: Okay, so— you're {player}? This one's yours.
+[if player = Max, Maxx]
+  piggy-3 excited: {player}? Maximum friend potential. Highly scientific metric. I just made it up.
+  [expr piggy-3 happy]
+[endif]
 [if item(kempapager) = 0]
   [give kempapager 1]
 [endif]
@@ -309,10 +321,14 @@ piggy-2 thinking: Is it autonomous, or is someone off-camera holding a controlle
 [expr piggy-2 neutral]
 piggy-3 phone_mumble_nervous mumble: ...wait, is it sped up? What the heck— this is 20x speed! And is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.
+[expr piggy-3 neutral]
 piggy-1 excited: Hey, did you read the Kempa brochure? There's a legend about the big sakura by the tower.
-piggy-3 thinking: Is that the promise thingie?
-piggy-3 happy: If two people make a promise under the sakura by Century Tower while the carillon plays at dusk...
-piggy-3 bashful_smile: ...the promise blooms forever. Also, the brochure's UI is really bad.
+piggy-3 thinking: Oh, were we supposed to read that? Is that the promise thingie?
+piggy-1 proud: Oh, you didn't read it? Not surprised.
+piggy-1 proud: Anyway, if two people make a promise under the sakura by Century Tower while the carillon plays at dusk...
+piggy-3 excited: ...the promise blooms forever. Also, the brochure's design is bad.
+[expr piggy-1 neutral]
+[expr piggy-3 neutral]
 piggy-2 neutral: Unverified. Based, but unverified.
 piggy-1 happy: The brochure says there are 1,853 trees, one for 1853. Nobody's ever counted.
 piggy-3 thinking: I want to count them. Not tonight, but I want to.

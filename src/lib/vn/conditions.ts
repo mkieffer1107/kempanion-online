@@ -8,6 +8,7 @@
 //   item(pub_sub) >= 1        inventory count     seen(p1_h3)   sick(piggy-2)   need(piggy-2, energy) < 30
 //   money >= 20   chapter >= 2   days >= 3   month = 10,11   day = 31   hour >= 17   replay
 //   time = day,morning   slot = dusk   weekday = sat,sun   companion = piggy-2 | none   location = plaza
+//   player = Edward,Eddie   the player's name, ignoring case and surrounding whitespace
 //   a && b   a and b   a || b   a or b   !a   not a   ( … )   true   false
 import { NEED_IDS, PIG_IDS, type NeedId, type PigId, type TimeOfDay } from '../types';
 import { WEEKDAYS, type Weekday } from '../time';
@@ -23,7 +24,7 @@ export type Term =
   | { f: 'flag'; name: string }
   | { f: 'item'; id: string }
   | { f: 'seen'; id: string }
-  | { f: 'money' | 'chapter' | 'days' | 'month' | 'day' | 'hour' | 'replay' | 'time' | 'slot' | 'weekday' | 'companion' | 'location' };
+  | { f: 'money' | 'chapter' | 'days' | 'month' | 'day' | 'hour' | 'replay' | 'time' | 'slot' | 'weekday' | 'companion' | 'location' | 'player' };
 
 export type Cond =
   | { k: 'and' | 'or'; a: Cond; b: Cond }
@@ -52,6 +53,7 @@ export interface CondState {
   weekday(): Weekday;
   companion(): PigId | null;
   location(): string;
+  player(): string;
 }
 
 export class CondError extends Error {
@@ -65,7 +67,7 @@ export const TIMES: readonly TimeOfDay[] = ['morning', 'day', 'evening', 'night'
 export const SLOTS: readonly ScheduleSlot[] = ['dawn', 'morning', 'midday', 'afternoon', 'dusk', 'night', 'owl'];
 
 const NUMERIC_KEYWORDS = ['money', 'chapter', 'days', 'month', 'day', 'hour'] as const;
-const STRING_KEYWORDS = ['time', 'slot', 'weekday', 'companion', 'location'] as const;
+const STRING_KEYWORDS = ['time', 'slot', 'weekday', 'companion', 'location', 'player'] as const;
 const FUNCTIONS = ['bond', 'hearts', 'points', 'flag', 'item', 'seen', 'need', 'sick'] as const;
 
 const NEED_ALIASES: Record<string, NeedId> = { tummy: 'hunger', food: 'hunger', clean: 'hygiene', sleep: 'energy' };
@@ -265,6 +267,7 @@ function finishTerm(term: Term, op?: CmpOp, values?: CondValue[]): Cond {
 }
 
 function checkKeywordValue(name: string, v: string): string {
+  if (name === 'player') return nameKey(v);
   const s = v.toLowerCase();
   if (name === 'time' && !(TIMES as readonly string[]).includes(s)) throw new CondError(`time must be one of ${TIMES.join(', ')}`);
   if (name === 'slot' && !(SLOTS as readonly string[]).includes(s)) throw new CondError(`slot must be one of ${SLOTS.join(', ')}`);
@@ -291,6 +294,10 @@ export function parseCondition(src: string): Cond {
 
 // ───────── evaluation ─────────
 
+function nameKey(value: string): string {
+  return value.normalize('NFKC').trim().toLowerCase();
+}
+
 function termValue(term: Term, s: CondState, scenePig: PigId | null): number | string | boolean | undefined {
   switch (term.f) {
     case 'hearts': case 'points': {
@@ -316,6 +323,7 @@ function termValue(term: Term, s: CondState, scenePig: PigId | null): number | s
     case 'weekday': return s.weekday();
     case 'companion': return s.companion() ?? 'none';
     case 'location': return s.location();
+    case 'player': return nameKey(s.player());
   }
 }
 

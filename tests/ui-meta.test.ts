@@ -31,11 +31,11 @@ describe('intake form (GAME_DESIGN §3)', () => {
       .toEqual({ 'piggy-1': 20, 'piggy-2': 0, 'piggy-3': 0 });
   });
 
-  test('facts use the KScript [input] key=value shape; comfort food defaults to soup', () => {
+  test('facts use the KScript [input] key=value shape; comfort food defaults to muffin', () => {
     const r = applyIntake({ name: 'Riley', whyUf: 'medicine', sleep: 'nosleep', comfortFood: '  ' });
-    expect(r.facts).toEqual(['why_uf=Medicine & Life Sciences', "sleep=What's sleep?", 'comfort_food=soup']);
+    expect(r.facts).toEqual(['why_uf=Medicine & Life Sciences', "sleep=What's sleep?", 'comfort_food=muffin']);
     expect(r.flags).toEqual({
-      'fact.why_uf': 'Medicine & Life Sciences', 'fact.sleep': "What's sleep?", 'fact.comfort_food': 'soup',
+      'fact.why_uf': 'Medicine & Life Sciences', 'fact.sleep': "What's sleep?", 'fact.comfort_food': 'muffin',
       'intake.why_uf': 'medicine', 'intake.sleep': 'nosleep',
     });
     expect(applyIntake({ name: 'R', whyUf: 'arts', sleep: 'early', comfortFood: 'miso ramen' }).comfortFood).toBe('miso ramen');

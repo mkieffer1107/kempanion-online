@@ -42,7 +42,7 @@ export interface VnEnv {
   /** Show numbered options; resolve with the picked index. */
   choose(options: string[]): Promise<number>;
   /** Free text for [input]; null = cancelled. */
-  ask(opts: { prompt?: string; placeholder?: string }): Promise<string | null>;
+  ask(opts: { key?: string; prompt?: string; placeholder?: string }): Promise<string | null>;
   present(cmd: PresentCommand, ctx: { replay: boolean; scene: Scene }): Promise<void> | void;
   pickCompanion(): Promise<PigId>;
   enterName(): Promise<string>;
@@ -119,7 +119,7 @@ export async function runProgram(scene: Scene, env: VnEnv, opts: { replay?: bool
       }
       case 'input': {
         if (replay) return;
-        const answer = await env.ask({ prompt: cmd.prompt ? interp(cmd.prompt) : undefined, placeholder: cmd.fallback });
+        const answer = await env.ask({ key: cmd.key, prompt: cmd.prompt ? interp(cmd.prompt) : undefined, placeholder: cmd.fallback });
         if (env.aborted()) return;
         const value = (answer ?? '').trim().slice(0, 60) || cmd.fallback || '';
         if (value) env.store.setFact(cmd.key, value, scenePig ?? undefined);

@@ -29,8 +29,8 @@ export interface LineHandle {
 }
 
 export interface AskOptions {
-  /** The [name] question keeps its nickname keyboard, whitespace cleanup and random blank default. */
-  kind?: 'name';
+  /** Intake name/food answers require confirmation; names keep their keyboard, cleanup and blank default. */
+  kind?: 'name' | 'food';
   initial?: string;
   prompt?: string;
   placeholder?: string;
@@ -133,6 +133,8 @@ class DialogueController {
   thinking = $state(false);
   choices = $state<string[] | null>(null);
   input = $state<AskOptions | null>(null);
+  /** Intake answers only return to the story after the player confirms the normalized draft. */
+  pendingAnswer = $state<string | null>(null);
   log = $state<LogLine[]>([]);
   auto = $state(false);
   skip = $state(false);
@@ -289,6 +291,7 @@ class DialogueController {
   /** Free text from the player (chat input). Resolves with the text, or null when they leave. */
   ask(opts: AskOptions = {}): Promise<string | null> {
     if (this.#ask) { const r = this.#ask; this.#ask = null; r(null); }
+    this.pendingAnswer = null;
     const L = this.#line;
     if (L && L.done && this.waiting) this.#continue(L);
     this.visible = true;
@@ -301,17 +304,42 @@ class DialogueController {
   submit(text: string): boolean {
     const o = this.input;
     const resolve = this.#ask;
-    if (!o || !resolve) return false;
-    const t = o.kind === 'name' ? enteredName(text) : text.trim().slice(0, o.maxLength ?? 140);
+    if (!o || !resolve || this.pendingAnswer !== null) return false;
+    const typed = text.trim().slice(0, o.maxLength ?? 140);
+    const t = o.kind === 'name' ? enteredName(text) : o.kind === 'food' ? typed || o.placeholder || '' : typed;
     if (!t && !o.allowEmpty) return false;
+    if (o.kind === 'name' || o.kind === 'food') {
+      this.pendingAnswer = t;
+      return true;
+    }
     this.#ask = null;
     this.input = null;
     resolve(t);
     return true;
   }
 
+  /** Commit the exact intake answer shown in the confirmation, without normalizing it again. */
+  confirmAnswer(): boolean {
+    if (!this.input?.kind || this.pendingAnswer === null || !this.#ask) return false;
+    const answer = this.pendingAnswer;
+    const resolve = this.#ask;
+    this.#ask = null;
+    this.input = null;
+    this.pendingAnswer = null;
+    resolve(answer);
+    return true;
+  }
+
+  /** Return to the same question with the proposed answer ready to edit. */
+  editAnswer(): void {
+    if (!this.input?.kind || this.pendingAnswer === null) return;
+    this.input = { ...this.input, initial: this.pendingAnswer };
+    this.pendingAnswer = null;
+  }
+
   /** Leave button: resolves the open ask() with null, or aborts a thinking brain. */
   leave(): void {
+    this.pendingAnswer = null;
     if (this.#ask) {
       const r = this.#ask;
       this.#ask = null;
@@ -388,6 +416,7 @@ class DialogueController {
 
   /** Resolve every pending wait (stopping a scene or chat): lines continue, choices pick 0, asks return null. */
   cancel(): void {
+    this.pendingAnswer = null;
     this.mumbling = false;
     this.#gen++;
     this.onLeave?.();
