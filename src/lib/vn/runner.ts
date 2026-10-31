@@ -124,9 +124,9 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
         const p = rs.portraits.get(pig);
         if (p) p.expression = line.expression;
       }
-      const mumbling = line.speaker === 'piggy-3' && line.expression === 'phone_mumble';
+      const mumbling = line.delivery === 'mumble' || (line.speaker === 'piggy-3' && line.expression === 'phone_mumble');
       await dialogue.say(line.speaker, line.text, line.expression, {
-        read, name: rs.names.get(line.speaker as PigId), whisper: mumbling, rate: mumbling ? 2 : 1,
+        read, name: rs.names.get(line.speaker as PigId), mumble: mumbling, whisper: mumbling, rate: mumbling ? 2 : 1,
       });
     },
     choose: (options) => dialogue.choose(options),

@@ -44,6 +44,8 @@ export interface AskOptions {
 }
 
 export interface SayOptions {
+  /** Small, quiet delivery independent of the portrait pose. */
+  mumble?: boolean;
   /** Scene-local name plate (e.g. "???" before an introduction); also captured in this line's backlog entry. */
   name?: string;
   /** The player has read this line before (skip mode may pass it). */
@@ -137,6 +139,7 @@ class DialogueController {
 
   /** Expression of the current speaker (for UI; the stage portrait is set by beginLine). */
   expression = $state<Expression | null>(null);
+  mumbling = $state(false);
   /** Ctrl held: skip read lines while held. */
   skipHeld = $state(false);
   /** H / HIDE: the text box is hidden until the next tap or key. */
@@ -200,6 +203,7 @@ class DialogueController {
     this.name = opts.name ?? speakerName(speaker, game.save.player.name);
     this.color = speakerColor(speaker);
     this.expression = expression ?? null;
+    this.mumbling = !!opts.mumble;
     this.text = '';
     this.shown = 0;
     this.typing = true;
@@ -321,6 +325,7 @@ class DialogueController {
   /** "…" indicator while a brain works; with a speaker, the box switches to that name plate first. */
   setThinking(on: boolean, speaker?: SpeakerId): void {
     if (on && speaker) {
+      this.mumbling = false;
       this.#closeLine();
       this.visible = true;
       this.speaker = speaker;
@@ -367,10 +372,11 @@ class DialogueController {
     if (this.waiting) this.#continue(L);
   }
 
-  hide(): void { this.visible = false; stage.setSpeaker(null); }
+  hide(): void { this.visible = false; this.mumbling = false; stage.setSpeaker(null); }
 
   /** Hide the box until the next line (scene transitions, CGs, UI hooks); releases a waiting line. */
   conceal(): void {
+    this.mumbling = false;
     this.#closeLine();
     this.visible = false;
     this.text = '';
@@ -382,6 +388,7 @@ class DialogueController {
 
   /** Resolve every pending wait (stopping a scene or chat): lines continue, choices pick 0, asks return null. */
   cancel(): void {
+    this.mumbling = false;
     this.#gen++;
     this.onLeave?.();
     this.backlogOpen = false; // leaving with LOG open must not reopen it in the next chat or scene

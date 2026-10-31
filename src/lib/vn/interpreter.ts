@@ -9,7 +9,7 @@ import { evalCondition, type CondState } from './conditions';
 import { interpolate, type InterpContext } from './interpolate';
 import type { Command, Op, Scene } from './kscript';
 
-export interface SayLine { speaker: SpeakerId; text: string; expression?: Expression; key: string; line: number }
+export interface SayLine { speaker: SpeakerId; text: string; expression?: Expression; delivery?: 'mumble'; key: string; line: number }
 
 /** Commands the environment presents directly (stage, audio, CG, ambience, portrait outfits, name plates). */
 export type PresentCommand = Extract<Command, {
@@ -161,7 +161,7 @@ export async function runProgram(scene: Scene, env: VnEnv, opts: { replay?: bool
     switch (op.op) {
       case 'say':
         silent = 0;
-        await env.say({ speaker: op.speaker, text: interp(op.text), expression: toExpression(op.expression), key: op.key, line: op.line });
+        await env.say({ speaker: op.speaker, text: interp(op.text), expression: toExpression(op.expression), ...(op.delivery ? { delivery: op.delivery } : {}), key: op.key, line: op.line });
         pc++;
         break;
       case 'choice': {

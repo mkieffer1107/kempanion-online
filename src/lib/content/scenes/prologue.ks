@@ -272,12 +272,12 @@ piggy-2 neutral: Off duty. Mostly.
 [show piggy-3 happy right]
 piggy-3 happy: Hi again! Is the pager working?
 piggy-3 happy: It's working. Okay, good.
-# Piggy 3 and his phone. He's already on stage at right, so the face sets the pose: "phone" (holding it out), then
-# "phone_mumble" (muttering at it, quiet and fast), then the snap-out. Piggy 1 and Piggy 2 react to the video.
+# Piggy 3 stays delighted with his phone through the robotics mumble. Piggy 2's question prompts the worried
+# "phone_mumble" pose, then the snap-out. The mumble delivery is independent of his portrait.
 piggy-3 phone: Oh— hey, did you see this on X today?
 narrator: He holds his phone out at arm's length. On the screen, a robot hand folds one sock, very slowly.
 piggy-1 excited: Whoa! Can it set a volleyball?
-piggy-3 phone_mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
+piggy-3 phone mumble: wait, action chunking? Temporal ensembling? Is the foundation model autoregressive or diffusion-based— flow matching? System 1, System 2, Jev, JEPA… receding-horizon sock control… wait, how many action tokens per sock? Is that zero-shot laundry, or did it train on that sock—
 piggy-2 neutral: Is it autonomous, or is someone off-camera holding a controller?
 piggy-3 phone_mumble: ...wait, is it sped up? Where's the 1x label? Is that a controller in the corner of the—
 piggy-3 flustered_blush: Sorry. Phone away. Ceremony first.

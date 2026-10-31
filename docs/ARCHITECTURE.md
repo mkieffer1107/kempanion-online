@@ -108,6 +108,7 @@ cg: cg_p2_lab                               ← album id unlocked when the scene
                                               the scene's end turns both off
 piggy-2 happy: Hey, {player}! You found the Communicore. Based.
 piggy-2: (expression omitted → keeps the current one)
+piggy-3 phone mumble: action chunking… diffusion…  ← small, fast, whispered delivery without changing the happy phone pose
 narrator: The hallway smells faintly of formaldehyde and coffee.
 player: Hi! (shows the player's name plate)
 ? Based.                                    ← choice option; block below is indented (2 spaces)

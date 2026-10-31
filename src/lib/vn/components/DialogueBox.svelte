@@ -152,7 +152,7 @@
       <div
         class="box vn-box"
         class:narration={dialogue.speaker === 'narrator'}
-        class:mumbling={dialogue.mode === 'scene' && dialogue.speaker === 'piggy-3' && dialogue.expression === 'phone_mumble'}
+        class:mumbling={dialogue.mode === 'scene' && dialogue.mumbling}
         role="button"
         tabindex="-1"
         aria-label="Dialogue. Tap or press Enter to continue."
@@ -327,7 +327,7 @@
   }
   .text::-webkit-scrollbar { display: none; }
   .narration .text { color: #e9e2ff; }
-  /* Scripted phone mumbles use Talk's small, quiet type while the window keeps its height. */
+  /* Scripted mumbles use Talk's small, quiet type while the window keeps its height. */
   .mumbling .text {
     font-size: 0.8em;
     max-height: calc(var(--rows) * 1.45em / 0.8);

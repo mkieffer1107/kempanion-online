@@ -113,7 +113,7 @@ export interface ChoiceOption { line: number; text: string; cond?: Cond; body: N
 export interface IfBranch { line: number; cond: Cond | null; body: Node[] }
 
 export type Node =
-  | { t: 'say'; line: number; speaker: SpeakerId; expression?: string; text: string }
+  | { t: 'say'; line: number; speaker: SpeakerId; expression?: string; delivery?: 'mumble'; text: string }
   | { t: 'cmd'; line: number; cmd: Command }
   | { t: 'label'; line: number; name: string }
   | { t: 'choice'; line: number; options: ChoiceOption[] }
@@ -121,7 +121,7 @@ export type Node =
 
 /** Flat program the interpreter runs. `branch` jumps to `target` when its condition is FALSE. */
 export type Op =
-  | { op: 'say'; line: number; speaker: SpeakerId; expression?: string; text: string; key: string }
+  | { op: 'say'; line: number; speaker: SpeakerId; expression?: string; delivery?: 'mumble'; text: string; key: string }
   | { op: 'cmd'; line: number; cmd: Command }
   | { op: 'choice'; line: number; options: { line: number; text: string; cond?: Cond; target: number }[]; end: number }
   | { op: 'jump'; line: number; target: number }
@@ -538,7 +538,7 @@ function controlOf(text: string): Control | null {
   return { kind: m[1].toLowerCase() as Control['kind'], src: m[2] };
 }
 
-const SPEAKER_LINE = /^([A-Za-z0-9_@-]+)(?:\s+([A-Za-z_]+))?\s*:(.*)$/;
+const SPEAKER_LINE = /^([A-Za-z0-9_@-]+)(?:\s+([A-Za-z_]+))?(?:\s+([A-Za-z_]+))?\s*:(.*)$/;
 
 class BodyParser {
   i = 0;
@@ -660,9 +660,11 @@ class BodyParser {
     if (!(SPEAKERS as readonly string[]).includes(who)) {
       throw new LineError(`unknown speaker "${m[1]}"${didYouMean(who, SPEAKERS)} (speakers: ${SPEAKERS.join(', ')})`);
     }
-    const body = textOf(m[3]);
+    const delivery = m[3]?.toLowerCase();
+    if (delivery && delivery !== 'mumble') throw new LineError(`unknown dialogue delivery "${m[3]}" (expected mumble)`);
+    const body = textOf(m[4]);
     if (!body) throw new LineError('empty dialogue line');
-    return [{ t: 'say', line: L.no, speaker: who as SpeakerId, expression: m[2]?.toLowerCase(), text: body }];
+    return [{ t: 'say', line: L.no, speaker: who as SpeakerId, expression: m[2]?.toLowerCase(), ...(delivery ? { delivery: delivery as 'mumble' } : {}), text: body }];
   }
 }
 
@@ -677,7 +679,7 @@ function compile(scene: Pick<Scene, 'id' | 'body'>, report: (line: number, messa
     for (const n of nodes) {
       switch (n.t) {
         case 'say':
-          ops.push({ op: 'say', line: n.line, speaker: n.speaker, expression: n.expression, text: n.text, key: `${scene.id}.${hash(`${n.speaker}|${n.text}`)}` });
+          ops.push({ op: 'say', line: n.line, speaker: n.speaker, expression: n.expression, ...(n.delivery ? { delivery: n.delivery } : {}), text: n.text, key: `${scene.id}.${hash(`${n.speaker}|${n.text}`)}` });
           break;
         case 'label':
           if (n.name in labels) report(n.line, `duplicate label *${n.name}`);

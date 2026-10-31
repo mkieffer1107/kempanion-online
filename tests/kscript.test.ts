@@ -79,6 +79,15 @@ describe('parser', () => {
     ]);
   });
 
+  test("mumble delivery is independent of a line's portrait expression", () => {
+    const s = scene('piggy-3 phone mumble: Action chunking?');
+    expect(s.body[0]).toMatchObject({ t: 'say', speaker: 'piggy-3', expression: 'phone', delivery: 'mumble', text: 'Action chunking?' });
+    expect(s.ops[0]).toMatchObject({ op: 'say', expression: 'phone', delivery: 'mumble' });
+    for (const line of ['piggy-3 phone shout: Nope.', 'piggy-3 phone mumble extra: Nope.']) {
+      expect(errorsOf(`=== bad\n---\n${line}`).length).toBeGreaterThan(0);
+    }
+  });
+
   test('nameplates accept scene aliases and reset to the real name', () => {
     expect(cmds('[nameplate piggy-1 "???"] [nameplate piggy-2 "Pig in scrubs"] [nameplate piggy-1]')).toEqual([
       { kind: 'nameplate', pig: 'piggy-1', name: '???' },

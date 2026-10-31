@@ -381,12 +381,12 @@ describe('the dialogue speaker stays in front after the typewriter stops', () =>
 });
 
 describe('scripted phone mumble delivery', () => {
-  test('each page stays whispered in the mumble pose, then the next normal line restores ordinary delivery', async () => {
+  for (const syntax of ['phone mumble', 'phone_mumble']) test(`${syntax}: pages stay whispered and normal phone delivery resets`, async () => {
     const mumble = '...vision language action models, imitation learning, diffusion policies, sim-to-real transfer, tactile feedback... '
       + '...closed-loop control, action chunks, policy rollouts, world models, contact-rich manipulation, generalization... '
       + '...but what happens when the gripper meets a sock it has never seen before?';
-    const normal = 'Sorry. Phone away. Ceremony first.';
-    SCENES.set('t_scripted_mumble', parseKScript(`=== t_scripted_mumble\n---\npiggy-3 phone_mumble: ${mumble}\npiggy-3 flustered_blush: ${normal}\n`, 'mumble-flow.ks')[0]);
+    const normal = 'Hey, did you see this on X today?';
+    SCENES.set('t_scripted_mumble', parseKScript(`=== t_scripted_mumble\n---\npiggy-3 ${syntax}: ${mumble}\npiggy-3 phone: ${normal}\n`, 'mumble-flow.ks')[0]);
     game.save.settings.textSpeed = 160;
     blips.length = 0;
     const logStart = dialogue.log.length;
@@ -396,7 +396,8 @@ describe('scripted phone mumble delivery', () => {
     while (true) {
       expect(await until(() => dialogue.waiting && dialogue.text !== previous)).toBe(true);
       if (dialogue.text === normal) break;
-      expect(dialogue.expression).toBe('phone_mumble');
+      expect(dialogue.expression).toBe(syntax === 'phone mumble' ? 'phone' : 'phone_mumble');
+      expect(dialogue.mumbling).toBe(true);
       expect(dialogue.speaker).toBe('piggy-3');
       expect(dialogue.mode).toBe('scene');
       expect(blips.length).toBeGreaterThan(0);
@@ -407,13 +408,27 @@ describe('scripted phone mumble delivery', () => {
       dialogue.advance();
     }
     expect(pages).toBeGreaterThan(1);
-    expect(dialogue.expression).toBe('flustered_blush');
+    expect(dialogue.expression).toBe('phone');
+    expect(dialogue.mumbling).toBe(false);
     expect(blips.length).toBeGreaterThan(0);
     expect(blips.every((blip) => blip.voice === 'piggy-3' && blip.whisper === false)).toBe(true);
     expect(dialogue.log.slice(logStart).filter((line) => line.speaker === 'piggy-3').map((line) => line.text)).toEqual([mumble, normal]);
     dialogue.advance();
     await scene.run;
     expect(dialogue.expression).toBeNull();
+    expect(dialogue.mumbling).toBe(false);
+  });
+
+  test('delivery clears on a normal line and when the dialogue is concealed or cancelled', () => {
+    for (const clear of ['conceal', 'hide', 'cancel', 'reset'] as const) {
+      dialogue.beginLine('piggy-3', 'phone', { mumble: true });
+      expect(dialogue.mumbling).toBe(true);
+      dialogue[clear]();
+      expect(dialogue.mumbling).toBe(false);
+    }
+    dialogue.beginLine('piggy-3', 'phone', { mumble: true });
+    dialogue.beginLine('narrator');
+    expect(dialogue.mumbling).toBe(false);
   });
 });
 
