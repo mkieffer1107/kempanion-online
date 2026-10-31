@@ -396,6 +396,12 @@ export const P3: PigLines = {
       ["happy", "I use Codex for the boring parts so I can do the fun parts. Well, I didn't write the code base, the agent did. I made the decisions."],
       ["thinking", "With coding agents, the part I care about is checking what it actually did. Like, read the diff. Always read the diff."],
       ["thinking", "Okay, so I spawn a few subagents, one job each, and AGENTS.md tells them the house rules. Then I read every diff. Every one."],
+      ["laughing", "Piggy 1 prefers Claude. I prefer Codex, calmly and reasonably. The tiny Codex victory banner is unrelated."],
+    ],
+    "passion_p1:claude": [
+      ["thinking", "Piggy 1 uses Claude. I use Codex. Which is fine, obviously, but I have prepared a very small seventeen-point rebuttal."],
+      ["laughing", "He said “team Claude,” so I made Codex a tiny jersey. No, it cannot wear it. That's not the point."],
+      ["happy", "Claude helped his serve tracker, and it works! Codex could also— okay, no, congratulations first. Nice work, Piggy 1."],
     ],
     "passion_p3:ai": [
       ["thinking", "That score looks good. What was it compared against, though? I want to see them doing the same task."],

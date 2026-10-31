@@ -27,7 +27,7 @@ export interface Author {
   /** Small pixel acorn badge. Not a tell: plenty of hype accounts have one. */
   acorn?: boolean;
   /** Real in-game pig: avatar = faceUrl(pig). */
-  pig?: 'piggy-1' | 'piggy-2' | 'piggy-3';
+  pig?: 'piggy-2' | 'piggy-3';
 }
 
 export interface SeedPost {
@@ -93,7 +93,6 @@ export const AUTHORS = {
   marston2am: { name: 'Marston 2 AM', handle: 'marston_2am_club', species: 'moon' },
   sakura_fc: { name: 'Sakura Forecast', handle: 'sakura_forecast_bot', species: 'sakura' },
   pirates: { name: 'Pirate Manga Theories', handle: 'pirate_manga_theory', species: 'anchor' },
-  piggy1: { name: 'Piggy 1', handle: 'piggy1_sunrise_reps', species: 'pig', pig: 'piggy-1' },
   piggy2: { name: 'Piggy 2', handle: 'piggy2_patriot_md', species: 'pig', pig: 'piggy-2' },
   piggy3: { name: 'Piggy 3', handle: 'piggy3_okay_so_builds', species: 'pig', pig: 'piggy-3' },
 } satisfies Record<string, Author>;
@@ -210,11 +209,12 @@ export const SEED_POSTS: SeedPost[] = [
   { id: 'f.algo', cls: 'filler', tier: 1, topic: 'meta', by: 'algo', live: 'algo', text: 'Noticed you like {topic} posts. Here are 40 more.' },
 
   // ── FRIENDS (LIKE, 150) ──
-  { id: 'p1.sunrise', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy1', text: "SUNRISE REPS! Sand courts at 6:30. Bring water, I'm bringing oranges." },
-  { id: 'p1.rally', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy1', text: "20-touch rally today. TWENTY. Let's goooo! Teammate, you were robbed of seeing it." },
-  { id: 'p1.backprop', cls: 'friend', tier: 1, topic: 'llm', by: 'piggy1', text: 'Explained backprop to my AIBHS lab with a volleyball: bump, set, gradient. They clapped. (I made them.)' },
-  { id: 'p1.germany', cls: 'friend', tier: 1, topic: 'life', by: 'piggy1', text: 'Missing the bakeries from my research days in Germany. The bread. The trains on time. The bread.' },
-  { id: 'p1.notonx', cls: 'friend', tier: 1, topic: 'meta', by: 'piggy1', text: "Piggy 3 says I'm 'not on X enough.' I was at PRACTICE. Okay, liking all his posts now." },
+  // Piggy 1 has no X account. Piggy 2 passes along these updates; the p1 IDs name their subject, not their author.
+  { id: 'p1.sunrise', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy2', text: "Piggy 1 asked me to pass this on: sand courts, 6:30. Bring water. He's bringing oranges. Based." },
+  { id: 'p1.rally', cls: 'friend', tier: 1, topic: 'campus', by: 'piggy2', text: 'Piggy 1 reports a 20-touch rally. Then reported it twice more. Stable enthusiasm.' },
+  { id: 'p1.backprop', cls: 'friend', tier: 1, topic: 'llm', by: 'piggy2', text: 'Piggy 1 explained backprop with a volleyball: bump, set, gradient. Nobody sustained a concussion.' },
+  { id: 'p1.germany', cls: 'friend', tier: 1, topic: 'life', by: 'piggy2', text: 'Piggy 1 misses the bakeries from his research days in Germany. Recommending bread. Based.' },
+  { id: 'p1.notonx', cls: 'friend', tier: 1, topic: 'meta', by: 'piggy2', text: "Piggy 1 doesn't have X. He asked me to tell Piggy 3 to stop sending links and come to practice." },
   { id: 'p2.reflex', cls: 'friend', tier: 1, topic: 'med', by: 'piggy2', text: 'Acquired: one expired reflex hammer, 1998. Excellent condition. Filed under neuro. Based.' },
   { id: 'p2.prescribe', cls: 'friend', tier: 1, topic: 'med', by: 'piggy2', text: 'Piggy 3 showed me a chart at 3 AM. No baseline. I prescribed sleep. Based.' },
   { id: 'p2.postcall', cls: 'friend', tier: 1, topic: 'med', by: 'piggy2', text: 'Post-call. Slept 3 hours. Stable. Based.' },
@@ -325,17 +325,17 @@ export const LINES: Record<string, string[]> = {
   missSignal: ['…we scrolled past a good one.', '…that one had a baseline.'],
   missHype: ["…okay, that one's in my head now.", '…the algorithm saw that we saw that.'],
   "friend:p1.sunrise": ["Sunrise reps. Actual sunrise. I'm bringing water."],
-  "friend:p1.rally": ["Twenty touches! He earned those exclamation marks."],
+  "friend:p1.rally": ["Twenty touches! He's told me three times too."],
   "friend:p1.backprop": ["Bump, set, gradient. Wait, I'm stealing that example."],
-  "friend:p1.germany": ["He misses the trains. Mostly the bread, though."],
-  "friend:p1.notonx": ["Practice is a fair excuse. He liked my posts, though."],
+  "friend:p1.germany": ["He talks about that bread like I talk about new models."],
+  "friend:p1.notonx": ["No account. Fair. I'll show him the robot demo after practice."],
   "friend:p2.reflex": ["An expired reflex hammer. He's so proud of it."],
   "friend:p2.prescribe": ["He prescribed me sleep. No refill on the scrolling."],
   "friend:p2.postcall": ["Three hours after call. Somebody get him a pillow."],
   "friend:p2.threshold": ["Threshold AND population. That's why I show him charts."],
-  friend1: ['Piggy 1 posted his rally again. Like it, he checks.', 'Sunrise reps. He means it.'],
+  friend1: ["Piggy 2 passed along Piggy 1's rally report. Twenty touches!", 'Sunrise reps. He means it.'],
   friend2: ["Piggy 2 found another expired thing. He's so proud.", 'He slept three hours. Like it so he feels seen.'],
-  friendMuted1: ['You muted Piggy 1?! …okay, he does post a lot.'],
+  friendMuted1: ["That was Piggy 2 passing along the practice plans."],
   friendMuted2: ['You muted Piggy 2. He will say this is based.'],
   ownLiked: ["Oh— that's mine. You liked my post? Okay. Cool. Cool cool."],
   ownMuted: ['…you muted me. On my own phone. Okay.'],

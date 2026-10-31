@@ -310,7 +310,7 @@ const ANSWER_TOPICS: Readonly<Record<string, string>> = {
   // drained pool falls back to his general lines on the subject (Piggy 1's and Piggy 2's new chips)
   'passion_p1:germany': 'passion_p1', 'passion_p1:german': 'passion_p1', 'passion_p1:haikyu': 'passion_p1',
   'passion_p1:sand': 'passion_p1', 'passion_p1:team': 'passion_p1', 'passion_p1:calls': 'passion_p1',
-  'passion_p1:algorithm': 'passion_p1', 'passion_p1:bug': 'passion_p1',
+  'passion_p1:claude': 'passion_p1', 'passion_p1:algorithm': 'passion_p1', 'passion_p1:bug': 'passion_p1',
   'passion_p2:donation': 'passion_p2:collection', 'passion_p2:research_year': 'passion_p2:medschool',
   'passion_p2:or': 'passion_p2:medschool', 'passion_p2:why': 'passion_p2:neurosurgery',
   'passion_p2:nerves': 'passion_p2:neurosurgery', 'passion_p2:snout': 'passion_p2:pig_models',

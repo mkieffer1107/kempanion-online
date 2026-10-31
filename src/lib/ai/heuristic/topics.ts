@@ -19,7 +19,7 @@ const PASSION_CHIPS: Record<PigId, readonly string[]> = {
   'piggy-1': [
     "How's volleyball?", 'Teach me a serve!', 'What are you coding?', "How's your serve?", 'Sports drink facts?',
     'What was Germany like?', 'Say something in German!', 'Haikyu!! fave character?', 'Sand or indoor?',
-    'Can I join your team?', 'Volleyball lingo?', 'Favorite algorithm?', "Best bug you've fixed?",
+    'Can I join your team?', 'Volleyball lingo?', 'Claude or Codex?', 'Favorite algorithm?', "Best bug you've fixed?",
   ],
   'piggy-2': [
     "What's perfusion?", "What's ischemia?", "How's the research?", "What's CSF?", 'Tell me about the lab pigs',
@@ -32,7 +32,7 @@ const PASSION_CHIPS: Record<PigId, readonly string[]> = {
   // and fallback chips).
   'piggy-3': [
     'Are you on X?', 'Are you on Twitter?', 'Teach me a math trick!', 'Were you a math tutor?', 'What even is an LLM?',
-    'Have you used Codex?', 'What does an EEG show?', "What's medical AI?", 'Would you build a robot?', 'One Piece or JoJo?',
+    'Have you used Codex?', 'Claude or Codex?', 'What does an EEG show?', "What's medical AI?", 'Would you build a robot?', 'One Piece or JoJo?',
     'Why sugar-free Red Bull?', 'Favorite physics fact?', "What's HiPerGator?",
   ],
 };
@@ -63,7 +63,7 @@ function askedAboutX(history: readonly ChatTurn[], pig: PigId): boolean {
 const PASSION_AT: Partial<Record<PigId, Partial<Record<LocationId, readonly string[]>>>> = {
   'piggy-1': {
     volleyball_courts: ['Sand or indoor?', 'Can I join your team?', 'Volleyball lingo?', "How's your serve?"],
-    malachowsky: ['Favorite algorithm?', "Best bug you've fixed?", 'What are you coding?'],
+    malachowsky: ['Favorite algorithm?', "Best bug you've fixed?", 'What are you coding?', 'Claude or Codex?'],
   },
   'piggy-2': {
     shands: ['Do you miss the OR?', "What's a research year?", 'Why neurosurgery?'],

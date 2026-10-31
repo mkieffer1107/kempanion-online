@@ -512,7 +512,8 @@ describe('the persona files and the prompts built from them', () => {
     for (const n of [1, 2, 3]) expect([n, /mathnasium/i.test(await Bun.file(new URL(`../characters/piggy-${n}.md`, import.meta.url)).text())]).toEqual([n, false]);
     const md1 = await Bun.file(new URL('../characters/piggy-1.md', import.meta.url)).text();
     const md2 = await Bun.file(new URL('../characters/piggy-2.md', import.meta.url)).text();
-    expect(md1).not.toMatch(/twitter/i);
+    expect(md1).toMatch(/has no X account and does not use X or Twitter/);
+    expect(md1).toMatch(/Claude is his coding helper, not Codex/);
     expect(md2).not.toMatch(/twitter/i);
     expect(md2).toMatch(/\*\*X, barely\.\*\* He has an X account with zero posts/);
   });

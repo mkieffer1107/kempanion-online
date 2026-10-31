@@ -401,8 +401,8 @@ describe('For You Pig: privacy and wording', () => {
     for (const p of SEED_POSTS) {
       for (const m of plainText(p.text).match(/(?:^|[\s(])@[a-z_]\w*/gi) ?? []) expect(handles.has(m.trim().replace(/^\(/, '')), m).toBe(true);
     }
-    // only the three pigs have real faces; every other account is a pun account with a drawn avatar
-    expect(Object.values(AUTHORS).filter((a) => 'pig' in a).map((a) => a.handle).sort()).toEqual(['piggy1_sunrise_reps', 'piggy2_patriot_md', 'piggy3_okay_so_builds']);
+    // Piggy 1 has no X account; only Piggy 2 and Piggy 3 post with their real faces.
+    expect(Object.values(AUTHORS).filter((a) => 'pig' in a).map((a) => a.handle).sort()).toEqual(['piggy2_patriot_md', 'piggy3_okay_so_builds']);
   });
 
   test('AI and medical jargon is spelled right wherever it shows up', () => {
@@ -647,7 +647,7 @@ describe('For You Pig: playtest regressions', () => {
     if (missed?.kind === 'say') {
       expect(lineFor(missed, e.posts[0], new LinePicker(rng(1)))?.text).toContain('Like friends’ posts');
     }
-    expect(callNote(e.posts[0], 0)).toContain('Piggy 1');
+    expect(callNote(e.posts[0], 0)).toContain('Piggy 2');
     expect(callNote(e.posts[0], 0)).not.toContain('baseline');
   });
 

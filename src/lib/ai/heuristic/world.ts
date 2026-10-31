@@ -87,7 +87,7 @@ export const TOPIC_LABEL: Readonly<Record<string, string>> = {
   // Piggy 1's and Piggy 2's new chips, and the six shared ones
   'passion_p1:germany': 'Germany', 'passion_p1:german': 'German', 'passion_p1:haikyu': 'Haikyu!!',
   'passion_p1:sand': 'sand volleyball', 'passion_p1:team': 'the team', 'passion_p1:calls': 'volleyball lingo',
-  'passion_p1:algorithm': 'algorithms', 'passion_p1:bug': 'debugging',
+  'passion_p1:claude': 'Claude and Codex', 'passion_p1:algorithm': 'algorithms', 'passion_p1:bug': 'debugging',
   'passion_p2:donation': 'old equipment', 'passion_p2:research_year': 'the research year', 'passion_p2:or': 'the OR',
   'passion_p2:why': 'neurosurgery', 'passion_p2:nerves': 'cranial nerves', 'passion_p2:snout': 'Professor Snout',
   'ask_about_self:july4': 'July 4th', 'ask_about_self:competitive': 'competing', 'ask_about_self:chronotype': 'sleep schedules',

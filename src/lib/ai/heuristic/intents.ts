@@ -307,7 +307,7 @@ const RULES: Rule[] = [
   r('passion_p2', 1.5, /\bdoctors?\b|\bphysician\b|\bmedical\b|\bresearch\b/, 'medschool'),
 
   // ── Piggy 3: building ──
-  r('passion_p3', 4, /\bcodex\b|\bcoding agents?\b|\bai agents?\b|\bagentic\b|\bclaude code\b|\bcopilot\b/, 'codex'),
+  r('passion_p3', 4, /\bcodex\b|\bcoding agents?\b|\bai agents?\b|\bagentic\b|\bcopilot\b/, 'codex'),
   r('passion_p3', 2, /\bagents?\b/, 'codex'),
   r('passion_p3', 3, /\bai\b|\bartificial intelligence\b|\bmachine learning\b|\bml\b|\bllms?\b|\blanguage models?\b|\bneural (?:nets?|networks?)\b|\bdeep learning\b|\btransformers?\b|\bgpt\w*\b|\bchatgpt\b|\bchatbots?\b|\bgemini\b|\bclaude\b|\bllama\b|\bfine ?tun\w*\b|\bbenchmarks?\b|\bnavigator(?: ai)?\b|\bbig brain\b|\bgatortron\b|\bembeddings?\b|\binference\b|\bquantiz\w*\b/, 'ai'),
   r('passion_p3', 1.5, /\bmodels?\b|\btraining\b|\bdatasets?\b|\bdata\b/, 'ai'),
@@ -447,7 +447,7 @@ stadium gators chomp century carillon plaza marston malachowsky communicore anat
 volleyball spike serve setter libero rally practice gatorade spreadsheet statistics analytics algorithm algorithms
 programming computer hackathon mintonette neurosurgery neurosurgeon surgery surgeon perfusion ischemia ischemic
 cerebrospinal spinal electrode electrodes microchip microchips implant porcine swine cadaver donors medicine medical
-hospital neuroscience neurons cortex intracranial ventricle lumbar codex agents artificial intelligence models machine
+hospital neuroscience neurons cortex intracranial ventricle lumbar codex claude claudecode agents artificial intelligence models machine
 learning hipergator supercomputer opensource github signals printing printer filament anime manga interface design
 dashboard typography simulation physics building project prototype schedule birthday favorite remember weekend
 hobbies hobby whatever because tomorrow definitely probably`
@@ -584,6 +584,23 @@ export function classifyIntent(text: string, pig?: PigId): IntentResult {
     if (OTHER_PIG_WORDS.test(corrected)) add('other_pig', 1.5, otherPig);
   } else if (entities.allPigs) {
     add('other_pig', 3, 'all');
+  }
+
+  // Claude is Piggy 1's coding teammate; Piggy 3 takes the other side of their friendly rivalry.
+  // Keep introductions and questions about another pig on their own topics, even if Claude is mentioned.
+  const claude = /\bclaude(?: ?code)?\b/.test(corrected);
+  const disclosure = major || ['name', 'year', 'hometown'].includes(acc.get('share_self')?.topic ?? '');
+  const aboutOtherPig = otherPig && otherPig !== pig && !vocative;
+  if (claude && !disclosure && aboutOtherPig && (pig === 'piggy-1' || pig === 'piggy-3')) {
+    acc.delete('passion_p3');
+    add('other_pig', 5.2, otherPig);
+  }
+  if (claude && !disclosure && !aboutOtherPig) {
+    if (pig === 'piggy-1' || pig === 'piggy-3') {
+      // A comparison also hits Codex, code and AI rules; those are the same question, not extra evidence.
+      acc.delete('passion_p3');
+      add('passion_p1', 5.2, 'claude');
+    } else if (/\bclaude code\b/.test(corrected)) add('passion_p3', 4, 'codex');
   }
 
   // combine hits with diminishing returns
