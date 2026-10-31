@@ -294,10 +294,13 @@ narrator: 【KEMPA STAFF】Kempanions, introduce yourselves! Thirty seconds each
 piggy-1 excited: Yeah! I'm Piggy 1, a first-year master's student in the KEMPA AIBHS program. Also its ambassador!
 piggy-1 proud: AI in Biomedical and Health Sciences. I practiced saying the whole thing without taking a breath.
 piggy-3 excited: SI in Biomedical and Health Sciences! Superintelligence, obviously.
+[expr piggy-3 neutral]
 piggy-1 thinking: Sure. Right after it learns to return a serve.
 piggy-1 excited: Anyway, I also play club volleyball, outside hitter— I bring snacks, sunrises and hype!
+[expr piggy-1 neutral]
 piggy-2 neutral: Piggy 2, neurosurgery resident at Shands. Fourth year, research year. I bring hydration and perfusion facts, daily.
-piggy-2 neutral: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
+piggy-2 wink: I swear I don't deliberately cause ischemia in large-animal models. Wink, wink.
+[expr piggy-2 neutral]
 piggy-3 thinking: Piggy 3, physics, mostly computational. I make... little things.
 piggy-3 bashful_smile: Okay, that's— yeah. That's my pitch.
 piggy-1 happy: That was great!

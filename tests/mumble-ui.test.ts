@@ -23,6 +23,7 @@ const ROOT = join(import.meta.dir, '..');
 const read = (p: string) => readFileSync(join(ROOT, p), 'utf8');
 type Set = { portraitAtlas: string; portraits: Record<string, [number, number]>; anims: Record<string, { page: string; frames: number }> };
 const SETS = (sprites as unknown as { sets: Record<string, Set> }).sets;
+const PHONE_POSES = ['phone', 'phone_mumble', 'phone_mumble_nervous'] as const;
 
 describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () => {
   test("Piggy 3's sets have 'phone' and 'phone_mumble' after the pack's cells, in the same atlas", () => {
@@ -41,19 +42,19 @@ describe('the phone portraits (art-src/portraits-extra → sync-sprites)', () =>
     expect(read('scripts/sync-sprites.ts')).toContain("join(root, 'art-src/portraits-extra', pigId, outfit)");
   });
 
-  test('only Piggy 3 has them: Piggy 1 and Piggy 2 keep their 20 / 12 pack portraits', () => {
+  test('only Piggy 3 has phone poses; the other pigs keep their pack portraits and own extras', () => {
     for (const key of ['piggy-1/everyday', 'piggy-1/volleyball', 'piggy-2/everyday', 'piggy-2/scrubs']) {
       const set = SETS[key];
       expect(set.portraits.phone).toBeUndefined();
       expect(set.portraits.phone_mumble).toBeUndefined();
       expect(set.portraits.phone_mumble_nervous).toBeUndefined();
-      expect(Object.keys(set.portraits).length).toBe(key.endsWith('everyday') ? 20 : 12);
+      expect(Object.keys(set.portraits).filter((p) => p !== 'wink').length).toBe(key.endsWith('everyday') ? 20 : 12);
     }
   });
 
   test('the source PNGs are the pack format (384×512 RGBA)', () => {
     for (const outfit of ['everyday', 'hoodie']) {
-      for (const pose of PORTRAIT_POSES) {
+      for (const pose of PHONE_POSES) {
         const png = readFileSync(join(ROOT, 'art-src/portraits-extra/piggy-3', outfit, `${pose}.png`));
         expect([png.readUInt32BE(16), png.readUInt32BE(20), png[25]]).toEqual([384, 512, 6]);
       }
@@ -65,9 +66,9 @@ describe('poses as portrait faces', () => {
   test("never a brain's pick: EXPRESSIONS is still the pack's 20, PORTRAIT_FACES adds the poses", () => {
     expect(EXPRESSIONS.length).toBe(20);
     for (const p of PORTRAIT_POSES) expect(EXPRESSIONS).not.toContain(p);
-    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, 'phone', 'phone_mumble', 'phone_mumble_nervous']);
+    expect(PORTRAIT_FACES).toEqual([...EXPRESSIONS, ...PHONE_POSES, 'wink']);
     // the stand-ins are brain faces that every set has, and the renderer's fallback table carries them
-    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused' });
+    expect(POSE_FALLBACK).toEqual({ phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral' });
     for (const p of PORTRAIT_POSES) {
       expect(EXPRESSIONS).toContain(POSE_FALLBACK[p]);
       expect(ALT_EXPRESSION_FALLBACK[p]).toBe(POSE_FALLBACK[p]);
@@ -76,7 +77,7 @@ describe('poses as portrait faces', () => {
 
   test('Piggy 3 shows his own phone cells in both outfits; the others show the stand-ins', () => {
     for (const outfit of ['everyday', 'hoodie'] as OutfitId[]) {
-      for (const p of PORTRAIT_POSES) {
+      for (const p of PHONE_POSES) {
         const r = resolvePortrait('piggy-3', outfit, p);
         expect([r.expression, r.outfit]).toEqual([p, outfit]);
         expect([r.x, r.y]).toEqual(SETS[`piggy-3/${outfit}`].portraits[p]);
@@ -113,7 +114,7 @@ describe('poses as portrait faces', () => {
     ].join('\n');
     const { issues } = validateKScript([{ file: 'phone.ks', src }]);
     expect(issues.map((i) => formatIssue(i).replace('phone.ks:', ''))).toEqual([
-      '10: warning: piggy-1 has no "phone" portrait (a pose drawn for Piggy 3), so it shows "happy"',
+      '10: warning: piggy-1 has no "phone" portrait, so it shows "happy"',
       '11: error: unknown expression "phon" (did you mean "phone"?)',
     ]);
     // the runtime keeps the pose (unknown faces still fall back to neutral)
@@ -123,6 +124,17 @@ describe('poses as portrait faces', () => {
     expect(resolvePortrait('piggy-2', 'everyday', 'phone_mumble_nervous').expression).toBe('confused');
     expect(toExpression('smug')).toBe('neutral');
     expect(read('src/lib/vn/runner.ts')).toContain('(PORTRAIT_FACES as readonly string[]).includes(e)');
+  });
+
+  test("Piggy 2's wink is a real portrait and scene face, with safe fallbacks in other sets", () => {
+    expect(resolvePortrait('piggy-2', 'everyday', 'wink')).toMatchObject({ expression: 'wink', x: 0, y: 1280 });
+    expect(resolvePortrait('piggy-2', 'scrubs', 'wink').expression).toBe('neutral');
+    expect(resolvePortrait('piggy-1', 'everyday', 'wink').expression).toBe('neutral');
+    expect(toExpression('wink')).toBe('wink');
+    const { issues } = validateKScript([{ file: 'wink.ks', src: '=== wink_check\ntitle: Wink check\n---\n[show piggy-2 neutral center]\npiggy-2 wink: Wink, wink.\n[expr piggy-2 neutral]' }]);
+    expect(issues).toEqual([]);
+    const png = readFileSync(join(ROOT, 'art-src/portraits-extra/piggy-2/everyday/wink.png'));
+    expect([png.readUInt32BE(16), png.readUInt32BE(20), png[25]]).toEqual([384, 512, 6]);
   });
 });
 

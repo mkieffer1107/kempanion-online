@@ -205,7 +205,7 @@ export function validateKScript(files: readonly { file: string; src: string }[],
       }
     });
 
-    /** The pack's expressions, plus the portrait poses ('phone', 'phone_mumble', 'phone_mumble_nervous'): a pig without the pose shows its stand-in. */
+    /** The pack's expressions, plus the game's portrait poses: a pig without the pose shows its stand-in. */
     function checkExpression(line: number, e: string, pig: PigId) {
       if (!(PORTRAIT_FACES as readonly string[]).includes(e)) {
         err(line, `unknown expression "${e}"${didYouMean(e, PORTRAIT_FACES)}`);
@@ -213,7 +213,7 @@ export function validateKScript(files: readonly { file: string; src: string }[],
       }
       const standIn = POSE_FALLBACK[e as PortraitPose];
       if (standIn && !PORTRAIT_CELLS[`${pig}/everyday`]?.portraits[e]) {
-        warn(line, `${pig} has no "${e}" portrait (a pose drawn for Piggy 3), so it shows "${standIn}"`);
+        warn(line, `${pig} has no "${e}" portrait, so it shows "${standIn}"`);
       }
     }
 

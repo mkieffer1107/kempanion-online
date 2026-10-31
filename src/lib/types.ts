@@ -37,13 +37,14 @@ export const EXPRESSIONS: readonly Expression[] = [
 /**
  * Portraits made for the game beyond the pack's expressions (art-src/portraits-extra): Piggy 3 holding his phone out,
  * focused phone mumbling (including his X mumble in Talk), and a nervous phone mumble. Both outfits have all three.
+ * Piggy 2 also has an everyday wink for his introduction.
  * They are Expressions, so a scene can say
- * `piggy-3 phone: …`, but never in EXPRESSIONS: the brains and the LLM never pick a pose. A set without the cell (Piggy
- * 1 and Piggy 2) shows POSE_FALLBACK.
+ * `piggy-3 phone: …`, but never in EXPRESSIONS: the brains and the LLM never pick a pose. A set without the cell
+ * shows POSE_FALLBACK.
  */
-export type PortraitPose = 'phone' | 'phone_mumble' | 'phone_mumble_nervous';
-export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble', 'phone_mumble_nervous'] as const;
-export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused' };
+export type PortraitPose = 'phone' | 'phone_mumble' | 'phone_mumble_nervous' | 'wink';
+export const PORTRAIT_POSES: readonly PortraitPose[] = ['phone', 'phone_mumble', 'phone_mumble_nervous', 'wink'] as const;
+export const POSE_FALLBACK: Readonly<Record<PortraitPose, Expression>> = { phone: 'happy', phone_mumble: 'neutral', phone_mumble_nervous: 'confused', wink: 'neutral' };
 
 /** Every face a portrait can show: what scenes (KScript) and the renderer accept. */
 export const PORTRAIT_FACES: readonly Expression[] = [...EXPRESSIONS, ...PORTRAIT_POSES];
