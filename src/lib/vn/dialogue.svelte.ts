@@ -5,6 +5,7 @@ import { audio, VOICE_STYLE } from '../audio';
 import { stage } from '../engine/stage';
 import { game } from '../state/game.svelte';
 import { speakerColor, speakerName } from '../content/characters';
+import { enteredName } from './name-entry';
 import { DEFAULT_VOICE_STYLE, isBlipChar, msPerChar, paginate, pauseAfter } from './typewriter';
 
 export interface LogLine {
@@ -28,6 +29,9 @@ export interface LineHandle {
 }
 
 export interface AskOptions {
+  /** The [name] question keeps its nickname keyboard, whitespace cleanup and random blank default. */
+  kind?: 'name';
+  initial?: string;
   prompt?: string;
   placeholder?: string;
   quickReplies?: string[];
@@ -294,7 +298,7 @@ class DialogueController {
     const o = this.input;
     const resolve = this.#ask;
     if (!o || !resolve) return false;
-    const t = text.trim().slice(0, o.maxLength ?? 140);
+    const t = o.kind === 'name' ? enteredName(text) : text.trim().slice(0, o.maxLength ?? 140);
     if (!t && !o.allowEmpty) return false;
     this.#ask = null;
     this.input = null;

@@ -1,7 +1,7 @@
 <script lang="ts">
   // App shell: screen router with quick curtain transitions, boot/sim loop, audio unlock + volumes,
   // global keyboard shortcuts (GAME_DESIGN §14), event toasts, title badge, root classes, and the
-  // overlays scripts can await (name entry, mini-games launched from scenes).
+  // overlays scripts can await (mini-games launched from scenes).
   import { onMount, untrack, type Component } from 'svelte';
   import { NEED_IDS, PIG_IDS, type PigId } from './lib/types';
   import { game, type GameEvent, type ScreenId } from './lib/state/game.svelte';
@@ -22,7 +22,6 @@
   import { toast } from './lib/ui/toasts.svelte';
   import { overlays } from './lib/ui/overlays.svelte';
   import Toasts from './lib/ui/components/Toasts.svelte';
-  import NameEntry from './lib/ui/components/NameEntry.svelte';
   import MenuSheet from './lib/ui/components/MenuSheet.svelte';
   import ShortcutHelp from './lib/ui/components/ShortcutHelp.svelte';
   import MinigameHost from './lib/ui/minigame/MinigameHost.svelte';
@@ -378,7 +377,7 @@
     game.lastInputAt = now();
     if (e.defaultPrevented) return;
     if (e.key === 'Escape' && closeTopmost()) { e.preventDefault(); return; }
-    if (overlays.name || overlays.minigame || modalOpen()) return;
+    if (overlays.minigame || modalOpen()) return;
     if (!GAME_SCREENS.has(game.screen)) return;
     if (offerScreenKey(e)) { e.preventDefault(); return; }
     if (VN_SCREENS.has(game.screen) && VN_KEYS.has(e.key)) return;
@@ -419,8 +418,7 @@
   onMount(() => {
     game.boot();
 
-    // VN hooks: the runner awaits these for [name] and [minigame] (it applies mini-game rewards itself).
-    vnHooks.enterName = () => overlays.enterName();
+    // VN hooks: the runner awaits [minigame] (it applies mini-game rewards itself).
     vnHooks.runMinigame = (id, opts) => overlays.runMinigame(id, opts.pig);
     vnHooks.onSignal = (r: SignalResult) => {
       game.report({ tasks: r.tasks, achievements: r.achievements });
@@ -495,7 +493,6 @@
       <MinigameHost id={req.id} pig={req.pig} applyRewards={false} ondone={(r) => req.resolve(r)} />
     </div>
   {/if}
-  {#if overlays.name}<NameEntry />{/if}
 
   {#if brainCoach}
     <!-- phone landscape: a one-row caption that stays on the stage, clear of the rails' keys beside the chip and of

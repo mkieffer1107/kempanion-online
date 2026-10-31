@@ -8,6 +8,9 @@
   import PagerInset from '../../vn/components/PagerInset.svelte';
   import BrainInset from '../../vn/components/BrainInset.svelte';
   import CgOverlay from '../../vn/components/CgOverlay.svelte';
+  import { pagerInset } from '../../vn/pager.svelte';
+  import { brainInset } from '../../vn/brain.svelte';
+  import { bigBrainUiEnabled, getBigBrainChoice, onBigBrainChoice } from '../../ai/choice';
   import { factOf } from '../../vn/effects';
   import { viewport } from '../viewport.svelte';
   import GameLayout from '../layout/GameLayout.svelte';
@@ -23,6 +26,10 @@
   const prologue = id === 'prologue' && !params.replay;
   let menuOpen = $state(false);
   let stageEl = $state<HTMLDivElement>();
+  let brainChoice = $state(getBigBrainChoice());
+  $effect(() => onBigBrainChoice((v) => (brainChoice = v)));
+  // Keep this space during HIDE too, so hiding the controls never moves the picture.
+  const topClearance = $derived(pagerInset.keys !== null || (brainInset.on && bigBrainUiEnabled(brainChoice)) ? 64 : 0);
   let leaving = false;
   let skipped = false;
 
@@ -84,7 +91,7 @@
 {/snippet}
 
 <!-- HIDE hides the layout's regions too: in S the controls sit in the right rail, outside the text box. -->
-<GameLayout chrome="vn" hideUi={dialogue.uiHidden} onreveal={() => (dialogue.uiHidden = false)}>
+<GameLayout chrome="vn" centered {topClearance} hideUi={dialogue.uiHidden} onreveal={() => (dialogue.uiHidden = false)}>
   {#snippet stage()}
     <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
     <div class="stage-wrap" bind:this={stageEl} onclick={stageTap}>

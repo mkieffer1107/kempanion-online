@@ -36,13 +36,17 @@
     overlay?: Snippet;
     /** 'pager' = KempaPager device shell (hub); 'vn' = plain night frame (talk, scenes, places). */
     chrome?: Chrome;
+    /** Center the picture and its UI together on portrait phones (story scenes). */
+    centered?: boolean;
+    /** Minimum space above a centered picture for tutorial overlays, excluding safe-area padding. */
+    topClearance?: number;
     /** Hide text/info/menu/top/bottom (the H key, or while a CG is showing). */
     hideUi?: boolean;
     /** Called with a tap on the hidden UI (to bring it back). */
     onreveal?: () => void;
   }
 
-  let { stage, status, dock, top, info, menu, bottom, text, overlay, chrome = 'vn', hideUi = false, onreveal }: Props = $props();
+  let { stage, status, dock, top, info, menu, bottom, text, overlay, chrome = 'vn', centered = false, topClearance = 0, hideUi = false, onreveal }: Props = $props();
 
   let stageH = $state(270);
   const mode = $derived(viewport.mode);
@@ -55,6 +59,8 @@
   class:hc={ui.highContrast}
   class:no-left={!top}
   class:no-right={!bottom && !dock}
+  class:centered
+  style:--center-top="{topClearance}px"
 >
   <div class="frame" style:--u="{u}px">
     {#if status}<div class="r status">{@render status()}</div>{/if}
@@ -166,6 +172,13 @@
      it doesn't drift when the rows below change. The spare band (tall phones) shows the sakura wall, not bare night. */
   .chrome-vn.mode-t .stage { align-self: end; }
   .chrome-vn.mode-t .frame::before { content: ''; grid-area: stage; background: var(--wall) 0 0 / 128px 128px, var(--night); }
+  /* A story's picture and dialogue form one block: split spare height above/below instead of pinning it low.
+     The stage can still shrink for a keyboard or large text; tutorial insets keep their clear band at the top. */
+  .mode-t.centered .frame {
+    grid-template-rows: minmax(var(--center-top), 1fr) auto auto minmax(0, calc(min(100vw, 720px) - var(--safe-left) - var(--safe-right))) auto auto auto auto auto minmax(0, 1fr);
+    grid-template-areas: '.' 'status' 'top' 'stage' 'bottom' 'text' 'info' 'menu' 'dock' '.';
+    background: var(--wall) 0 0 / 128px 128px, var(--night);
+  }
   /* keyboard open / tiny heights: the stage collapses to a chat strip */
   @media (max-height: 420px) and (max-aspect-ratio: 5/4) {
     .mode-t .stage { min-height: 0; }

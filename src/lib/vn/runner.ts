@@ -7,6 +7,7 @@ import { game } from '../state/game.svelte';
 import { nowDate } from '../state/clock';
 import { timeOfDay, weekday as weekdayOf } from '../time';
 import { LOCATIONS, scheduleSlot } from '../content/locations';
+import { NAME_MAX } from './name-entry';
 import { CHARACTERS, speakerName } from '../content/characters';
 import type { CondState } from './conditions';
 import type { Scene } from './kscript';
@@ -207,16 +208,19 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
       }
     },
 
-    // The companion pick, the name window and a mini-game are player decisions: like a choice, they end SKIP.
+    // The companion pick, name question and mini-game are player decisions: like a choice, they end SKIP.
     async pickCompanion() {
       dialogue.conceal();
       dialogue.stopSkip();
       return vnHooks.pickCompanion ? vnHooks.pickCompanion() : 'piggy-1';
     },
     async enterName() {
-      dialogue.conceal();
       dialogue.stopSkip();
-      return vnHooks.enterName ? vnHooks.enterName() : 'Gator';
+      if (vnHooks.enterName) return vnHooks.enterName();
+      return await dialogue.ask({
+        kind: 'name', initial: game.save.player.name, prompt: 'What should the piggies call you?',
+        placeholder: 'Your name', maxLength: NAME_MAX, allowEmpty: true,
+      }) ?? '';
     },
     async runMinigame(id, pig, replay) {
       if (!vnHooks.runMinigame) return null;
