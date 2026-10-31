@@ -17,8 +17,8 @@
   import { dialogue } from '../dialogue.svelte';
   import { mumbleStage, type MumbleWord } from './mumble.svelte';
   import {
-    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, isRobotStackWord, placeRobotStack,
-    type BubbleBox, type MumbleGeo, type MumbleMode, type Placement, type Rect,
+    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, isRobotStackWord, planRobotStack,
+    type BubbleBox, type RobotStackRise, type MumbleGeo, type MumbleMode, type Placement, type Rect,
   } from './mumble-layout';
 
   interface Props {
@@ -49,6 +49,7 @@
     el: HTMLDivElement;
     r: Rect;
     box: BubbleBox;
+    startsAt?: number;
     timer: ReturnType<typeof setTimeout> | 0;
   }
 
@@ -63,6 +64,8 @@
   let seenPage: number | string = -1;
   let layoutRevision = $state(0);
   let seenGeometry = '';
+  let stackPlan: { word: string; rise: RobotStackRise }[] = [];
+  let lastStackStart: number | null = null;
 
   const reduceQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
   const reduce = () => game.save.settings.reduceMotion || !!reduceQuery?.matches;
@@ -150,21 +153,21 @@
       return null;
     };
     if (stack) {
-      const items = [...live, { el: b.el, box: b, r: { x: 0, y: 0, w: 0, h: 0 }, timer: 0 } satisfies Item];
-      const placements = placeRobotStack(items.map((i) => i.box), g);
-      if (!placements) { b.el.remove(); return false; }
-      items.forEach((item, i) => {
-        const p = placements[i];
-        if (i < live.length) item.el.classList.add('rising');
-        item.r = p.r;
-        item.el.style.left = `${p.x}px`;
-        item.el.style.top = `${p.y}px`;
-        if (item.timer) clearTimeout(item.timer);
-        item.timer = 0;
-      });
-      b.el.classList.add('r', 'stack', still ? 'still' : 'live');
+      const rise = stackPlan.find((entry) => entry.word === word)?.rise;
+      if (!rise) { b.el.remove(); return false; }
+      const now = performance.now();
+      const begins = still || lastStackStart === null ? now : Math.max(now, lastStackStart + rise.clearanceMs);
+      lastStackStart = begins;
+      b.el.style.left = `${rise.x}px`;
+      b.el.style.top = `${rise.y}px`;
+      b.el.style.setProperty('--rise-from', `${rise.fromY}px`);
+      b.el.style.setProperty('--rise-to', `${rise.y}px`);
+      b.el.style.setProperty('--rise-ms', `${rise.riseMs}ms`);
+      b.el.style.setProperty('--rise-delay', `${begins - now}ms`);
+      b.el.classList.add(rise.side === 'right' ? 'r' : 'l', 'stack', still ? 'still' : 'live');
       b.el.style.visibility = '';
-      live.push(items[items.length - 1]);
+      // CSS owns the delayed emergence/rise, so clearing the page also cancels every pending entrance.
+      live.push({ el: b.el, box: b, r: rise.r, startsAt: begins, timer: 0 });
       return true;
     }
     // Compact story clouds reuse the near-head slots; a fading cloud already gives its replacement a pop delay.
@@ -216,12 +219,22 @@
     if (mode === 't' && lineup.length > 1) clear();
     frozen = false;
     pending = [...words].sort((a, b) => a.at - b.at);
+    const geometry = geo();
+    if (geometry?.group && geometry.mode === 't') {
+      const boxes = pending.filter((w) => isRobotStackWord(w.word)).map((w) => {
+        const box = build(w.word, geometry);
+        box.el.remove();
+        return box;
+      });
+      const rises = planRobotStack(boxes, geometry);
+      stackPlan = rises ? boxes.map((b, i) => ({ word: b.word, rise: rises[i] })) : [];
+    }
     if (reduce()) {
       // no pop, drift or fade: the page's first words (up to the cap) stand still beside him while the page is up, and
       // the next page swaps them at once (the text box changes at that moment anyway)
       for (const item of [...live]) retire(item, true);
       const g = geo();
-      for (const w of pending.slice(0, g ? mumbleCap(g) : 2)) spawn(w.word, true);
+      for (const w of pending.slice(0, stackPlan.length || (g ? mumbleCap(g) : 2))) spawn(w.word, true);
       pending = [];
       frozen = true;
       return;
@@ -244,7 +257,7 @@
     while (pending.length && pending[0].at <= n) due.push(pending.shift()!);
     if (!due.length) return;
     const g = geo();
-    for (const w of due.slice(-(g ? mumbleCap(g) : 2))) spawn(w.word, false);
+    for (const w of due.slice(-(stackPlan.length || (g ? mumbleCap(g) : 2)))) spawn(w.word, false);
   }
 
   /** The page has typed: what is up holds still (its drift pauses) until the next page or the snap. */
@@ -264,7 +277,7 @@
     pending = [];
     for (const item of live.splice(0)) {
       if (item.timer) clearTimeout(item.timer);
-      if (reduce()) {
+      if (reduce() || (item.startsAt !== undefined && item.startsAt > performance.now())) {
         item.el.remove();
         continue;
       }
@@ -281,6 +294,8 @@
     live.length = 0;
     fading.length = 0;
     pending = [];
+    stackPlan = [];
+    lastStackStart = null;
     frozen = true;
   }
 
@@ -409,13 +424,23 @@
       vnmb-snap 140ms steps(2, jump-end) both;
     animation-play-state: paused, paused, running;
   }
-  /* The robot stack moves as each new thought arrives; spacing includes its tail, without extra drift. */
-  .mumbles :global(.mb.rising) { transition: top 280ms steps(4, jump-end); }
-  .mumbles :global(.mb.live.stack) { animation: vnmb-pop 150ms steps(3, jump-start) both; }
-  .mumbles :global(.mb.live.stack.snap) { animation: vnmb-snap 140ms steps(2, jump-end) both; }
+  /* Each cloud leaves the shared entrance before the next emerges, then rests in its final readable row. */
+  .mumbles :global(.mb.live.stack) {
+    animation: vnmb-emerge 520ms ease-out var(--rise-delay) both,
+      vnmb-rise var(--rise-ms) linear var(--rise-delay) both;
+  }
+  /* Finishing/skipping the text must not freeze a delayed entrance or a rise already underway. */
+  .mumbles :global(.mb.live.stack.held) { animation-play-state: running, running; }
+  .mumbles :global(.mb.live.stack.snap) {
+    animation: vnmb-emerge 520ms ease-out var(--rise-delay) both,
+      vnmb-rise var(--rise-ms) linear var(--rise-delay) both, vnmb-snap 140ms steps(2, jump-end) both;
+    animation-play-state: paused, paused, running;
+  }
   .mumbles :global(.mb.still) { animation: none; transition: none; }
   /* safety net: the Stage marks itself .reduce when Reduce motion is on */
   :global(.stage-root.reduce) .mumbles :global(.mb) { animation: none; transition: none; }
+  @keyframes -global-vnmb-emerge { from { scale: 0.86; opacity: 0; } to { scale: 1; opacity: 1; } }
+  @keyframes -global-vnmb-rise { from { top: var(--rise-from); } to { top: var(--rise-to); } }
   @keyframes -global-vnmb-pop { from { scale: 0.4; opacity: 0; } to { scale: 1; opacity: 1; } }
   @keyframes -global-vnmb-drift { from { translate: 0 0; } to { translate: 0 calc(-4 * var(--px)); } }
   @keyframes -global-vnmb-out { from { opacity: 1; } to { opacity: 0; } }

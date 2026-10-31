@@ -205,10 +205,36 @@ export function placeRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): Plac
     const r = { x, y, w: b.w, h: b.h + b.tail };
     if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y || r.y + r.h > zone.y + zone.h) return null;
     if ([...g.keep, ...g.obstacles].some((o) => hit(r, o, px))) return null;
-    placements[i] = { x, y, r, side: 'right', slot: i };
+    placements[i] = { x, y, r, side: b.word?.toLowerCase().startsWith('action tokens') ? 'left' : 'right', slot: i };
     bottom = y - gap;
   }
   return placements;
+}
+
+export interface RobotStackRise extends Placement {
+  /** The shared entrance above his hair, before the cloud rises to its final row. */
+  fromY: number;
+  riseMs: number;
+  /** Minimum time after the preceding entry before this cloud has a clear entrance. */
+  clearanceMs: number;
+}
+
+/** Plan all rows up front: the first thought can rise before the next phrase reaches the typewriter. */
+export function planRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): RobotStackRise[] | null {
+  const targets = placeRobotStack(boxes, g);
+  if (!targets) return null;
+  const zone = g.wide ?? g.zone;
+  const drift = Math.min(6 * g.px, targets[0].y - zone.y);
+  const speed = 24 / 1000; // CSS px per millisecond: a gentle rise, independent of the typewriter rate.
+  return targets.map((p, i) => {
+    const entrance = placeRobotStack([boxes[i]], g)![0];
+    const y = p.y - drift;
+    return {
+      ...p, y, r: { ...p.r, y }, fromY: entrance.y,
+      riseMs: Math.max(900, (entrance.y - y) / speed),
+      clearanceMs: i ? (boxes[i].h + boxes[i].tail + 3 * g.px) / speed : 0,
+    };
+  });
 }
 
 /**
@@ -237,7 +263,7 @@ export function placeMumble(
   const label = b.word?.replace(/…$/, '').toLowerCase();
   if (compact && label && ['autoregressive', 'jev', 'jepa'].includes(label)) {
     const left = label !== 'autoregressive';
-    let x0 = label === 'jev' ? face.x - 0.3 * b.w
+    let x0 = label === 'jev' ? face.x - 0.45 * b.w
       : label === 'jepa' ? face.x - 0.55 * b.w
       : face.x + 0.7 * face.w - b.w / 2;
     // Jev sits on his cheek by request, while the ear cloud stays above the face bounds.

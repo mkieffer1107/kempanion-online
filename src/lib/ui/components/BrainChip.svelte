@@ -50,7 +50,7 @@
   aria-label={pct !== null ? `Big Brain installing, ${pct}%. Open brain settings` : big ? 'Big Brain is on. Open brain settings' : 'Big Brain is off. Open brain settings to download or load it'}
   title="Big Brain settings"
 >
-  <span class="face">
+  <span class="face" data-coach-face>
     <Icon id={big || pct !== null ? 'brain_big' : 'brain_heur'} size={small ? 16 : 20} />
     <span class="label">{pct !== null ? `${pct}%` : big ? 'BIG' : 'BRAIN'}</span>
   </span>

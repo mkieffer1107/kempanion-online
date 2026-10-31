@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { parseKScript } from '../src/lib/vn/kscript';
 import { paginate } from '../src/lib/vn/typewriter';
 import { robotMumbleWords } from '../src/lib/vn/components/robot-mumble';
-import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, placeRobotStack, isRobotStackWord, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
+import { hit, mumbleKeepOut, mumbleNeighbours, placeMumble, placeRobotStack, planRobotStack, isRobotStackWord, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
 
 const scene = parseKScript(readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8'), 'prologue.ks')[0];
 const rant = scene.ops.find((o) => o.op === 'say' && o.speaker === 'piggy-3' && o.expression === 'phone_mumble');
@@ -144,6 +144,47 @@ describe('the prologue robot mumble', () => {
       const wrapped = placeRobotStack([...boxes.slice(0, 2), { ...boxes[2], w: 80, h: 48 }], g)!;
       expect(wrapped).toHaveLength(3);
       expect(wrapped[1].r.y + wrapped[1].r.h + 6).toBe(wrapped[2].y);
+    }
+  });
+
+  test('robot thoughts rise before the next entrance and alternate their tail sides, even after a skip', () => {
+    const boxes = [
+      { word: 'receding-horizon…', w: 128, h: 32, tail: 6 },
+      { word: 'action tokens…', w: 112, h: 32, tail: 6 },
+      { word: 'zero-shot laundry…', w: 80, h: 48, tail: 6 },
+    ];
+    for (const width of [320, 393, 768]) {
+      const u = width / 270;
+      const g: MumbleGeo = {
+        mode: 't', px: 2, group: true, keep: mumbleKeepOut('everyday', 'right', 270, u, lineup),
+        zone: { x: 4, y: 4, w: width - 8, h: width - 8 }, obstacles: mumbleNeighbours('right', lineup, 270, u, true),
+      };
+      const plan = planRobotStack(boxes, g)!;
+      expect(plan.map((p) => p.side)).toEqual(['right', 'left', 'right']);
+      for (const arrivals of [[0, 0, 0], [0, 2300, 3700], [0, 5000, 9000]]) {
+        const starts = arrivals.map((at, i) => at);
+        for (let i = 1; i < starts.length; i++) starts[i] = Math.max(starts[i], starts[i - 1] + plan[i].clearanceMs);
+        const at = (i: number, time: number) => {
+          const p = plan[i];
+          const progress = Math.max(0, Math.min(1, (time - starts[i]) / p.riseMs));
+          return { ...p.r, y: p.fromY + (p.y - p.fromY) * progress };
+        };
+        expect(at(0, 300).y).toBeLessThan(at(0, 0).y);
+        expect(at(0, 0).y - at(0, 300).y).toBeLessThan(8);
+        for (let i = 1; i < starts.length; i++) {
+          const older = at(i - 1, starts[i]);
+          expect(older.y + older.h + 6).toBeLessThanOrEqual(plan[i].fromY + 0.001);
+        }
+        for (let time = 0; time < 12000; time += 50) {
+          const visible = plan.map((_, i) => i).filter((i) => starts[i] <= time);
+          for (const i of visible) {
+            const r = at(i, time);
+            for (const keep of [...g.keep, ...g.obstacles]) expect(hit(r, keep)).toBe(false);
+            for (const j of visible.filter((j) => j > i)) expect(hit(r, at(j, time))).toBe(false);
+          }
+        }
+      }
+      expect(planRobotStack(boxes, { ...g, mode: 'w' })).toBeNull();
     }
   });
 

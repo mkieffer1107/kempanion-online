@@ -56,6 +56,9 @@
   .ring {
     display: flex;
     pointer-events: none;
+  }
+  /* The chip keeps its 44px touch box; the tutorial outline follows the smaller visible face. */
+  .ring :global([data-coach-face]) {
     outline: calc(var(--px) * 2) solid var(--gold);
     outline-offset: var(--px);
     animation: ring 1.1s steps(4) infinite;
@@ -82,6 +85,6 @@
   @keyframes nudge-left { 50% { translate: -4px 0; } }
   @keyframes nudge-right { 50% { translate: 4px 0; } }
   @keyframes inset-in { from { transform: translateY(-10px); opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .brain-inset, .ring, .arrow { animation: none; } }
-  :global(html.reduce-motion) .brain-inset, :global(html.reduce-motion) .ring, :global(html.reduce-motion) .arrow { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .brain-inset, .ring :global([data-coach-face]), .arrow { animation: none; } }
+  :global(html.reduce-motion) .brain-inset, :global(html.reduce-motion) .ring :global([data-coach-face]), :global(html.reduce-motion) .arrow { animation: none; }
 </style>

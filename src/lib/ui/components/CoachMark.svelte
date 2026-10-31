@@ -43,7 +43,9 @@
     if (!same(area, nextArea)) area = nextArea;
     const el = document.querySelector<HTMLElement>(`[data-coach="${target}"]`);
     if (!el) return void (rect = null);
-    const r = el.getBoundingClientRect();
+    // Compact controls can keep a larger touch target; ring their visible face, not its invisible padding.
+    const face = el.querySelector<HTMLElement>('[data-coach-face]') ?? el;
+    const r = face.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) return void (rect = null);
     const next = boxOf(r);
     if (!same(rect, next)) rect = next;
@@ -64,7 +66,8 @@
     return { destroy: () => node.remove() };
   }
 
-  const PAD = 6;
+  // The outline layers supply the emphasis; keep the brain chip's gap tight enough for its edge placement.
+  const PAD = $derived(target === 'brain' ? 2 : 6);
   /** Arrow and caption go below a target in the top half of the area, above one in the bottom half. */
   const below = $derived(rect ? rect.y + rect.h / 2 < area.y + area.h / 2 : true);
   const cx = $derived(rect ? rect.x + rect.w / 2 : 0);
