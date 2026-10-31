@@ -41,6 +41,6 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  .small { font-size: 13px; padding: 1px 6px 1px 3px; }
+  .small { min-height: 32px; font-size: 13px; padding: 1px 6px 1px 3px; }
   .bump { transform: translateY(-2px); filter: brightness(1.25); }
 </style>

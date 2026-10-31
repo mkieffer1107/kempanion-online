@@ -50,8 +50,10 @@
   aria-label={pct !== null ? `Big Brain installing, ${pct}%. Open brain settings` : big ? 'Big Brain is on. Open brain settings' : 'Big Brain is off. Open brain settings to download or load it'}
   title="Big Brain settings"
 >
-  <Icon id={big || pct !== null ? 'brain_big' : 'brain_heur'} size={small ? 16 : 20} />
-  <span>{pct !== null ? `${pct}%` : big ? 'BIG' : 'BRAIN'}</span>
+  <span class="face">
+    <Icon id={big || pct !== null ? 'brain_big' : 'brain_heur'} size={small ? 16 : 20} />
+    <span class="label">{pct !== null ? `${pct}%` : big ? 'BIG' : 'BRAIN'}</span>
+  </span>
 </button>
 
 {#if open}
@@ -67,27 +69,40 @@
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     min-height: 44px;
     min-width: 44px;
-    padding: 0 8px;
-    background: rgba(26, 16, 48, 0.72);
+    padding: 0;
+    background: transparent;
     color: #cfc6dc;
-    border: var(--px) solid #8a80a0;
+    border: 0;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 13px;
     letter-spacing: 0.06em;
     cursor: pointer;
   }
-  .chip > span { display: var(--brain-label-display, inline); }
-  .chip.big { color: var(--sakura-2); border-color: var(--sakura-3); }
-  .chip.busy {
-    color: var(--gold);
+  .face {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    background: rgba(26, 16, 48, 0.72);
+    border: var(--px) solid #8a80a0;
+  }
+  .label { display: var(--brain-label-display, inline); }
+  .chip.big { color: var(--sakura-2); }
+  .chip.big .face { border-color: var(--sakura-3); }
+  .chip.busy { color: var(--gold); }
+  .chip.busy .face {
     border-color: var(--warn);
     background: repeating-linear-gradient(135deg, rgba(255, 176, 32, 0.22) 0 4px, rgba(26, 16, 48, 0.72) 4px 8px);
   }
-  .chip.small { font-size: 11px; padding: 0 6px; }
+  .chip.small { font-size: 11px; }
+  /* Match the balance chip visually while the outer button keeps a full 44px touch target. */
+  .chip.small .face { min-height: 32px; padding: 0 6px; }
   .chip:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: var(--px); }
 
   .panel-layer {
