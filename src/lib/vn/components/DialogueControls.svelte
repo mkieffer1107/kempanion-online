@@ -1,5 +1,5 @@
 <script lang="ts">
-  // LOG · AUTO · SKIP · HIDE (+ an optional MENU snippet). DialogueBox shows it as a strip above the box;
+  // LOG · AUTO · HIDE (+ an optional MENU snippet). DialogueBox shows it as a strip above the box;
   // layouts with side rails (S) can render it themselves with `vertical`.
   import type { Snippet } from 'svelte';
   import { dialogue } from '../dialogue.svelte';
@@ -17,8 +17,6 @@
     onclick={(e) => act(e, () => dialogue.openBacklog())}>LOG</button>
   <button type="button" class="px-btn ghost" title="Auto-advance (A)" aria-pressed={dialogue.auto}
     onclick={(e) => act(e, () => dialogue.toggleAuto())}>AUTO</button>
-  <button type="button" class="px-btn ghost" title="Skip ahead to the next choice (S, or hold Ctrl)" aria-pressed={dialogue.skipping}
-    onclick={(e) => act(e, () => dialogue.toggleSkip())}>SKIP</button>
   <button type="button" class="px-btn ghost" title="Hide the text box (H)" disabled={!dialogue.visible}
     onclick={(e) => act(e, () => dialogue.toggleHidden())}>HIDE</button>
   {@render menu?.()}

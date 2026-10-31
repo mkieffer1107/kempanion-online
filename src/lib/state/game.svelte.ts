@@ -57,7 +57,9 @@ function normalize(data: SaveData): SaveData {
   const base = newSave(now()) as unknown as Record<string, unknown>;
   const d = data as unknown as Record<string, unknown>;
   for (const k of Object.keys(base)) if (d[k] === undefined || (d[k] === null && k !== 'companion')) d[k] = base[k];
-  data.settings = { ...defaultSettings(), ...data.settings };
+  // Check the stored marker before forward-filling defaults, so this upgrade only happens once.
+  if (!data.settings?.autoTimingVersion && data.settings?.autoDelay === 1.6) data.settings.autoDelay = 0.8;
+  data.settings = { ...defaultSettings(), ...data.settings, autoTimingVersion: 1 };
   for (const pig of PIG_IDS) {
     data.chatLog[pig] ??= [];
     data.memories[pig] ??= [];

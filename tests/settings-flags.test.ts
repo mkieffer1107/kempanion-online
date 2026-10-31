@@ -6,6 +6,7 @@ import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compileModule } from 'svelte/compiler';
+import { newSave } from '../src/lib/pet/sim';
 import { SETTINGS_FLAGS, carrySettingsFlags, clearSettingsFlags } from '../src/lib/state/settings-flags';
 
 // The game store is a Svelte rune module (.svelte.ts): compile it the way Vite does, so the real reset() runs here.
@@ -118,5 +119,50 @@ describe('settings kept in save.flags (SS-2)', () => {
     const flags: Record<string, boolean | number | string> = { ...CUSTOM, ...STORY };
     clearSettingsFlags(flags);
     expect(flags).toEqual({ ...STORY });
+  });
+});
+
+describe('post-typewriter AUTO delay migration', () => {
+  test('new saves default to 0.8 seconds and legacy defaults migrate only once', () => {
+    const original = JSON.parse(JSON.stringify(game.save));
+    try {
+      game.save = newSave(0);
+      expect(game.save.settings.autoDelay).toBe(0.8);
+      expect(game.save.settings.autoTimingVersion).toBe(1);
+      const legacy = JSON.parse(JSON.stringify(game.save));
+      delete legacy.settings.autoTimingVersion;
+      legacy.settings.autoDelay = 1.6;
+      game.importSave(legacy);
+      expect(game.save.settings.autoDelay).toBe(0.8);
+      expect(game.save.settings.autoTimingVersion).toBe(1);
+      // Choosing the old number after migration is a real preference, not another legacy default.
+      game.save.settings.autoDelay = 1.6;
+      game.importSave(JSON.parse(JSON.stringify(game.save)));
+      expect(game.save.settings.autoDelay).toBe(1.6);
+      expect(game.save.settings.autoTimingVersion).toBe(1);
+    } finally {
+      game.save = original;
+    }
+  });
+
+  test('legacy custom delays survive migration and missing settings receive the new default', () => {
+    const original = JSON.parse(JSON.stringify(game.save));
+    try {
+      for (const delay of [0.5, 1.2, 4]) {
+        const legacy = JSON.parse(JSON.stringify(original));
+        delete legacy.settings.autoTimingVersion;
+        legacy.settings.autoDelay = delay;
+        game.importSave(legacy);
+        expect(game.save.settings.autoDelay).toBe(delay);
+        expect(game.save.settings.autoTimingVersion).toBe(1);
+      }
+      const legacy = JSON.parse(JSON.stringify(original));
+      delete legacy.settings;
+      game.importSave(legacy);
+      expect(game.save.settings.autoDelay).toBe(0.8);
+      expect(game.save.settings.autoTimingVersion).toBe(1);
+    } finally {
+      game.save = original;
+    }
   });
 });

@@ -271,6 +271,8 @@ export interface Settings {
   textSpeed: number;
   /** Seconds to wait after a line finishes in auto mode. */
   autoDelay: number;
+  /** One-time migration to a post-typewriter AUTO delay (legacy default was 1.6 seconds). */
+  autoTimingVersion?: 1;
   masterVolume: number; // 0..1
   bgmVolume: number;
   sfxVolume: number;

@@ -348,7 +348,7 @@
         <!-- right under the preview, so a new size shows even where the tab has to scroll -->
         {@render textSize()}
         <div class="row">
-          <label class="lbl" for="auto-delay">Auto delay <small>{s.autoDelay.toFixed(1)} s after each line</small></label>
+          <label class="lbl" for="auto-delay">Auto delay <small>{s.autoDelay.toFixed(1)} s after text finishes</small></label>
           <input id="auto-delay" type="range" min="0.5" max="4" step="0.1" value={s.autoDelay}
             oninput={(e) => { game.save.settings.autoDelay = Number((e.currentTarget as HTMLInputElement).value); save(); }} />
         </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   // PC-98 ADV text window: name plate in the speaker's colour, 3–4 visible lines, typewriter, ▼ / ▶▶ / "…",
-  // LOG · AUTO · SKIP · HIDE (+ MENU snippet), answers above the box (scene choices, free-chat replies as
+  // LOG · AUTO · HIDE (+ MENU snippet), answers above the box (scene choices, free-chat replies as
   // ChatChoices, or a scene's [input] question), backlog overlay.
   //
   //   layout="overlay"  absolutely positioned at the bottom of its (positioned) parent: W and S layouts.
@@ -38,7 +38,7 @@
     layout?: 'overlay' | 'docked';
     /** Visible text lines (default 3 overlay, 4 docked). */
     lines?: 3 | 4;
-    /** Show the LOG · AUTO · SKIP · HIDE strip (false when the layout renders DialogueControls itself). */
+    /** Show the LOG · AUTO · HIDE strip (false when the layout renders DialogueControls itself). */
     controls?: boolean;
     /** Extra control(s) after HIDE, e.g. a MENU button. */
     menu?: Snippet;

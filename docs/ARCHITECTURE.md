@@ -147,6 +147,9 @@ player: Hi! (shows the player's name plate)
   a scene plays at most once unless `repeat: true`. A scene with no `trigger` only runs when called by id.
 - Parser: `parseKScript(src, file) → Scene[]`, throws `KScriptError` with file:line on bad syntax.
   `bun test` parses every `.ks` file and validates ids, speakers, expressions, songs, sfx, backgrounds, locations.
+- Story controls: LOG · AUTO · HIDE · MENU; scene skipping is available through MENU → Skip scene.
+  AUTO waits 0.8 seconds after the typewriter finishes by default, adjustable in Settings, with no extra
+  per-character delay. The LOG pauses AUTO; choices and text-entry questions still wait for the player.
 
 ## 5. Audio
 

@@ -89,7 +89,7 @@ beforeEach(async () => {
   dialogue.reset();
   dialogue.auto = false;
   game.save.settings.textSpeed = 0; // lines show at once
-  game.save.settings.autoDelay = 0.05; // AUTO: 50 ms + 25 ms a character
+  game.save.settings.autoDelay = 0.05; // AUTO: 50 ms after the text finishes
 });
 
 afterAll(async () => {
@@ -120,7 +120,7 @@ describe('SKIP ends at every player decision (story2-skip-through-pick)', () => 
   });
 
   test('stopSkip() hands a waiting line back to AUTO, with its whole delay', async () => {
-    game.save.settings.autoDelay = 0.4; // 400 ms + 100 ms
+    game.save.settings.autoDelay = 0.4; // 400 ms after reveal
     dialogue.auto = true;
     const line = say('Two.');
     expect(await waitingOn('Two.')).toBe(true);
@@ -128,7 +128,7 @@ describe('SKIP ends at every player decision (story2-skip-through-pick)', () => 
     dialogue.stopSkip();
     await sleep(200);
     expect(line.continued).toBe(false); // not SKIP's 50 ms
-    expect(await until(() => line.continued)).toBe(true); // AUTO's 500 ms
+    expect(await until(() => line.continued)).toBe(true); // AUTO's 400 ms
   });
 
   test('stopSkip() leaves AUTO alone when SKIP is already off', async () => {
@@ -138,9 +138,9 @@ describe('SKIP ends at every player decision (story2-skip-through-pick)', () => 
     expect(await waitingOn('Three.')).toBe(true);
     const t0 = performance.now();
     await sleep(300);
-    dialogue.stopSkip(); // must not restart AUTO's 550 ms (that would make it 850)
+    dialogue.stopSkip(); // must not restart AUTO's 400 ms (that would make it 700)
     expect(await until(() => line.continued)).toBe(true);
-    expect(performance.now() - t0).toBeLessThan(700);
+    expect(performance.now() - t0).toBeLessThan(600);
   });
 
   test('a choice and an [input] end SKIP', async () => {
@@ -197,8 +197,9 @@ describe('SKIP ends at every player decision (story2-skip-through-pick)', () => 
 
 describe('the LOG pauses AUTO and SKIP (story2-auto-behind-log)', () => {
   test('AUTO waits while the LOG is open and goes on, with its whole delay, when it closes', async () => {
+    game.save.settings.autoDelay = 0.5;
     dialogue.auto = true;
-    const line = say('Gainesville, October.'); // 50 + 25 * 21 = 575 ms
+    const line = say('Gainesville, October.'); // 500 ms after reveal
     expect(await waitingOn('Gainesville, October.')).toBe(true);
     dialogue.openBacklog();
     expect(dialogue.backlogOpen).toBe(true);
@@ -251,7 +252,7 @@ describe('the LOG pauses AUTO and SKIP (story2-auto-behind-log)', () => {
     const scene = play('t_last');
     expect(await waitingOn('The last line.')).toBe(true);
     dialogue.openBacklog();
-    await sleep(900); // AUTO's delay here: 50 + 25 * 14 = 400 ms
+    await sleep(900); // longer than AUTO's 50 ms delay
     expect(scene.ended()).toBe(false);
     expect(dialogue.backlogOpen).toBe(true);
     dialogue.closeBacklog();
@@ -413,5 +414,37 @@ describe('scripted phone mumble delivery', () => {
     dialogue.advance();
     await scene.run;
     expect(dialogue.expression).toBeNull();
+  });
+});
+
+describe('AUTO waits only after the typewriter finishes', () => {
+  test('long and short lines use the same chosen post-reveal delay', async () => {
+    game.save.settings.autoDelay = 0.25;
+    dialogue.auto = true;
+    for (const text of ['Hi.', 'A long explanation about robotics and action chunking still needs only the chosen pause once it has finished appearing.']) {
+      const line = say(text);
+      expect(await waitingOn(text)).toBe(true);
+      const revealedAt = performance.now();
+      await sleep(120);
+      expect(line.continued).toBe(false);
+      expect(await until(() => line.continued, 500)).toBe(true);
+      expect(performance.now() - revealedAt).toBeGreaterThanOrEqual(200);
+      expect(performance.now() - revealedAt).toBeLessThan(550);
+    }
+  });
+
+  test('AUTO never counts typing time toward the post-reveal pause', async () => {
+    game.save.settings.textSpeed = 80;
+    game.save.settings.autoDelay = 0.25;
+    dialogue.auto = true;
+    const line = say('Letters appear before the pause begins.');
+    await sleep(120);
+    expect(dialogue.typing).toBe(true);
+    expect(line.continued).toBe(false);
+    expect(await waitingOn('Letters appear before the pause begins.')).toBe(true);
+    await sleep(120);
+    expect(line.continued).toBe(false);
+    expect(await until(() => line.continued, 500)).toBe(true);
+    await line.done;
   });
 });

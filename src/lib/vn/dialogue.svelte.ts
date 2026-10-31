@@ -563,7 +563,7 @@ class DialogueController {
     if (this.skip || (this.skipHeld && (L.read || skipAll()))) {
       L.timer = setTimeout(() => this.#continue(L), 50);
     } else if (this.auto) {
-      const delay = game.save.settings.autoDelay * 1000 + 25 * this.text.length;
+      const delay = game.save.settings.autoDelay * 1000;
       L.timer = setTimeout(() => this.#continue(L), delay);
     }
   }

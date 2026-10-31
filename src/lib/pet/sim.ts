@@ -24,7 +24,7 @@ export interface AdvanceOptions {
 
 export function defaultSettings(): Settings {
   return {
-    textSpeed: 40, autoDelay: 1.6, masterVolume: 0.8, bgmVolume: 0.85, sfxVolume: 0.7, voiceVolume: 0.65,
+    textSpeed: 40, autoDelay: 0.8, autoTimingVersion: 1, masterVolume: 0.8, bgmVolume: 0.85, sfxVolume: 0.7, voiceVolume: 0.65,
     reduceMotion: false, crt: false, aiMode: 'heuristic', aiModel: 'lfm', aiAutoload: true, echoPlayer: true,
   };
 }
