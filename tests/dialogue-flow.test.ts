@@ -262,3 +262,63 @@ describe('the LOG window (story2-log-translucent)', () => {
     expect(rgb).toEqual(dark!.slice(1, 4).map(Number));
   });
 });
+
+describe('scene-local introduction nameplates', () => {
+  beforeEach(() => { dialogue.log = []; }); // reset() intentionally keeps the player's backlog across scenes
+
+  function register(id: string, body: string) {
+    SCENES.set(id, parseKScript(`=== ${id}\n---\n${body}\n`, 'nameplates.ks')[0]);
+  }
+
+  test('aliases hide the first meeting and backlog keeps the original name after reveal', async () => {
+    register('t_alias_reveal', '[nameplate piggy-1 "???"]\npiggy-1 happy: Hello, stranger.\npiggy-1 happy: I am Piggy 1.\n[nameplate piggy-1]\npiggy-1 happy: Now we know each other.');
+    const scene = play('t_alias_reveal');
+    expect(await waitingOn('Hello, stranger.')).toBe(true);
+    expect(dialogue.name).toBe('???');
+    dialogue.advance();
+    expect(await waitingOn('I am Piggy 1.')).toBe(true);
+    expect(dialogue.name).toBe('???');
+    dialogue.advance();
+    expect(await waitingOn('Now we know each other.')).toBe(true);
+    expect(dialogue.name).toBe('Piggy 1');
+    expect(dialogue.log.filter((line) => line.speaker === 'piggy-1').map((line) => line.name)).toEqual(['???', '???', 'Piggy 1']);
+    dialogue.advance();
+    await scene.run;
+  });
+
+  test('aliases are per pig and never leak into the next scene after an interrupted introduction', async () => {
+    register('t_alias_interrupted', '[nameplate piggy-2 "???"]\npiggy-2 neutral: Next, please.\npiggy-1 happy: I already introduced myself.');
+    register('t_alias_next', 'piggy-2 neutral: Off duty.');
+    const first = play('t_alias_interrupted');
+    expect(await waitingOn('Next, please.')).toBe(true);
+    expect(dialogue.name).toBe('???');
+    dialogue.advance();
+    expect(await waitingOn('I already introduced myself.')).toBe(true);
+    expect(dialogue.name).toBe('Piggy 1');
+    stopScene();
+    await first.run;
+    const second = play('t_alias_next');
+    expect(await waitingOn('Off duty.')).toBe(true);
+    expect(dialogue.name).toBe('Piggy 2');
+    dialogue.advance();
+    await second.run;
+  });
+
+  test('replay repeats the reveal without changing saved meeting state', async () => {
+    register('t_alias_replay', '[nameplate piggy-3 "???"]\npiggy-3 thinking: I am Piggy 3.\n[nameplate piggy-3]\npiggy-3 happy: Nice to meet you.');
+    const flags = JSON.stringify(game.save.flags);
+    const seen = JSON.stringify(game.save.seenScenes);
+    const run = runScene('t_alias_replay', { replay: true });
+    lastRun = run;
+    expect(await waitingOn('I am Piggy 3.')).toBe(true);
+    expect(dialogue.name).toBe('???');
+    dialogue.advance();
+    expect(await waitingOn('Nice to meet you.')).toBe(true);
+    expect(dialogue.name).toBe('Piggy 3');
+    expect(dialogue.log.filter((line) => line.speaker === 'piggy-3').map((line) => line.name)).toEqual(['???', 'Piggy 3']);
+    dialogue.advance();
+    await run;
+    expect(JSON.stringify(game.save.flags)).toBe(flags);
+    expect(JSON.stringify(game.save.seenScenes)).toBe(seen);
+  });
+});

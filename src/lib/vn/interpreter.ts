@@ -11,10 +11,10 @@ import type { Command, Op, Scene } from './kscript';
 
 export interface SayLine { speaker: SpeakerId; text: string; expression?: Expression; key: string; line: number }
 
-/** Commands the environment presents directly (stage, audio, CG, ambience, portrait outfits). */
+/** Commands the environment presents directly (stage, audio, CG, ambience, portrait outfits, name plates). */
 export type PresentCommand = Extract<Command, {
   kind: 'bg' | 'bgm' | 'show' | 'hide' | 'expr' | 'sfx' | 'jingle' | 'wait' | 'shake' | 'flash' | 'fade' | 'burst'
-    | 'petals' | 'weather' | 'time' | 'pager' | 'brain' | 'cg' | 'outfit';
+    | 'petals' | 'weather' | 'time' | 'pager' | 'brain' | 'cg' | 'outfit' | 'nameplate';
 }>;
 
 /** Save mutations. Never called in replay mode. */

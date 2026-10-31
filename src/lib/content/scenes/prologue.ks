@@ -12,6 +12,9 @@ title: Sakura Campus Days
 summary: Gainesville, a Kempa AI intake form, three pigs, and one choice under the Century Tower sakura.
 cg: cg_trio_key_visual
 ---
+[nameplate piggy-1 "???"]
+[nameplate piggy-2 "???"]
+[nameplate piggy-3 "???"]
 [fade black 0]
 [bg century_tower cut]
 [time morning]
@@ -163,7 +166,9 @@ narrator: You pick up the ball.
   piggy-1 laughing: A formal handoff! That's a clean API call, right there.
 piggy-1 surprised: Wait, is it 12:44? Period six starts at 12:50, and I'm all the way over at Malachowsky!
 piggy-1 proud: Six minutes is a tenth of an hour. I can make it.
-piggy-1 happy: I'm Piggy 1! See you at the pairing tonight, teammate— let's goooo!
+piggy-1 happy: I'm Piggy 1!
+[nameplate piggy-1]
+piggy-1 happy: See you at the pairing tonight, teammate— let's goooo!
 [hide piggy-1]
 [sfx whoosh]
 narrator: He sprints off, dribbling the volleyball like a basketball. You're fairly sure that's not how volleyballs work.
@@ -212,9 +217,10 @@ piggy-2 neutral: Drink this. Doctor's orders— resident's orders. An attending 
   piggy-2 neutral: Delayed compliance. Acceptable if finished by 1600.
   piggy-2 neutral: That's four o'clock. I'll know.
 piggy-2 neutral: I'm Piggy 2. MD, fourth-year neurosurgery resident.
+[nameplate piggy-2]
 piggy-2 neutral: Research year: fewer surgeries, more lab pigs. So I volunteer here.
 piggy-2 happy: The scrubs are for authority.
-piggy-2 neutral: Your KempaPager is on its way. Piggy 3 is bringing them.
+piggy-2 neutral: Your KempaPager is on its way. A friend is bringing them.
 piggy-2 neutral: He's nine minutes late. That's within his normal range.
 [sfx step]
 [show piggy-2@scrubs neutral left]
@@ -222,6 +228,8 @@ piggy-2 neutral: He's nine minutes late. That's within his normal range.
 piggy-3 surprised: Sorry, sorry, I'm here! I'm nine minutes late, which is basically within my normal range.
 piggy-2 neutral: I said that.
 piggy-3 happy: Oh, nice. We agree.
+piggy-3 bashful_smile: I'm Piggy 3, by the way. Probably should've led with that.
+[nameplate piggy-3]
 piggy-3 happy: Okay, so— you're {player}? This one's yours.
 [give kempapager 1]
 [sfx sparkle]

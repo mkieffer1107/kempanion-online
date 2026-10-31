@@ -93,6 +93,8 @@ cg: cg_p2_lab                               ← album id unlocked when the scene
 [bg communicore fade]                       ← background (+ optional transition: fade|cut|wipe|iris)
 [bgm piggy2_theme]                          ← song id; [bgm stop] to fade out
 [show piggy-2@scrubs neutral center]        ← portrait: pig[@outfit] expression position(left|center|right)
+[nameplate piggy-2 "???"]                  ← scene-local display name before an introduction (also used in LOG)
+[nameplate piggy-2]                        ← restore his real name; aliases reset when the scene run ends
 [hide piggy-2]
 [sfx oink]
 [wait 400]                                  ← ms

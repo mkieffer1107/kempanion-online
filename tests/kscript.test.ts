@@ -79,6 +79,17 @@ describe('parser', () => {
     ]);
   });
 
+  test('nameplates accept scene aliases and reset to the real name', () => {
+    expect(cmds('[nameplate piggy-1 "???"] [nameplate piggy-2 "Pig in scrubs"] [nameplate piggy-1]')).toEqual([
+      { kind: 'nameplate', pig: 'piggy-1', name: '???' },
+      { kind: 'nameplate', pig: 'piggy-2', name: 'Pig in scrubs' },
+      { kind: 'nameplate', pig: 'piggy-1', name: null },
+    ]);
+    for (const command of ['[nameplate]', '[nameplate narrator "???"]', '[nameplate piggy-4 "???"]', '[nameplate piggy-1 too many words]']) {
+      expect(errorsOf(`=== bad\n---\n${command}`).length).toBeGreaterThan(0);
+    }
+  });
+
   test('all documented commands', () => {
     const c = cmds([
       '[bg communicore fade]',

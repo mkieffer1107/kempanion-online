@@ -7,7 +7,7 @@ import { game } from '../state/game.svelte';
 import { nowDate } from '../state/clock';
 import { timeOfDay, weekday as weekdayOf } from '../time';
 import { LOCATIONS, scheduleSlot } from '../content/locations';
-import { CHARACTERS } from '../content/characters';
+import { CHARACTERS, speakerName } from '../content/characters';
 import type { CondState } from './conditions';
 import type { Scene } from './kscript';
 import { runProgram, type PresentCommand, type RunResult, type VnEnv } from './interpreter';
@@ -63,6 +63,7 @@ interface RunState {
   portraits: Map<PigId, Portrait>;
   outfits: Map<PigId, OutfitId>;
   expressions: Map<PigId, Expression>;
+  names: Map<PigId, string>;
   cgs: Set<string>;
   cgOn: boolean;
   overrides: { time: boolean; petals: boolean; weather: boolean };
@@ -122,7 +123,7 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
         const p = rs.portraits.get(pig);
         if (p) p.expression = line.expression;
       }
-      await dialogue.say(line.speaker, line.text, line.expression, { read });
+      await dialogue.say(line.speaker, line.text, line.expression, { read, name: rs.names.get(line.speaker as PigId) });
     },
     choose: (options) => dialogue.choose(options),
     ask: (o) => dialogue.ask({ prompt: o.prompt, placeholder: o.placeholder, allowEmpty: !!o.placeholder, maxLength: 60 }),
@@ -165,6 +166,11 @@ function makeEnv(scene: Scene, rs: RunState, sceneRead: boolean): VnEnv {
           stage.setExpression(cmd.pig, e);
           break;
         }
+        case 'nameplate':
+          if (cmd.name === null) rs.names.delete(cmd.pig);
+          else rs.names.set(cmd.pig, cmd.name);
+          if (dialogue.speaker === cmd.pig) dialogue.name = cmd.name ?? speakerName(cmd.pig, game.save.player.name);
+          break;
         case 'outfit': {
           rs.outfits.set(cmd.pig, cmd.outfit);
           const p = rs.portraits.get(cmd.pig);
@@ -288,7 +294,7 @@ async function play(id: string, opts: { replay?: boolean }): Promise<void> {
   const replay = opts.replay ?? game.params.replay === true;
   stopped = false;
   const rs: RunState = {
-    portraits: new Map(), outfits: new Map(), expressions: new Map(), cgs: new Set(), cgOn: false,
+    portraits: new Map(), outfits: new Map(), expressions: new Map(), names: new Map(), cgs: new Set(), cgOn: false,
     overrides: { time: false, petals: false, weather: false },
   };
   dialogue.reset();

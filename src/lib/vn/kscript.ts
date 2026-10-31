@@ -16,6 +16,7 @@
 //             [show piggy-1 left]                 expression and position are both optional
 //             [hide] / [hide all]                 clear every portrait
 //             [expr piggy-1 surprised]            change a shown portrait's expression without a line
+//             [nameplate piggy-1 "???"]           scene-local display name; omit the name to reveal his real one
 //             [jingle bond_up]                    JingleId sting over ducked BGM
 //             [burst hearts]                      hearts|sparkles|zzz|notes|crumbs|bubbles|sweat|anger
 //             [fade black 400] [fade clear]       black|white|clear (also out = black, in = clear)
@@ -64,7 +65,7 @@ export type PagerKey = (typeof PAGER_KEYS)[number];
 export const META_KEYS = ['title', 'pig', 'heart', 'chapter', 'trio', 'ending', 'trigger', 'priority', 'cg', 'repeat', 'replayable', 'summary'] as const;
 
 export const COMMANDS = [
-  'bg', 'bgm', 'show', 'hide', 'expr', 'sfx', 'jingle', 'wait', 'shake', 'flash', 'fade', 'burst', 'petals', 'weather', 'time',
+  'bg', 'bgm', 'show', 'hide', 'expr', 'nameplate', 'sfx', 'jingle', 'wait', 'shake', 'flash', 'fade', 'burst', 'petals', 'weather', 'time',
   'pager', 'brain', 'cg', 'bond', 'money', 'give', 'take', 'need', 'set', 'unset', 'chat', 'minigame', 'outfit', 'name', 'input', 'companion',
   'remember', 'call', 'goto', 'end', 'if', 'elif', 'else', 'endif',
 ] as const;
@@ -77,6 +78,7 @@ export type Command =
   | { kind: 'show'; pig: PigId; outfit?: OutfitId; expression?: string; pos?: PortraitPos }
   | { kind: 'hide'; pig: PigId | null }
   | { kind: 'expr'; pig: PigId; expression: string }
+  | { kind: 'nameplate'; pig: PigId; name: string | null }
   | { kind: 'sfx'; id: string }
   | { kind: 'jingle'; id: string }
   | { kind: 'wait'; ms: number }
@@ -412,6 +414,10 @@ function parseCommand(inner: string): Command {
     case 'expr': case 'face': {
       arity(2, 2, '[expr pig expression]');
       return { kind: 'expr', pig: needPig(a[0], 'expr'), expression: a[1].toLowerCase() };
+    }
+    case 'nameplate': {
+      arity(1, 2, '[nameplate pig "name"] or [nameplate pig]');
+      return { kind: 'nameplate', pig: needPig(a[0], 'nameplate'), name: a[1] ?? null };
     }
     case 'sfx': arity(1, 1, '[sfx id]'); return { kind: 'sfx', id: needId(a[0].toLowerCase(), 'sfx id') };
     case 'jingle': arity(1, 1, '[jingle id]'); return { kind: 'jingle', id: needId(a[0].toLowerCase(), 'jingle id') };

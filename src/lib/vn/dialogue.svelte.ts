@@ -40,6 +40,8 @@ export interface AskOptions {
 }
 
 export interface SayOptions {
+  /** Scene-local name plate (e.g. "???" before an introduction); also captured in this line's backlog entry. */
+  name?: string;
   /** The player has read this line before (skip mode may pass it). */
   read?: boolean;
   /** Reveal at once, no typewriter. */
@@ -190,7 +192,7 @@ class DialogueController {
     if (this.skip && !L.read && !skipAll()) this.skip = false;
     this.visible = true;
     this.speaker = speaker;
-    this.name = speakerName(speaker, game.save.player.name);
+    this.name = opts.name ?? speakerName(speaker, game.save.player.name);
     this.color = speakerColor(speaker);
     this.expression = expression ?? null;
     this.text = '';
@@ -233,7 +235,7 @@ class DialogueController {
   /** Show a whole line (long text pages at sentence boundaries) and wait for the player. */
   async say(speaker: SpeakerId, text: string, expression?: Expression, opts: SayOptions = {}): Promise<void> {
     const gen = this.#gen;
-    this.#pushLog({ speaker, name: speakerName(speaker, game.save.player.name), text, color: speakerColor(speaker), expression });
+    this.#pushLog({ speaker, name: opts.name ?? speakerName(speaker, game.save.player.name), text, color: speakerColor(speaker), expression });
     for (const page of paginate(text)) {
       const h = this.beginLine(speaker, expression, opts);
       const L = this.#line!;
