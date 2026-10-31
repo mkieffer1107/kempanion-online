@@ -5,8 +5,8 @@
 
 <script lang="ts">
   // New game: confirm overwrite → fresh save → the 'prologue' scene (intake, meet the pigs, [companion pick]).
-  // Until the story writers ship 'prologue', a built-in fallback runs: intake form → Select. A prologue skipped
-  // before its intake was done (Scene → MENU → Skip scene) comes back here with { intake: true } for the same form.
+  // Recovery intake uses the same dialogue UI, then resumes the prologue's completed-intake checkpoint.
+  // The introduction is required: a failed load offers retry without overwriting the existing save.
   import { onMount } from 'svelte';
   import '../meta/meta.css';
   import { PIG_IDS } from '../../types';
@@ -20,7 +20,6 @@
   import IntakeForm from '../meta/IntakeForm.svelte';
   import PetalCanvas from '../meta/PetalCanvas.svelte';
   import { motion } from '../meta/motion.svelte';
-  import { giveStarterKit } from '../meta/prologue';
   import { continueSummary, isMeaningfulSave } from '../meta/save-utils';
   import { playSong } from '../meta/sfx';
 
@@ -29,7 +28,7 @@
   const existing = !skippedPrologue && isMeaningfulSave(game.save, game.hasSave);
   const summary = existing ? continueSummary(game.save, now()) : '';
   const hasPrologue = !!getScene('prologue');
-  let phase = $state<'confirm' | 'intake' | 'starting'>(skippedPrologue ? 'intake' : existing ? 'confirm' : 'starting');
+  let phase = $state<'confirm' | 'intake' | 'starting' | 'unavailable'>(!hasPrologue ? 'unavailable' : skippedPrologue ? 'intake' : existing ? 'confirm' : 'starting');
 
   /** Fresh save that keeps settings and the Music Room's heard songs. */
   function freshSave() {
@@ -44,8 +43,7 @@
       freshSave();
       game.go('scene', { id: 'prologue', back: 'hub' });
     } else {
-      // fallback: keep the old save untouched until the intake form is submitted
-      phase = 'intake';
+      phase = 'unavailable';
     }
   }
 
@@ -58,10 +56,11 @@
   // mounted). The save itself goes back to blank until the form is submitted (finishIntake), so CANCEL, or leaving the
   // game on the form, doesn't leave a half-made save (a name, no intake, no items) for the title's CONTINUE to pick up.
   onMount(() => {
-    if (skippedPrologue) freshSave();
+    if (skippedPrologue && hasPrologue) freshSave();
   });
 
   function finishIntake(a: IntakeAnswers) {
+    if (!hasPrologue) { phase = 'unavailable'; return; }
     const r = applyIntake(a);
     freshSave();
     game.save.player.name = r.name;
@@ -69,15 +68,14 @@
     for (const fact of r.facts) for (const p of PIG_IDS) game.remember(p, fact);
     for (const [k, v] of Object.entries(r.flags)) game.setFlag(k, v);
     game.setFlag('intake.done');
-    giveStarterKit(game); // what the prologue hands over after its intake (KempaPager, water bottle, met_p1–3)
     game.flush();
-    game.go('select', { from: 'newgame' });
+    game.go('scene', { id: 'prologue', back: 'hub' });
   }
 
   const bg = hasBackground('century_tower') ? bgUrl('century_tower') : hasBackground('title') ? bgUrl('title') : '';
 </script>
 
-<div class="km-screen newgame" class:km-reduced={motion.reduced}>
+<div class={["km-screen newgame", { "km-reduced": motion.reduced }]}>
   {#if bg}
     <div class="km-cover scene" style:background-image="url({bg})" aria-hidden="true"></div>
   {:else}
@@ -85,11 +83,22 @@
   {/if}
   <PetalCanvas count={12} />
 
-  <div class="content">
+  <div class={["content", { intake: phase === 'intake' }]}>
     {#if phase === 'intake'}
       <IntakeForm onDone={finishIntake} onCancel={() => game.go('title')} />
     {/if}
   </div>
+
+  {#if phase === 'unavailable'}
+    <ConfirmDialog
+      title="Let’s try that again"
+      message="The introduction couldn’t load. Reload to try again. Your saved game is safe."
+      confirmLabel="RELOAD"
+      cancelLabel="BACK TO TITLE"
+      onConfirm={() => window.location.reload()}
+      onCancel={() => game.go('title')}
+    />
+  {/if}
 
   {#if phase === 'confirm'}
     <ConfirmDialog
@@ -111,6 +120,7 @@
     display: grid;
     padding: max(20px, var(--safe-top)) max(20px, var(--safe-right)) max(20px, var(--safe-bottom)) max(20px, var(--safe-left));
   }
+  .content.intake { padding: 0; }
   @media (max-aspect-ratio: 5/4) {
     .content { padding: max(12px, var(--safe-top)) max(10px, var(--safe-right)) max(12px, var(--safe-bottom)) max(10px, var(--safe-left)); }
   }

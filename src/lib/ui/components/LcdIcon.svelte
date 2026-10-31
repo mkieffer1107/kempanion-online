@@ -1,6 +1,7 @@
 <script lang="ts">
   // One KempaPager care key: icon + tiny label. `lit` = this need wants attention (dot + glow);
   // `active` = currently selected (inverted). Z cycles focus through [data-lcd] keys.
+  import { game } from '../../state/game.svelte';
   import { audio } from '../../audio';
   import Icon from './Icon.svelte';
 
@@ -17,6 +18,21 @@
 
   let { icon, label, describe, lit = false, active = false, disabled = false, onclick }: Props = $props();
 
+  const appleTouch = typeof navigator !== 'undefined' && (
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+  const directHaptic = $derived(appleTouch && game.save.flags['ui.haptics'] !== false && !disabled);
+  let action: HTMLButtonElement;
+
+  function nativeClick(event: MouseEvent) {
+    event.stopPropagation();
+    // Keep the real button as the sole keyboard/assistive-technology action.
+    (event.currentTarget as HTMLInputElement).blur();
+    action.focus({ preventScroll: true });
+    click();
+  }
+
   function click() {
     if (disabled) { audio.sfx('ui_error'); return; }
     audio.sfx('ui_select');
@@ -24,21 +40,36 @@
   }
 </script>
 
-<button
-  type="button"
-  class="lcd"
-  class:lit
-  class:active
-  aria-disabled={disabled}
-  aria-label={describe ?? label}
-  title={label}
-  data-lcd
-  onclick={click}
->
-  <span class="glyph"><Icon id={icon} size={32} /></span>
-  <span class="lbl">{label}</span>
-  {#if lit}<span class="dot" aria-hidden="true"></span>{/if}
-</button>
+<div class={['lcd', { lit, active }]} data-disabled={disabled} title={label}>
+  <button
+    bind:this={action}
+    type="button"
+    class="action"
+    aria-disabled={disabled}
+    aria-label={describe ?? label}
+    data-lcd
+    onclick={click}
+  >
+    <span class="glyph"><Icon id={icon} size={32} /></span>
+    <span class="lbl">{label}</span>
+    {#if lit}<span class="dot" aria-hidden="true"></span>{/if}
+  </button>
+  {#if directHaptic}
+    <!-- Like Soundboard: the finger toggles the native switch itself. No synthetic
+         label.click() is involved. This surface is confined to this discrete key. -->
+    <input
+      class="native-haptic"
+      type="checkbox"
+      {...{ switch: '' }}
+      tabindex="-1"
+      aria-hidden="true"
+      aria-label="Touch feedback"
+      data-haptics="off"
+      onpointerdown={(event) => event.stopPropagation()}
+      onclick={nativeClick}
+    />
+  {/if}
+</div>
 
 <style>
   .lcd {
@@ -67,6 +98,38 @@
     font: inherit;
     transition: transform 60ms steps(2);
   }
+  .action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: inherit;
+  }
+  .native-haptic {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    appearance: auto;
+    -webkit-appearance: switch;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .action:focus-visible { outline: none; }
   .glyph { display: grid; place-items: center; width: var(--lcd-icon, 32px); height: var(--lcd-icon, 32px); }
   .glyph :global(img) { width: 100%; height: 100%; }
   .lbl {
@@ -78,13 +141,13 @@
   }
   .lcd:hover { filter: brightness(1.15); }
   .lcd:active { transform: translateY(var(--px)); box-shadow: inset var(--px) var(--px) 0 rgba(0, 0, 0, 0.45); }
-  .lcd:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: var(--px); }
-  .lcd.active, .lcd:focus-visible {
+  .lcd:has(.action:focus-visible) { outline: var(--px) dashed var(--gold); outline-offset: var(--px); }
+  .lcd.active, .lcd:has(.action:focus-visible) {
     --lcd-bg: var(--sakura-1);
     --lcd-ink: var(--ink);
   }
   .lcd.lit { border-color: var(--uf-orange); }
-  .lcd[aria-disabled='true'] { opacity: 0.45; cursor: not-allowed; }
+  .lcd[data-disabled='true'] { opacity: 0.45; cursor: not-allowed; }
   .dot {
     position: absolute;
     top: 3px;

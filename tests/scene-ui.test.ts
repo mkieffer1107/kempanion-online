@@ -120,7 +120,7 @@ describe('MENU → Skip scene', () => {
 
   test('the prologue skips ahead to selection, after completing the intake if needed', () => {
     expect(skipNote({ prologue: true, intake: true })).toBe(
-      'Skip the rest of the intro? You’ll still fill in the Kempa intake form first.',
+      'Skip ahead to the Kempa intake questions? You’ll meet your Kempanions afterward.',
     );
     expect(skipNote({ prologue: true, intake: false })).toBe('Skip the rest of the intro?');
     for (const intake of [true, false]) expect(skipNote({ prologue: true, intake, triggered: false })).not.toMatch(/come back/);
@@ -137,7 +137,7 @@ describe('MENU → Skip scene', () => {
     expect(newgame).toMatch(/const skippedPrologue = game\.params\.intake === true;/);
     expect(newgame).toMatch(/skippedPrologue \? 'intake'/); // straight to the form, no overwrite prompt
     const finish = newgame.slice(newgame.indexOf('function finishIntake'));
-    expect(finish.indexOf('giveStarterKit(game)')).toBeGreaterThan(finish.indexOf("game.setFlag('intake.done')"));
+    expect(finish.indexOf("game.go('scene'")).toBeGreaterThan(finish.indexOf("game.setFlag('intake.done')"));
   });
 });
 
@@ -197,8 +197,8 @@ describe('what a skipped prologue still sets up', () => {
     expect(c.save.inventory).toEqual({ water_bottle: 3, kempapager: 1 });
   });
 
-  test('both hand-overs (the intake form and the late skip) use it, then flush', () => {
-    expect(read('src/lib/ui/screens/NewGame.svelte')).toMatch(/giveStarterKit\(game\);[^\n]*\n\s*game\.flush\(\);/);
+  test('only the late skip hands out starter items; recovery intake returns to the story', () => {
+    expect(read('src/lib/ui/screens/NewGame.svelte')).not.toContain('giveStarterKit(game)');
     expect(read('src/lib/ui/screens/Scene.svelte')).toMatch(/giveStarterKit\(game\);\s*game\.flush\(\);/);
   });
 });
@@ -208,7 +208,7 @@ describe('a skipped prologue leaves no half-made save behind the intake form', (
 
   test('the save goes back to blank once the form is up, so CANCEL (or a reload) there has nothing to CONTINUE', () => {
     // after the form has read the name (child components mount first), before the form is submitted
-    expect(newgame).toMatch(/onMount\(\(\) => \{\s*if \(skippedPrologue\) freshSave\(\);\s*\}\);/);
+    expect(newgame).toMatch(/onMount\(\(\) => \{\s*if \(skippedPrologue && hasPrologue\) freshSave\(\);\s*\}\);/);
     expect(newgame).toMatch(/<IntakeForm onDone=\{finishIntake\} onCancel=\{\(\) => game\.go\('title'\)\} \/>/);
     // submitting still builds the whole save from the form's answers
     const finish = newgame.slice(newgame.indexOf('function finishIntake'), newgame.indexOf('const bg ='));
@@ -231,5 +231,28 @@ describe('HIDE', () => {
     // the rail's controls are in GameLayout's `bottom` region, which hide-ui hides
     expect(scene).toMatch(/\{#snippet bottom\(\)\}\s*\{#if viewport\.mode === 's'\}<DialogueControls vertical/);
     expect(read('src/lib/ui/layout/GameLayout.svelte')).toMatch(/\.hide-ui \.bottom[^{]*\{[^}]*visibility: hidden/);
+  });
+});
+
+describe('recovery intake preserves the introduction', () => {
+  test('uses the story dialogue frame without premature companion reactions', () => {
+    const intake = read('src/lib/ui/meta/IntakeForm.svelte');
+    expect(intake).toContain('<GameLayout chrome="vn" centered dockedDialogue');
+    expect(intake).toContain('<DialogueBox layout="docked"');
+    expect(intake).toContain("kind: 'name'");
+    expect(intake).toContain("kind: 'food'");
+    expect(intake).not.toMatch(/INTAKE_REACTION|faceUrl|CHARACTERS|class="tablet|class="bubble/);
+  });
+
+  test('completed recovery intake resumes the story before first meetings and selection', () => {
+    const screen = read('src/lib/ui/screens/NewGame.svelte');
+    const finish = screen.slice(screen.indexOf('function finishIntake'), screen.indexOf('const bg ='));
+    expect(finish).toContain("game.setFlag('intake.done')");
+    expect(finish).toContain("game.go('scene', { id: 'prologue', back: 'hub' })");
+    expect(finish).not.toContain('giveStarterKit(game)');
+    expect(screen).not.toContain("game.go('select'");
+    expect(screen).toContain("!hasPrologue ? 'unavailable'");
+    expect(screen).toContain('window.location.reload()');
+    expect(finish.indexOf("game.setFlag('intake.done')")).toBeLessThan(finish.indexOf("game.go('scene'"));
   });
 });

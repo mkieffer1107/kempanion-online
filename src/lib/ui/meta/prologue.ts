@@ -47,7 +47,7 @@ export function skipNote(o: SkipNote): string {
   if (o.replay) return 'Leave this replay?';
   if (o.prologue) {
     return o.intake
-      ? 'Skip the rest of the intro? You’ll still fill in the Kempa intake form first.'
+      ? 'Skip ahead to the Kempa intake questions? You’ll meet your Kempanions afterward.'
       : 'Skip the rest of the intro?';
   }
   return o.triggered
