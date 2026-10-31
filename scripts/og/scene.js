@@ -1,9 +1,9 @@
 // Kempanion Online link-preview scene: the title screen's dusk Century Tower, falling pixel sakura and the three
-// pigs idling on the plaza (two of them wave), under the title logo (DOM, in scene.html).
+// pigs greeting you from the brick path, under the title logo (DOM, in scene.html).
 // scripts/build-og.ts opens scene.html, awaits window.og.ready, then calls window.og.render(i) for each frame.
 //
 // The art is drawn on the game's 480-wide grid (title.png cropped to 480x252, the 1200x630 ratio) at SCALE output
-// px per grid px, nearest-neighbour. Sprites are drawn at half the grid's pixel size, like the title screen does.
+// px per grid px, nearest-neighbour. Sprites use three output pixels per atlas pixel so their faces read in a chat card.
 //
 // Everything that moves repeats exactly every LOOP_S seconds, so the last frame flows into the first:
 // - Petals ride "lanes": a lane's n petals share one fall path, LOOP_S apart in time, so after one loop each petal
@@ -38,12 +38,12 @@ const BIG = [
   ['.bb.', 'babb', 'bbbc', '.cc.'],
 ];
 
-// The pigs, left to right as on the title screen: 41 grid px apart, the middle one a step further back.
+// A foreground trio on the brick path: 60 grid px apart, the middle one a step further back.
 // x/feet are grid px; idle offsets keep them from bobbing in sync; wave = start time in seconds.
 const PIGS = [
-  { id: 'piggy-1', x: 300, feet: 236, idleMs: 0, wave: 0.9 },
-  { id: 'piggy-2', x: 341, feet: 232, idleMs: 700, wave: null },
-  { id: 'piggy-3', x: 382, feet: 236, idleMs: 1330, wave: 3.3 },
+  { id: 'piggy-1', x: 264, feet: 244, idleMs: 0, wave: 0.9 },
+  { id: 'piggy-2', x: 324, feet: 238, idleMs: 700, wave: 2.1 },
+  { id: 'piggy-3', x: 384, feet: 244, idleMs: 1330, wave: 3.3 },
 ];
 
 const cv = /** @type {HTMLCanvasElement} */ (document.getElementById('cv'));
@@ -174,7 +174,7 @@ function drawShadow(cx, cy, rx, ry, ps) {
 
 function drawPigs(i) {
   const ms = (i * 1000) / FPS;
-  const ps = SCALE / 2;
+  const ps = 3;
   for (const p of PIGS) drawShadow(p.x * SCALE, p.feet * SCALE - ps, 21, 4, ps);
   for (const p of PIGS) {
     const set = sprites[p.id];
@@ -239,7 +239,7 @@ async function load() {
   sprites = Object.fromEntries(entries);
   paintBase(await loadImage(BG));
   await Promise.all([
-    document.fonts.load('700 132px "Pixelify Sans"', 'KEMPANION ONLINE'),
+    document.fonts.load('700 160px "Pixelify Sans"', 'KEMPANION ONLINE'),
     document.fonts.load('400 32px "DotGothic16"', 'ケンパニオン・オンライン「～Sakura Campus Days～」'),
   ]);
   await document.fonts.ready;

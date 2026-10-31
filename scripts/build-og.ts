@@ -9,7 +9,7 @@
  * The scene is drawn at 1920x1008 (4 px per background pixel); the video is the same frames box-filtered to half size.
  *
  *   bun run og                                  # render + encode (needs ffmpeg and Playwright's Chromium)
- *   bun run og -- --name kempanion-sakura-v2    # new file names: bump on every change (previews cache by URL),
+ *   bun run og -- --name kempanion-sakura-v3    # new file names: bump on every change (previews cache by URL),
  *                                               # then update the og:/twitter: URLs in index.html
  *   bun run og -- --frames 0,45,179 --dump /tmp/og   # only write those frames as PNGs (no encode)
  *   bun run og -- --dump /tmp/og                # full run that also keeps every frame as a PNG
@@ -36,7 +36,7 @@ function arg(flag: string): string | undefined {
   const i = argv.indexOf(flag);
   return i >= 0 ? argv[i + 1] : undefined;
 }
-const name = arg('--name') ?? 'kempanion-sakura-v1';
+const name = arg('--name') ?? 'kempanion-sakura-v2';
 const dumpDir = arg('--dump');
 const onlyFrames = arg('--frames')?.split(',').map((s) => Number.parseInt(s, 10));
 if (!/^[a-z0-9-]+$/.test(name)) throw new Error(`--name must be lowercase letters, digits and dashes: ${name}`);

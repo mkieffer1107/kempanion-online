@@ -53,14 +53,52 @@
   const narrow = typeof matchMedia === 'function' && matchMedia('(max-aspect-ratio: 5/4), (max-height: 499px)').matches;
 
   // ── pigs on the plaza ──
-  const FLAVOR: AnimId[] = ['wave', 'look_around', 'play_ball', 'yawn', 'laugh', 'happy', 'jump', 'dance'];
-  const LOOPING = new Set<AnimId>(['look_around', 'play_ball', 'laugh', 'happy', 'dance']);
+  const FLAVOR: Record<PigId, AnimId[]> = {
+    'piggy-1': ['wave', 'play_ball', 'celebrate', 'happy', 'jump', 'dance'],
+    'piggy-2': ['wave', 'look_around', 'proud', 'drink', 'happy', 'laugh'],
+    'piggy-3': ['wave', 'phone', 'thinking', 'happy', 'laugh', 'dance'],
+  };
+  const REACTIONS: Record<PigId, AnimId[]> = {
+    'piggy-1': ['pet_reaction', 'celebrate', 'love'],
+    'piggy-2': ['pet_reaction', 'proud', 'shy'],
+    'piggy-3': ['pet_reaction', 'happy', 'shy'],
+  };
+  const lastFlavor: Partial<Record<PigId, AnimId>> = {};
+  const lastReaction: Partial<Record<PigId, AnimId>> = {};
+  const greetedAt: Partial<Record<PigId, number>> = {};
+  const reactionTimers = new Map<PigId, ReturnType<typeof setTimeout>>();
+  let reacting = $state<Record<PigId, boolean>>({ 'piggy-1': false, 'piggy-2': false, 'piggy-3': false });
+  let greeting = $state('');
+  let greetingFlip = false;
+  let pageHidden = $state(false);
   let anims = $state<Record<PigId, AnimId>>({ 'piggy-1': 'idle', 'piggy-2': 'idle', 'piggy-3': 'idle' });
 
-  function flavor(p: PigId, a: AnimId) {
-    if (anims[p] !== 'idle') return;
-    anims[p] = a;
+  function pick(pool: AnimId[], previous?: AnimId, current?: AnimId): AnimId {
+    const choices = pool.filter((a) => a !== previous && a !== current);
+    return choices[Math.floor(Math.random() * choices.length)];
   }
+
+  function greet(p: PigId) {
+    if (leaving || askBrain || offlineOpen) return;
+    const time = performance.now();
+    if (time - (greetedAt[p] ?? -Infinity) < 1200) return;
+    greetedAt[p] = time;
+    const a = pick(REACTIONS[p], lastReaction[p], anims[p]);
+    lastReaction[p] = a;
+    anims[p] = motion.reduced ? 'idle' : a;
+    reacting[p] = true;
+    greetingFlip = !greetingFlip;
+    greeting = `${CHARACTERS[p].name} is happy to see you!${greetingFlip ? '​' : ''}`;
+    void initAudio();
+    blip(p);
+    clearTimeout(reactionTimers.get(p));
+    reactionTimers.set(p, setTimeout(() => {
+      reacting[p] = false;
+      reactionTimers.delete(p);
+    }, 1800));
+  }
+
+  $effect(() => () => reactionTimers.forEach(clearTimeout));
 
   const reducedAtStart = motion.reduced;
 
@@ -156,19 +194,34 @@
         else openBrainPrompt();
       }, reducedAtStart ? 150 : 1100));
     }
-    timers.push(setTimeout(() => flavor('piggy-1', 'wave'), 1400));
-    let next: ReturnType<typeof setTimeout>;
-    const loop = () => {
-      const p = PIG_IDS[Math.floor(Math.random() * PIG_IDS.length)];
-      flavor(p, FLAVOR[Math.floor(Math.random() * FLAVOR.length)]);
-      next = setTimeout(loop, 6000 + Math.random() * 4000);
-    };
-    next = setTimeout(loop, 6000 + Math.random() * 3000);
     queueMicrotask(() => buttons[sel]?.focus({ preventScroll: true }));
     return () => {
       timers.forEach(clearTimeout);
-      clearTimeout(next);
     };
+  });
+
+  // One pig takes a turn every 2.2–3.4 seconds; no immediate repeat and no interrupted reactions.
+  // Opening a window or enabling reduced motion cancels the timer and restores the quiet idle pose.
+  $effect(() => {
+    const paused = motion.reduced || askBrain || offlineOpen || leaving || pageHidden;
+    untrack(() => { for (const p of PIG_IDS) anims[p] = 'idle'; });
+    if (paused) return;
+    let turn = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const loop = () => {
+      if (!document.hidden) {
+        const p = PIG_IDS[turn];
+        turn = (turn + 1) % PIG_IDS.length;
+        if (anims[p] === 'idle' && !reacting[p]) {
+          const a = pick(FLAVOR[p], lastFlavor[p]);
+          lastFlavor[p] = a;
+          anims[p] = a;
+        }
+      }
+      timer = setTimeout(loop, 2200 + Math.random() * 1200);
+    };
+    timer = setTimeout(loop, 1400);
+    return () => clearTimeout(timer);
   });
 
   // ── menu ──
@@ -223,6 +276,16 @@
   function onkeydown(e: KeyboardEvent) {
     if (leaving || askBrain || offlineOpen) return;
     const t = e.target as HTMLElement | null;
+    const pigButton = t?.closest<HTMLButtonElement>('[data-pig]');
+    if (pigButton) {
+      // Native Enter/Space clicks belong to this pig, never to the selected menu item.
+      if (e.repeat && (e.key === 'Enter' || e.key === ' ')) e.preventDefault();
+      if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (!e.repeat) pigButton.click();
+      }
+      return;
+    }
     const onItem = !!t && t.dataset.item !== undefined;
     const offlineBtn = (t?.closest?.('.op-pill') ?? null) as HTMLButtonElement | null;
     if (offlineBtn && (e.key === 'Enter' || e.key === ' ')) return; // the focused pill clicks itself
@@ -262,6 +325,7 @@
 </script>
 
 <svelte:window {onkeydown} />
+<svelte:document onvisibilitychange={() => (pageHidden = document.hidden)} />
 
 <div class="km-screen title-screen" class:km-reduced={motion.reduced} class:leaving>
   {#if titleBg}
@@ -281,19 +345,33 @@
     <p class="km-jp tilde">「～Sakura Campus Days～」</p>
   </header>
 
-  <div class="pigs" aria-hidden="true">
+  <div class="pigs">
     {#each PIG_IDS as p (p)}
-      <div class="pig" style:--pig={CHARACTERS[p].color}>
+      <div class="pig" data-anim={anims[p]} style:--pig={CHARACTERS[p].color}>
         <SpriteAnim
           pig={p}
           anim={anims[p]}
-          loops={LOOPING.has(anims[p]) ? 2 : undefined}
+          loops={anims[p] === 'idle' ? undefined : 2}
           onDone={() => (anims[p] = 'idle')}
           size="var(--pig-size)"
         />
+        <button
+          type="button"
+          class="pig-target"
+          data-pig={p}
+          aria-label={`Say hello to ${CHARACTERS[p].name}`}
+          title={`Say hello to ${CHARACTERS[p].name}`}
+          disabled={leaving || askBrain || offlineOpen}
+          onclick={(e) => { e.stopPropagation(); greet(p); }}
+        ></button>
+        {#if reacting[p]}
+          <span class="pig-heart" aria-hidden="true"><PixelGlyph name="heart" scale={2} /></span>
+        {/if}
       </div>
     {/each}
   </div>
+
+  <span class="sr-only" role="status">{greeting}</span>
 
   <nav class="menu km-window" aria-label="Title menu">
     {#each items as it, i (it.id)}
@@ -494,6 +572,16 @@
     text-shadow: none;
   }
 
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   /* ── pigs ── */
   .pigs {
     grid-area: pigs;
@@ -504,7 +592,31 @@
     margin-bottom: 1vh;
     pointer-events: none;
   }
-  .pig { margin: 0 calc(var(--pig-size) * -0.18); }
+  .pig { position: relative; margin: 0 calc(var(--pig-size) * -0.18); }
+  /* Sprite frames overlap for the trio's spacing; their central hit targets meet without overlapping. */
+  .pig-target {
+    position: absolute;
+    inset: 12% 18% 0;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+  .pig-target:disabled { pointer-events: none; }
+  .pig-target:focus-visible { outline: 2px dashed var(--pig); outline-offset: -2px; }
+  .pig-heart {
+    position: absolute;
+    top: 4%;
+    left: calc(50% - 8px);
+    color: var(--sakura-1);
+    filter: drop-shadow(1px 1px 0 var(--ink));
+    pointer-events: none;
+  }
   .pig:nth-child(2) { margin-bottom: calc(var(--pig-size) * 0.06); }
 
   /* ── download corner (top right): the Big Brain pill while it downloads, then "Play offline" in the corner
