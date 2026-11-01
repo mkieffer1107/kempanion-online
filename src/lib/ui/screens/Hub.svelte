@@ -765,13 +765,24 @@
     marston: { y: 264, focus: 240, min: 180, max: 410 },
     shands: { y: 264, focus: 240, min: 170, max: 390 },
   };
-  const mobileFloor = $derived(MOBILE_FLOORS[bgId]);
+  const DESKTOP_FLOORS: typeof MOBILE_FLOORS = {
+    ...MOBILE_FLOORS,
+    home_p1: { y: 252, focus: 240, min: 170, max: 385 },
+    home_p3: { y: 252, focus: 240, min: 140, max: 290 },
+    malachowsky: { y: 252, focus: 240, min: 150, max: 400 },
+    volleyball_courts: { y: 252, focus: 240, min: 150, max: 350 },
+    communicore: { y: 252, focus: 240, min: 110, max: 400 },
+    reitz: { y: 252, focus: 240, min: 150, max: 400 },
+    plaza: { y: 252, focus: 240, min: 80, max: 400 },
+    midtown: { y: 252, focus: 240, min: 110, max: 410 },
+  };
+  const sceneFloor = $derived((viewport.mode === 'w' ? DESKTOP_FLOORS : MOBILE_FLOORS)[bgId]);
   let tickerEl = $state<HTMLElement | null>(null);
   let groundY = $state(viewport.mode === 't' ? GROUND_T : GROUND_WS);
   let groundRaf = 0;
 
   function measureGround(): number {
-    if (viewport.mode === 't') return mobileFloor?.y ?? GROUND_T;
+    if (viewport.mode === 't') return sceneFloor?.y ?? GROUND_T;
     const el = tickerEl;
     if (!el) return GROUND_WS;
     const r = el.getBoundingClientRect();
@@ -785,10 +796,10 @@
   function applyGround() {
     groundY = measureGround();
     stage.setGroundY(groundY);
-    stage.setBackgroundGroundY(viewport.mode === 'w' ? null : groundY, mobileFloor?.y ?? GROUND_T);
-    const crop = bgCropX(lw, mobileFloor?.focus ?? 240);
-    stage.setGroundBand(viewport.mode !== 'w' && mobileFloor
-      ? { min: Math.max(28, mobileFloor.min - crop), max: Math.min(lw - 28, mobileFloor.max - crop) } : null);
+    stage.setBackgroundGroundY(groundY, sceneFloor?.y ?? GROUND_T, viewport.mode === 'w' ? 'original' : 'edge');
+    const crop = bgCropX(lw, sceneFloor?.focus ?? 240);
+    stage.setGroundBand(sceneFloor
+      ? { min: Math.max(28, sceneFloor.min - crop), max: Math.min(lw - 28, sceneFloor.max - crop) } : null);
   }
 
   function scheduleGround() {
@@ -863,7 +874,7 @@
     if (firstSetup) stage.reset(); // leftovers from Talk / scenes (portraits, camera, CG, fades)
     firstSetup = false;
     applyGround(); // reset() put the ground back at the stage default
-    if (l === 'dorm') await stage.setBackground(id, tr, { focusX: viewport.mode !== 'w' && id === 'home_p2' ? 350 : 240 });
+    if (l === 'dorm') await stage.setBackground(id, tr, { focusX: id === 'home_p2' ? 350 : 240 });
     else await stage.setLocation(l, tr);
     if (!alive) return; // left while the background loaded: the next screen owns the stage now
     stage.clearPortraits();

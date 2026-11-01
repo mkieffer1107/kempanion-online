@@ -188,7 +188,7 @@ export interface StageApi {
   /** Default ground line for actors (logical y of their feet). */
   setGroundY(y: number): void;
   /** Align the painted floor with a hub feet line; null restores normal scene framing. */
-  setBackgroundGroundY(y: number | null, sourceGroundY?: number): void;
+  setBackgroundGroundY(y: number | null, sourceGroundY?: number, overflow?: 'edge' | 'original'): void;
   /** Optional clear-floor feet band for walking and landing; null uses the entire stage. */
   setGroundBand(band: { min: number; max: number } | null): void;
   /** Ambient idle picker (idle/blink/look_around/stroll/sit, specialty in alt outfits) every 4–8 s. */

@@ -46,3 +46,29 @@ test('the mobile room aisle governs standing and walking and clears on exit', as
   await world.moveActor('pig', 220);
   expect(world.actorPosition('pig')?.x).toBe(220);
 });
+
+
+test('desktop ticker overflow retains original painted rows and resets to mobile rendering', () => {
+  const world = new StageWorld();
+  const calls: number[][] = [];
+  const ctx = { drawImage(_image: unknown, ...coords: number[]) { calls.push(coords); } };
+  const draw = () => {
+    calls.length = 0;
+    (world as unknown as { drawBgLayer(ctx: unknown, bg: unknown): void })
+      .drawBgLayer(ctx, { canvas: {}, focusX: 240 });
+  };
+  world.setBackgroundGroundY(220, 264, 'original');
+  draw();
+  const footer = calls[1];
+  expect(footer[1]).toBe(226); // Original painting row matches its destination under the ticker.
+  expect(footer[5]).toBe(226);
+  expect(footer[3]).toBe(44);
+  expect(footer[7]).toBe(44); // No vertical stretching of the original texture.
+  world.reset();
+  draw();
+  expect(calls).toHaveLength(1);
+  world.setBackgroundGroundY(220, 264);
+  draw();
+  expect(calls[1][1]).toBe(269);
+  expect(calls[1][3]).toBe(1); // Existing mobile overflow behavior remains the default.
+});

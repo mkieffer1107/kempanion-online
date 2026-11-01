@@ -423,6 +423,7 @@ export class StageWorld implements StageApi {
   private groundY = DEFAULT_GROUND_Y;
   private backgroundGroundY: number | null = null;
   private backgroundSourceGroundY = DEFAULT_GROUND_Y;
+  private backgroundOverflow: 'edge' | 'original' = 'edge';
   private groundBand: { min: number; max: number } | null = null;
   /** Pick up & toss: the held actor, plus scratch objects reused every frame / pointer event. */
   private heldId: string | null = null;
@@ -1016,9 +1017,10 @@ export class StageWorld implements StageApi {
     }
   }
 
-  setBackgroundGroundY(y: number | null, sourceGroundY = DEFAULT_GROUND_Y): void {
+  setBackgroundGroundY(y: number | null, sourceGroundY = DEFAULT_GROUND_Y, overflow: 'edge' | 'original' = 'edge'): void {
     this.backgroundGroundY = y;
     this.backgroundSourceGroundY = sourceGroundY;
+    this.backgroundOverflow = overflow;
   }
 
   /** Piggy 3 reaches for his phone quickly; the other pigs keep their usual idle rhythm. */
@@ -2077,6 +2079,7 @@ export class StageWorld implements StageApi {
     this.petals.configure({ level: 'normal' });
     this.groundY = DEFAULT_GROUND_Y;
     this.backgroundGroundY = null;
+    this.backgroundOverflow = 'edge';
     this.groundBand = null;
     this.petals.configure({ groundY: this.groundY });
     this.description = null;
@@ -2286,7 +2289,12 @@ export class StageWorld implements StageApi {
     ctx.drawImage(b.canvas, x, pan, this.lw, h, 0, 0, this.lw, h);
     // Continue the bottom edge under the ticker and its narrow side margins. Only this hidden
     // overflow is extended: the visible architecture and floor retain their original proportions.
-    if (pan > 0) ctx.drawImage(b.canvas, x, LOGICAL_H - 1, this.lw, 1, 0, h, this.lw, pan);
+    if (pan > 0) {
+      // Desktop's translucent ticker and bottom margin reveal this area: retain the original
+      // painted texture there instead of stretching one pixel into conspicuous vertical stripes.
+      const original = this.backgroundOverflow === 'original';
+      ctx.drawImage(b.canvas, x, original ? h : LOGICAL_H - 1, this.lw, original ? pan : 1, 0, h, this.lw, pan);
+    }
   }
 
   private drawBackground(ctx: CanvasRenderingContext2D, scratch: CanvasRenderingContext2D, z: number, ox: number, oy: number) {
