@@ -22,10 +22,15 @@ export interface LocationDef {
   map: { x: number; y: number };
   actions: LocationAction[];
   /**
-   * Your Kempanion can come along on an outing (pet/outing.ts): the painting has natural ground for his sprite to
-   * walk on in the KempaPager. Views without any (a lake behind a boardwalk railing, the stands) don't take outings.
+   * Your Kempanion can come along on an outing (pet/outing.ts): the KempaPager has natural ground here for his sprite
+   * to walk on, in `bg` or in `outingBg`. A place with neither doesn't take outings.
    */
   outing: boolean;
+  /**
+   * The KempaPager's painting of this place when `bg` has no ground for him: the same spot seen from somewhere he can
+   * stand (Lake Alice from the boardwalk deck, the Swamp from the sideline). Scenes and the place screen keep `bg`.
+   */
+  outingBg?: BackgroundId;
 }
 
 export const LOCATIONS: Record<LocationId, LocationDef> = {
@@ -67,11 +72,11 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
   },
   stadium: {
     id: 'stadium', name: 'Ben Hill Griffin Stadium', jp: 'ザ・スワンプ', blurb: '"The Swamp." Loudest place in Florida on game day.',
-    bg: 'stadium', song: 'stadium', outdoor: true, focusX: 240, map: { x: 0.17, y: 0.18 }, outing: false, actions: ['cheer'],
+    bg: 'stadium', outingBg: 'stadium_sideline', song: 'stadium', outdoor: true, focusX: 240, map: { x: 0.17, y: 0.18 }, outing: true, actions: ['cheer'],
   },
   lake_alice: {
     id: 'lake_alice', name: 'Lake Alice', jp: 'アリス湖', blurb: 'Gators, cypress knees, and the bat houses at dusk.',
-    bg: 'lake_alice', song: 'lake_alice', outdoor: true, focusX: 300, map: { x: 0.13, y: 0.47 }, outing: false, actions: ['bats'],
+    bg: 'lake_alice', outingBg: 'lake_alice_boardwalk', song: 'lake_alice', outdoor: true, focusX: 300, map: { x: 0.13, y: 0.47 }, outing: true, actions: ['bats'],
   },
   reitz: {
     id: 'reitz', name: 'Reitz Union', jp: 'ライツ・ユニオン', blurb: 'Student union: campus store, food court, game room.',
@@ -104,6 +109,11 @@ export const HOME_BG: Record<PigId, BackgroundId> = {
 export function backgroundFor(loc: LocationId, pig?: PigId | null): BackgroundId {
   if (loc === 'dorm') return pig ? HOME_BG[pig] : 'sakura_house';
   return LOCATIONS[loc].bg;
+}
+
+/** The KempaPager's painting of where the pig is: his own room at home, else the place's outing frame or its painting. */
+export function hubBackground(loc: LocationId, pig: PigId): BackgroundId {
+  return loc === 'dorm' ? HOME_BG[pig] : LOCATIONS[loc].outingBg ?? LOCATIONS[loc].bg;
 }
 
 /** Bedtimes by local clock, [sleepHour, wakeHour] (fractional hours). */

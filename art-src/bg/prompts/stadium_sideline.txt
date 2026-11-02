@@ -1,0 +1,10 @@
+Edit this image into a second background of the same place, for outings: the KempaPager stands a small pig character on its floor, so this view needs ground he can walk on. Ben Hill Griffin Stadium, "The Swamp", in exactly the same 16-bit pixel-art style, palette and sunny spring-afternoon lighting as this painting. Move the camera down to field level: we stand on the sideline at the edge of the field, at eye level, looking across the field toward the stands.
+
+A background illustration for a Japanese visual novel, rendered as authentic 16-bit era pixel art (PC-98 / Super Famicom style): crisp chunky pixels on a strict grid as if the native resolution were 480x270, a limited palette of about 48 colors, careful ordered dithering in gradients, clean dark outlines, no anti-aliasing, no blur, no painterly brushwork.
+Composition: a wide 16:9 eye-level visual-novel background. Keep every important element inside the middle 80% of the image height (the top and bottom edges will be cropped) and keep the main landmark near the horizontal center (narrow phone screens crop the sides). Leave the lower-middle area visually calm so a character portrait can stand in front of it.
+No people, no characters, no text, no letters, no logos, no signage text, no UI, no watermark.
+
+Composition (important):
+- The lower quarter of the image is the sideline: a flat strip of green turf along the edge of the field, running left to right across the entire width, seen from slightly above, plainly a floor someone could walk along. Keep its middle empty: no benches, no equipment, no markings.
+- Beyond it the lush green football field with plain white yard lines, then the steep bright orange-and-blue stands rising in a curve, tall light towers, the far rim of the stadium and pink sakura treetops beyond it under a blue sky with soft clouds.
+Keep the far stands near the horizontal center. An empty stadium: no people, no players, no text, no letters, no numbers, no logos, no scoreboard text.

@@ -1,0 +1,12 @@
+Edit this image into a second background of the same place, for outings: the KempaPager stands a small pig character on its floor, so this view needs ground he can walk on. Lake Alice at dusk, in exactly the same 16-bit pixel-art style, palette, lighting and mood as this painting. Move the camera onto the wooden boardwalk itself: we stand on the boardwalk at eye level, looking out over the lake.
+
+A background illustration for a Japanese visual novel, rendered as authentic 16-bit era pixel art (PC-98 / Super Famicom style): crisp chunky pixels on a strict grid as if the native resolution were 480x270, a limited palette of about 48 colors, careful ordered dithering in gradients, clean dark outlines, no anti-aliasing, no blur, no painterly brushwork.
+Composition: a wide 16:9 eye-level visual-novel background. Keep every important element inside the middle 80% of the image height (the top and bottom edges will be cropped) and keep the main landmark near the horizontal center (narrow phone screens crop the sides). Leave the lower-middle area visually calm so a character portrait can stand in front of it.
+No people, no characters, no text, no letters, no logos, no signage text, no UI, no watermark.
+
+Composition (important):
+- The lower quarter of the image is the boardwalk deck: wide, flat, weathered wooden planks running left to right across the entire width, seen from slightly above, plainly a floor someone could walk along. Keep the middle of the deck empty and uncluttered.
+- Directly behind the deck a low wooden railing runs left to right; it is short enough that the lake, lily pads, cypress knees, the far shore with pink sakura, and the two dark wooden bat houses raised high on tall posts are all clearly visible above it.
+- Cypress trees hung with Spanish moss may frame the far left and right edges; keep the center open.
+- The same purple-to-orange dusk sky reflected in the calm water, first stars, tiny bats streaming out of the bat houses.
+Keep the lake and the bat houses near the horizontal center. No people, no animals on the deck, no benches, no text, no letters, no signs.

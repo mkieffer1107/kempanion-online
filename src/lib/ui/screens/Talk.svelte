@@ -23,7 +23,7 @@
   import MumbleBubbles from '../../vn/components/MumbleBubbles.svelte';
   import { mumbleStage } from '../../vn/components/mumble.svelte';
   import { CHARACTERS } from '../../content/characters';
-  import { HOME_BG, LOCATIONS } from '../../content/locations';
+  import { LOCATIONS, hubBackground } from '../../content/locations';
   import { spotOf } from '../../pet';
   import { timeOfDay } from '../../time';
   import { viewport } from '../viewport.svelte';
@@ -42,7 +42,7 @@
   const ch = CHARACTERS[pig];
   const start = gameClock.date();
   const loc: LocationId = game.save.pigs[pig].asleep ? 'dorm' : spotOf(game.save, pig, start);
-  const bg = loc === 'dorm' ? HOME_BG[pig] : LOCATIONS[loc].bg;
+  const bg = hubBackground(loc, pig);
   const placeName = loc === 'dorm' ? `${ch.name}’s room` : LOCATIONS[loc].name;
   const THEME: Record<PigId, SongId> = { 'piggy-1': 'piggy1_theme', 'piggy-2': 'piggy2_theme', 'piggy-3': 'piggy3_theme' };
 
@@ -200,6 +200,8 @@
     (async () => {
       stage.reset();
       if (loc === 'dorm') await stage.setBackground(bg, 'cut');
+      // the outing frame he stands in on the KempaPager (LocationDef.outingBg), painted centred
+      else if (bg !== LOCATIONS[loc].bg) await stage.setBackground(bg, 'cut', { focusX: 240 });
       else await stage.setLocation(loc, 'cut');
       if (!alive) return;
       audio.playSong(THEME[pig], { fadeMs: 600 });

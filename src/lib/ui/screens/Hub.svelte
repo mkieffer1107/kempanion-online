@@ -17,7 +17,7 @@
   import { getCompiled } from '../../vn/registry';
   import { idleLine, type IdleKind } from '../../ai/heuristic';
   import { CHARACTERS } from '../../content/characters';
-  import { HOME_BG, LOCATIONS } from '../../content/locations';
+  import { LOCATIONS, hubBackground } from '../../content/locations';
   import { localDate, timeOfDay, weekday } from '../../time';
   import {
     bondLevel, canDoctorsRounds, canPlayMinigame, catchGoldenPetal, currentWant, dismissWelcomeBack, doctorsRounds,
@@ -84,7 +84,7 @@
   // his schedule, home while asleep, or where you took him (pet/outing.ts)
   const loc = $derived<LocationId>(spotOf(game.save, pig, d));
   const outing = $derived(outingOf(game.save, d.getTime()));
-  const bgId = $derived(loc === 'dorm' ? HOME_BG[pig] : LOCATIONS[loc].bg);
+  const bgId = $derived(hubBackground(loc, pig));
   const placeName = $derived(loc === 'dorm' ? `${ch.name}’s room` : LOCATIONS[loc].name);
   const weather = $derived(weatherAt(d.getTime()));
   const statusAnim = $derived(statusClip(p, gameClock.minute));
@@ -871,6 +871,8 @@
     firstSetup = false;
     applyGround(); // reset() put the ground back at the stage default
     if (l === 'dorm') await stage.setBackground(id, tr, { focusX: id === 'home_p2' ? 350 : 240 });
+    // an outing frame (LocationDef.outingBg) is painted centred, like the rooms
+    else if (id !== LOCATIONS[l].bg) await stage.setBackground(id, tr, { focusX: 240 });
     else await stage.setLocation(l, tr);
     if (!alive) return; // left while the background loaded: the next screen owns the stage now
     stage.clearPortraits();

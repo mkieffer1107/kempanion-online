@@ -160,6 +160,9 @@ export const MOBILE_FLOORS: Readonly<Record<string, HubFloor>> = {
   shands: { y: 264, focus: 240, min: 170, max: 390 },
   // the brick path in front of the tower, clear of the bench, the lamp post and the azaleas on the left
   century_tower: { y: 252, focus: 330, min: 150, max: 420 },
+  // outing frames (LocationDef.outingBg): the boardwalk deck and the sideline turf run the whole width
+  lake_alice_boardwalk: { y: 252, focus: 240, min: 60, max: 420 },
+  stadium_sideline: { y: 252, focus: 240, min: 40, max: 440 },
 };
 
 /** Wide layouts, where the whole painting shows. */

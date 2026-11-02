@@ -1,9 +1,10 @@
 // Outings (pet/outing.ts): your Kempanion goes where you take him for a while, and everything that asks where he is
 // (spotOf: the KempaPager, Talk, the map, scene triggers) sees him there. Only places with ground for his sprite take
-// outings, and every one of those has a floor in the KempaPager.
+// outings (in their painting or an outing frame), and every one of those has a floor in the KempaPager.
 import { describe, expect, test } from 'bun:test';
 import { PIG_IDS, type LocationId, type PigId } from '../src/lib/types';
-import { LOCATIONS, LOCATION_IDS, whereIs } from '../src/lib/content/locations';
+import { LOCATIONS, LOCATION_IDS, hubBackground, whereIs } from '../src/lib/content/locations';
+import backgrounds from '../src/generated/backgrounds.json';
 import { newSave, startNap, wakeUp } from '../src/lib/pet/sim';
 import { OUTING } from '../src/lib/pet/balance';
 import { outingBlock, outingOf, spotOf, startOuting } from '../src/lib/pet/outing';
@@ -57,12 +58,17 @@ describe('outings', () => {
     expect(spotOf(swap, 'piggy-1', at(11, 30))).toBe('malachowsky');
   });
 
-  test('no outing to a view without ground for him; asleep or past bedtime he stays home', () => {
+  test('no outing to a place without ground for him; asleep or past bedtime he stays home', () => {
     const save = saveWith();
     const t = at(11).getTime();
-    expect(outingBlock(save, 'lake_alice', t)).toBe('place');
-    expect(outingBlock(save, 'stadium', t)).toBe('place');
-    expect(startOuting(save, 'lake_alice', t)).toEqual({ block: 'place', outing: null });
+    const plaza = LOCATIONS.plaza;
+    plaza.outing = false; // a place with no floor in its painting and no outing frame
+    try {
+      expect(outingBlock(save, 'plaza', t)).toBe('place');
+      expect(startOuting(save, 'plaza', t)).toEqual({ block: 'place', outing: null });
+    } finally {
+      plaza.outing = true;
+    }
     expect(outingBlock(save, 'plaza', at(3).getTime())).toBe('bedtime');
     save.pigs['piggy-1'].asleep = true;
     expect(outingBlock(save, 'plaza', t)).toBe('asleep');
@@ -111,21 +117,29 @@ describe('where outings can go', () => {
   const scheduled = new Set<LocationId>();
   for (let day = 1; day <= 7; day++) for (let h = 0; h < 24; h++) for (const p of PIG_IDS) scheduled.add(whereIs(p, at(h, 0, day)));
 
-  test('everywhere his schedule takes him has ground; the lake railing and the stands do not', () => {
+  test('everywhere his schedule takes him has ground; the lake and the stands get outing frames', () => {
     for (const loc of scheduled) expect([loc, LOCATIONS[loc].outing]).toEqual([loc, true]);
-    expect(LOCATIONS.lake_alice.outing).toBe(false);
-    expect(LOCATIONS.stadium.outing).toBe(false);
+    expect(LOCATION_IDS.filter((l) => LOCATIONS[l].outingBg)).toEqual(['stadium', 'lake_alice']);
+    // painted with a night version, like the places themselves
+    for (const l of LOCATION_IDS) {
+      const frame = LOCATIONS[l].outingBg;
+      if (frame) for (const id of [frame, `${frame}_night`]) expect(backgrounds.bg).toContain(id);
+    }
+    expect(hubBackground('lake_alice', 'piggy-3')).toBe('lake_alice_boardwalk');
+    expect(hubBackground('dorm', 'piggy-3')).toBe('home_p3');
+    expect(hubBackground('plaza', 'piggy-3')).toBe('plaza');
   });
 
-  test('a place you can only reach by outing has a measured floor on phones and desktop, framed like the place', () => {
+  test('a place you can only reach by outing has a measured floor on phones and desktop, framed like its painting', () => {
     const extra = LOCATION_IDS.filter((l) => LOCATIONS[l].outing && !scheduled.has(l));
-    expect(extra).toEqual(['century_tower']);
+    expect(extra).toEqual(['century_tower', 'stadium', 'lake_alice']);
     for (const l of extra) {
-      const bg = LOCATIONS[l].bg;
+      const bg = hubBackground(l, 'piggy-1');
       for (const floors of [MOBILE_FLOORS, DESKTOP_FLOORS]) {
         const f = floors[bg];
-        expect(f).toBeDefined();
-        expect(f.focus).toBe(LOCATIONS[l].focusX);
+        expect([l, f !== undefined]).toEqual([l, true]);
+        // outing frames are painted centred; a place's own painting keeps its framing
+        expect(f.focus).toBe(LOCATIONS[l].outingBg ? 240 : LOCATIONS[l].focusX);
         expect(f.min).toBeLessThan(f.max);
       }
     }

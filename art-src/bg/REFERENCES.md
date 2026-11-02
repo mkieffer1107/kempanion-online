@@ -16,13 +16,15 @@ licenses: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
 | `communicore` | [UFCOM Entrance.png](https://commons.wikimedia.org/wiki/File:UFCOM_Entrance.png) | Daysaway | CC BY-SA 3.0 |
 | `shands` | [UF Shands.jpg](https://commons.wikimedia.org/wiki/File:UF_Shands.jpg) | WillMcC | CC BY-SA 3.0 |
 | `stadium` | [Ben Hill Griffin Stadium empty.jpg](https://commons.wikimedia.org/wiki/File:Ben_Hill_Griffin_Stadium_empty.jpg) | Hughs (en.wikipedia) | CC BY-SA 2.5 |
+| `stadium_sideline` (the outing frame, an edit of `stadium`) | [Ben Hill Griffin Stadium empty.jpg](https://commons.wikimedia.org/wiki/File:Ben_Hill_Griffin_Stadium_empty.jpg) | Hughs (en.wikipedia) | CC BY-SA 2.5 |
 | `reitz` | [Reitz Union.jpg](https://commons.wikimedia.org/wiki/File:Reitz_Union.jpg) | Reitz Union | CC BY-SA 4.0 |
 | `plaza` | [UF PlazaOfTheAmericas.jpg](https://commons.wikimedia.org/wiki/File:UF_PlazaOfTheAmericas.jpg) | William M | CC BY-SA 3.0 |
 | `marston` | [UF-MarstonScienceLibrary.jpg](https://commons.wikimedia.org/wiki/File:UF-MarstonScienceLibrary.jpg) | Porsche997SBS | CC0 |
 
 `or_suite` and `home_p2` were painted from photos provided by the project owner (people and text removed).
 All other backgrounds (`dorm`, `home_p1`, `home_p3`, `century_tower`, `lake_alice`, `volleyball_courts`, `midtown`,
-`anatomy_lab`, `physics_lab`, `sakura_house`, `legend_sakura`, `title`, `map`) were generated from text prompts only.
+`anatomy_lab`, `physics_lab`, `sakura_house`, `legend_sakura`, `title`, `map`) were generated from text prompts only,
+as was `lake_alice_boardwalk` (the outing frame, an edit of `lake_alice`).
 Prompts live in `art-src/bg/prompts/`. Raw generations are kept out of git (`art-src/raw/`).
 
 ## Event CGs painted over these backgrounds

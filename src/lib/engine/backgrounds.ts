@@ -39,9 +39,9 @@ export function shouldGrade(id: string): boolean {
   return !INDOOR.has(id);
 }
 
-/** The location whose daytime background is `id` (for focusX / names). */
+/** The location whose daytime background (or outing frame) is `id` (for focusX / names). */
 export function locationForBackground(id: string) {
-  for (const l of Object.values(LOCATIONS)) if (l.bg === id) return l;
+  for (const l of Object.values(LOCATIONS)) if (l.bg === id || l.outingBg === id) return l;
   return undefined;
 }
 
