@@ -21,64 +21,69 @@ export interface LocationDef {
   /** Pin position on the campus map image (public/assets/bg/map.png, 480x320), normalized 0..1. */
   map: { x: number; y: number };
   actions: LocationAction[];
+  /**
+   * Your Kempanion can come along on an outing (pet/outing.ts): the painting has natural ground for his sprite to
+   * walk on in the KempaPager. Views without any (a lake behind a boardwalk railing, the stands) don't take outings.
+   */
+  outing: boolean;
 }
 
 export const LOCATIONS: Record<LocationId, LocationDef> = {
   dorm: {
     id: 'dorm', name: 'Sakura House', jp: 'さくら荘', blurb: 'The co-op off University Ave. The yard sakura blooms all year.',
-    bg: 'sakura_house', interior: 'dorm', song: 'dorm', outdoor: true, focusX: 240, map: { x: 0.06, y: 0.33 }, actions: ['rest'],
+    bg: 'sakura_house', interior: 'dorm', song: 'dorm', outdoor: true, focusX: 240, map: { x: 0.06, y: 0.33 }, outing: true, actions: ['rest'],
   },
   century_tower: {
     id: 'century_tower', name: 'Century Tower', jp: 'センチュリー・タワー', blurb: 'The carillon tower at the heart of campus. Bells on the hour.',
-    bg: 'century_tower', song: 'campus_day', outdoor: true, focusX: 330, map: { x: 0.5, y: 0.38 }, actions: ['omikuji'],
+    bg: 'century_tower', song: 'campus_day', outdoor: true, focusX: 330, map: { x: 0.5, y: 0.38 }, outing: true, actions: ['omikuji'],
   },
   plaza: {
     id: 'plaza', name: 'Plaza of the Americas', jp: 'プラザ', blurb: 'Lawn, live oaks, very bold squirrels. Pig Pen Friday lunch spot.',
-    bg: 'plaza', song: 'plaza', outdoor: true, focusX: 240, map: { x: 0.5, y: 0.2 }, actions: ['minigame:petals'],
+    bg: 'plaza', song: 'plaza', outdoor: true, focusX: 240, map: { x: 0.5, y: 0.2 }, outing: true, actions: ['minigame:petals'],
   },
   marston: {
     id: 'marston', name: 'Marston Science Library', jp: 'マーストン図書館', blurb: 'Open late. Coffee, whiteboards, quiet floors.',
-    bg: 'marston', song: 'library', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.19 }, actions: ['study', 'minigame:xfeed'],
+    bg: 'marston', song: 'library', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.19 }, outing: true, actions: ['study', 'minigame:xfeed'],
   },
   malachowsky: {
     id: 'malachowsky', name: 'Malachowsky Hall', jp: 'マラコウスキー・ホール', blurb: 'Data science & IT. Piggy 1 has a favorite study nook here.',
-    bg: 'malachowsky', song: 'malachowsky', outdoor: true, focusX: 240, map: { x: 0.76, y: 0.58 }, actions: ['study'],
+    bg: 'malachowsky', song: 'malachowsky', outdoor: true, focusX: 240, map: { x: 0.76, y: 0.58 }, outing: true, actions: ['study'],
   },
   physics: {
     id: 'physics', name: 'Physics Building', jp: '物理学棟', blurb: 'Labs, simulations, and Piggy 3 running jobs on HiPerGator.',
-    bg: 'physics', interior: 'physics_lab', song: 'physics', outdoor: true, focusX: 240, map: { x: 0.7, y: 0.4 }, actions: ['minigame:debug'],
+    bg: 'physics', interior: 'physics_lab', song: 'physics', outdoor: true, focusX: 240, map: { x: 0.7, y: 0.4 }, outing: true, actions: ['minigame:debug'],
   },
   communicore: {
     id: 'communicore', name: 'Communicore (College of Medicine)', jp: '医学部', blurb: 'Lecture halls, sim lab, and the anatomy lab upstairs.',
-    bg: 'communicore', interior: 'anatomy_lab', song: 'lab', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.81 }, actions: ['minigame:perfusion'],
+    bg: 'communicore', interior: 'anatomy_lab', song: 'lab', outdoor: true, focusX: 240, map: { x: 0.77, y: 0.81 }, outing: true, actions: ['minigame:perfusion'],
   },
   anatomy_lab: {
     id: 'anatomy_lab', name: 'Anatomy Lab', jp: '解剖学実習室', blurb: 'Steel tables, blue drapes, deep respect. Piggy 2 teaches here Tue & Thu.',
-    bg: 'anatomy_lab', song: 'lab', outdoor: false, focusX: 240, map: { x: 0.84, y: 0.74 }, actions: ['study'],
+    bg: 'anatomy_lab', song: 'lab', outdoor: false, focusX: 240, map: { x: 0.84, y: 0.74 }, outing: true, actions: ['study'],
   },
   shands: {
     id: 'shands', name: 'UF Health Shands', jp: 'シャンズ病院', blurb: 'The teaching hospital. Pharmacy downstairs, sim suite upstairs.',
-    bg: 'shands', interior: 'or_suite', song: 'hospital', outdoor: true, focusX: 240, map: { x: 0.92, y: 0.84 }, actions: ['pharmacy', 'minigame:surgery'],
+    bg: 'shands', interior: 'or_suite', song: 'hospital', outdoor: true, focusX: 240, map: { x: 0.92, y: 0.84 }, outing: true, actions: ['pharmacy', 'minigame:surgery'],
   },
   stadium: {
     id: 'stadium', name: 'Ben Hill Griffin Stadium', jp: 'ザ・スワンプ', blurb: '"The Swamp." Loudest place in Florida on game day.',
-    bg: 'stadium', song: 'stadium', outdoor: true, focusX: 240, map: { x: 0.17, y: 0.18 }, actions: ['cheer'],
+    bg: 'stadium', song: 'stadium', outdoor: true, focusX: 240, map: { x: 0.17, y: 0.18 }, outing: false, actions: ['cheer'],
   },
   lake_alice: {
     id: 'lake_alice', name: 'Lake Alice', jp: 'アリス湖', blurb: 'Gators, cypress knees, and the bat houses at dusk.',
-    bg: 'lake_alice', song: 'lake_alice', outdoor: true, focusX: 300, map: { x: 0.13, y: 0.47 }, actions: ['bats'],
+    bg: 'lake_alice', song: 'lake_alice', outdoor: true, focusX: 300, map: { x: 0.13, y: 0.47 }, outing: false, actions: ['bats'],
   },
   reitz: {
     id: 'reitz', name: 'Reitz Union', jp: 'ライツ・ユニオン', blurb: 'Student union: campus store, food court, game room.',
-    bg: 'reitz', song: 'shop', outdoor: true, focusX: 240, map: { x: 0.33, y: 0.42 }, actions: ['shop'],
+    bg: 'reitz', song: 'shop', outdoor: true, focusX: 240, map: { x: 0.33, y: 0.42 }, outing: true, actions: ['shop'],
   },
   volleyball_courts: {
     id: 'volleyball_courts', name: 'Sand Volleyball Courts', jp: 'ビーチバレー場', blurb: 'Evening rallies. Piggy 1 trades his laptop for a volleyball.',
-    bg: 'volleyball_courts', song: 'piggy1_theme', outdoor: true, focusX: 240, map: { x: 0.12, y: 0.79 }, actions: ['minigame:volley'],
+    bg: 'volleyball_courts', song: 'piggy1_theme', outdoor: true, focusX: 240, map: { x: 0.12, y: 0.79 }, outing: true, actions: ['minigame:volley'],
   },
   midtown: {
     id: 'midtown', name: 'Midtown', jp: 'ミッドタウン', blurb: 'University Ave after dark: pizza, boba, neon.',
-    bg: 'midtown', song: 'midtown', outdoor: true, focusX: 240, map: { x: 0.62, y: 0.04 }, actions: ['shop'],
+    bg: 'midtown', song: 'midtown', outdoor: true, focusX: 240, map: { x: 0.62, y: 0.04 }, outing: true, actions: ['shop'],
   },
 };
 

@@ -171,6 +171,11 @@ export const WANT = {
   fun: 5,
 } as const;
 
+// ── outings (outing.ts) ──
+
+/** How long your Kempanion stays where you took him (less when his bedtime or a nap comes first). */
+export const OUTING = { ms: 2 * H } as const;
+
 // ── idle thoughts (thoughts final.md §4.5; pet/thoughts.ts) ──
 
 /**

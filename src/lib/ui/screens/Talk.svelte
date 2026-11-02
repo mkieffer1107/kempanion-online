@@ -23,7 +23,8 @@
   import MumbleBubbles from '../../vn/components/MumbleBubbles.svelte';
   import { mumbleStage } from '../../vn/components/mumble.svelte';
   import { CHARACTERS } from '../../content/characters';
-  import { HOME_BG, LOCATIONS, whereIs } from '../../content/locations';
+  import { HOME_BG, LOCATIONS } from '../../content/locations';
+  import { spotOf } from '../../pet';
   import { timeOfDay } from '../../time';
   import { viewport } from '../viewport.svelte';
   import { setScreenKeys, ui } from '../ui.svelte';
@@ -40,7 +41,7 @@
   const back: ScreenId = params.back ?? (game.save.companion ? 'hub' : 'title');
   const ch = CHARACTERS[pig];
   const start = gameClock.date();
-  const loc: LocationId = game.save.pigs[pig].asleep ? 'dorm' : whereIs(pig, start);
+  const loc: LocationId = game.save.pigs[pig].asleep ? 'dorm' : spotOf(game.save, pig, start);
   const bg = loc === 'dorm' ? HOME_BG[pig] : LOCATIONS[loc].bg;
   const placeName = loc === 'dorm' ? `${ch.name}’s room` : LOCATIONS[loc].name;
   const THEME: Record<PigId, SongId> = { 'piggy-1': 'piggy1_theme', 'piggy-2': 'piggy2_theme', 'piggy-3': 'piggy3_theme' };

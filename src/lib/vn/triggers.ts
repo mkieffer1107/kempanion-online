@@ -9,7 +9,8 @@
 // Without `pig`, `hearts>=N` means every pig has at least N hearts.
 import { PIG_IDS, type LocationId, type PigId, type SaveData, type TimeOfDay } from '../types';
 import { WEEKDAYS, type Weekday } from '../time';
-import { isBedtime, scheduleSlot, whereIs, type ScheduleSlot } from '../content/locations';
+import { isBedtime, scheduleSlot, type ScheduleSlot } from '../content/locations';
+import { spotOf } from '../pet/outing';
 import { normalizeWeekday, SLOTS, TIMES, type CmpOp } from './conditions';
 
 export type TriggerClause =
@@ -255,7 +256,7 @@ function cmpNum(a: number, op: CmpOp, b: number): boolean {
 function hereOf(env: TriggerEnv): string {
   if (env.location !== 'hub') return env.location;
   const c = env.save.companion;
-  return c ? whereIs(c, env.date) : env.save.location;
+  return c ? spotOf(env.save, c, env.date) : env.save.location;
 }
 
 /** True when one clause holds (chance clauses are rolled by the caller). */
@@ -288,7 +289,8 @@ export function clauseHolds(c: TriggerClause, env: TriggerEnv, scenePig?: PigId)
     case 'item': ok = c.neg ? !c.ids.some((id) => (s.inventory[id] ?? 0) > 0) : c.ids.every((id) => (s.inventory[id] ?? 0) > 0); return ok;
     case 'present': {
       const here = hereOf(env);
-      const at = (p: PigId) => whereIs(p, env.date) === here && !isBedtime(p, env.date);
+      // your Kempanion counts wherever you took him (pet/outing.ts)
+      const at = (p: PigId) => spotOf(env.save, p, env.date) === here && !isBedtime(p, env.date);
       return c.neg ? !c.pigs.some(at) : c.pigs.every(at);
     }
     case 'companion': ok = c.values.includes(s.companion ?? 'none'); break;

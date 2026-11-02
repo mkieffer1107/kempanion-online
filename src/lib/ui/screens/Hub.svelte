@@ -17,11 +17,11 @@
   import { getCompiled } from '../../vn/registry';
   import { idleLine, type IdleKind } from '../../ai/heuristic';
   import { CHARACTERS } from '../../content/characters';
-  import { HOME_BG, LOCATIONS, whereIs } from '../../content/locations';
+  import { HOME_BG, LOCATIONS } from '../../content/locations';
   import { localDate, timeOfDay, weekday } from '../../time';
   import {
     bondLevel, canDoctorsRounds, canPlayMinigame, catchGoldenPetal, currentWant, dismissWelcomeBack, doctorsRounds,
-    freeItems, getItem, goldenPetalAvailable, knownTaste, moodOf, nearBedtime, stampCard, welcomeBack,
+    freeItems, getItem, goldenPetalAvailable, knownTaste, moodOf, nearBedtime, outingOf, spotOf, stampCard, welcomeBack,
     type CareResult, type PetItemDef, type Want, type WelcomeBackLetter,
   } from '../../pet';
   import { wantName } from '../../pet/wants';
@@ -56,8 +56,8 @@
   import RollCall from '../hub/RollCall.svelte';
   import WelcomeLetter from '../hub/WelcomeLetter.svelte';
   import {
-    ACTION_ANIM, ACTION_IDLE, ACTION_SFX, ALT_WIN, DRAG_PX, GROUND_T, GROUND_WS, HARD_BUMP, HARD_THUD, LIFT_FUN, LOW,
-    POUT_LINES, TICKLE_LINES, WHOOSH_SPEED, ambientKind, arrivalScene, chanceGated, countToss, crumbSpots, gameIcon, groundFromBox,
+    ACTION_ANIM, ACTION_IDLE, ACTION_SFX, ALT_WIN, DESKTOP_FLOORS, DRAG_PX, GROUND_T, GROUND_WS, HARD_BUMP, HARD_THUD, LIFT_FUN, LOW,
+    MOBILE_FLOORS, POUT_LINES, TICKLE_LINES, WHOOSH_SPEED, ambientKind, arrivalScene, chanceGated, countToss, crumbSpots, gameIcon, groundFromBox,
     hubSong, idleKind, landingReaction, liftFunDue, needsAttention, outfitReaction, playGames, popsFor, statusClip,
     type Pop,
   } from '../hub/hub';
@@ -81,7 +81,9 @@
   const d = $derived(new Date(gameClock.minute * 60_000));
   const tod = $derived(timeOfDay(d));
   const asleep = $derived(p.asleep);
-  const loc = $derived<LocationId>(asleep ? 'dorm' : whereIs(pig, d));
+  // his schedule, home while asleep, or where you took him (pet/outing.ts)
+  const loc = $derived<LocationId>(spotOf(game.save, pig, d));
+  const outing = $derived(outingOf(game.save, d.getTime()));
   const bgId = $derived(loc === 'dorm' ? HOME_BG[pig] : LOCATIONS[loc].bg);
   const placeName = $derived(loc === 'dorm' ? `${ch.name}’s room` : LOCATIONS[loc].name);
   const weather = $derived(weatherAt(d.getTime()));
@@ -400,7 +402,9 @@
     say(w.line);
     if (w.kind === 'food') open(getItem(w.id)?.category === 'drink' ? 'drink' : 'feed');
     else if (w.kind === 'talk') toast(`TALK to ${ch.name} about it!`, { icon: 'talk' });
-    else if (w.kind === 'place') toast(`Take a trip to ${w.label} (MAP).`, { icon: 'map' });
+    else if (w.kind === 'place') {
+      toast(LOCATIONS[w.id as LocationId]?.outing ? `Take ${ch.name} to ${w.label} (MAP → Bring).` : `Take a trip to ${w.label} (MAP).`, { icon: 'map' });
+    }
     else if (w.id === 'bath') open('wash');
     else if (w.id === 'pet') toast(`Tap ${ch.name} to give him head pats!`, { icon: 'hand' });
     else open('play');
@@ -756,26 +760,6 @@
   }
 
   // ── ground line: in W/S the VN box overlays the stage bottom, so he stands on its top edge ──
-  // Painted feet lines and clear floor intervals in the original 480×270 artwork.
-  // Insets include room for both feet/shadow at furniture and planter edges.
-  const MOBILE_FLOORS: Record<string, { y: number; focus: number; min: number; max: number }> = {
-    home_p2: { y: 252, focus: 350, min: 325, max: 375 },
-    anatomy_lab: { y: 252, focus: 240, min: 215, max: 340 },
-    physics: { y: 252, focus: 240, min: 180, max: 390 },
-    marston: { y: 264, focus: 240, min: 180, max: 410 },
-    shands: { y: 264, focus: 240, min: 170, max: 390 },
-  };
-  const DESKTOP_FLOORS: typeof MOBILE_FLOORS = {
-    ...MOBILE_FLOORS,
-    home_p1: { y: 252, focus: 240, min: 170, max: 385 },
-    home_p3: { y: 252, focus: 240, min: 140, max: 290 },
-    malachowsky: { y: 252, focus: 240, min: 150, max: 400 },
-    volleyball_courts: { y: 252, focus: 240, min: 150, max: 350 },
-    communicore: { y: 252, focus: 240, min: 110, max: 400 },
-    reitz: { y: 252, focus: 240, min: 150, max: 400 },
-    plaza: { y: 252, focus: 240, min: 80, max: 400 },
-    midtown: { y: 252, focus: 240, min: 110, max: 410 },
-  };
   const sceneFloor = $derived((viewport.mode === 'w' ? DESKTOP_FLOORS : MOBILE_FLOORS)[bgId]);
   let tickerEl = $state<HTMLElement | null>(null);
   let groundY = $state(viewport.mode === 't' ? GROUND_T : GROUND_WS);
@@ -852,6 +836,18 @@
   $effect(() => {
     if (!awayFlag) return;
     untrack(() => { if (!letter) letter = welcomeBack(game.save, now()); });
+  });
+
+  // ── an outing ran out while you watched: he heads back to his routine ──
+  let wasOut: boolean | null = null;
+  $effect(() => {
+    const out = outing !== null, l = loc, sleeping = asleep;
+    untrack(() => {
+      if (ready && wasOut && !out && !sleeping) {
+        toast(`${ch.name} heads back to ${l === 'dorm' ? 'his room' : LOCATIONS[l].name}.`, { icon: 'pin' });
+      }
+      wasOut = out;
+    });
   });
 
   // ── attention light beeps twice when it turns on ──

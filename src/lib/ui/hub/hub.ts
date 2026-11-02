@@ -144,6 +144,37 @@ export function groundFromBox(boxTop: number | null, margin = 2): number {
   return Math.round(Math.min(GROUND_T, Math.max(GROUND_MIN, boxTop - margin)));
 }
 
+/**
+ * A painting's floor in its original 480×270 pixels: `y` the painted feet line, `min`–`max` the clear floor he may
+ * walk and land on (insets leave room for both feet and the shadow at furniture and planter edges), `focus` the
+ * crop centre the stage frames that painting with (LocationDef.focusX; Piggy 2's room is framed at 350).
+ */
+export interface HubFloor { y: number; focus: number; min: number; max: number }
+
+/** Phones (T and S). A painting without an entry stands him at GROUND_T anywhere on the visible floor. */
+export const MOBILE_FLOORS: Readonly<Record<string, HubFloor>> = {
+  home_p2: { y: 252, focus: 350, min: 325, max: 375 },
+  anatomy_lab: { y: 252, focus: 240, min: 215, max: 340 },
+  physics: { y: 252, focus: 240, min: 180, max: 390 },
+  marston: { y: 264, focus: 240, min: 180, max: 410 },
+  shands: { y: 264, focus: 240, min: 170, max: 390 },
+  // the brick path in front of the tower, clear of the bench, the lamp post and the azaleas on the left
+  century_tower: { y: 252, focus: 330, min: 150, max: 420 },
+};
+
+/** Wide layouts, where the whole painting shows. */
+export const DESKTOP_FLOORS: Readonly<Record<string, HubFloor>> = {
+  ...MOBILE_FLOORS,
+  home_p1: { y: 252, focus: 240, min: 170, max: 385 },
+  home_p3: { y: 252, focus: 240, min: 140, max: 290 },
+  malachowsky: { y: 252, focus: 240, min: 150, max: 400 },
+  volleyball_courts: { y: 252, focus: 240, min: 150, max: 350 },
+  communicore: { y: 252, focus: 240, min: 110, max: 400 },
+  reitz: { y: 252, focus: 240, min: 150, max: 400 },
+  plaza: { y: 252, focus: 240, min: 80, max: 400 },
+  midtown: { y: 252, focus: 240, min: 110, max: 410 },
+};
+
 // ───────────────────────── pick up & toss ─────────────────────────
 
 /** Movement (CSS px) that turns a press on the pig into a pick-up; less is a tap (= pet). */

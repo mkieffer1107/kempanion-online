@@ -33,6 +33,10 @@ export { priceOf, couponActive, buyItem, goldenPetalAvailable, goldenPetalsLeft,
 export type { Want, WantKind, WantResult } from './wants';
 export { currentWant, fulfillWant, wantSlot, wantName } from './wants';
 
+// Taking your Kempanion along: where he is (spotOf) and the outing that put him there.
+export type { Outing, OutingBlock } from './outing';
+export { outingOf, outingBlock, spotOf, startOuting } from './outing';
+
 // Idle thought clouds: flavor only, seeded per pig and day (thoughts.ts; the banks are in ./thought-bank).
 export type { Thought, ThoughtCtx, ThoughtPref, ThinkBlock } from './thoughts';
 export {

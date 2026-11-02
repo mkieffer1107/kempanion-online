@@ -13,12 +13,11 @@ import { stage, type PortraitPos } from '../engine/stage';
 import { game } from '../state/game.svelte';
 import { now, nowDate } from '../state/clock';
 import { clockString, timeOfDay } from '../time';
-import { whereIs } from '../content/locations';
 import { CHARACTERS } from '../content/characters';
 import { respond, suggestReplies } from '../ai';
 import { greeting } from '../ai/heuristic';
 import { isDistress, isSafetyReply } from '../ai/quirks';
-import { bondLevel, moodOf } from '../pet';
+import { bondLevel, moodOf, spotOf } from '../pet';
 import { dialogue, type LineHandle } from './dialogue.svelte';
 import { scoreChat } from './effects';
 import { fitsGrid, fittingWords, gridOf, pageLine, PHONE_GRID, type TextGrid } from './chat-pages';
@@ -106,7 +105,7 @@ export function chatContext(pig: PigId, opts: Pick<FreeChatOptions, 'location' |
     playerName: game.save.player.name,
     pig,
     isCompanion: game.save.companion === pig,
-    location: opts.location ?? whereIs(pig, d),
+    location: opts.location ?? spotOf(game.save, pig, d),
     timeOfDay: timeOfDay(d),
     clock: clockString(d),
     needs: { ...p.needs },

@@ -1,6 +1,7 @@
 <script lang="ts">
   // A campus spot: background + busts of the pigs here now (or an empty-place vibe line), Talk / Gift,
   // and the place's own actions (mini-game, shop, omikuji, pharmacy, bats, cheer, study, home).
+  // Your Kempanion: hang out with him here on the KempaPager, or bring him along (pet/outing.ts).
   // Arriving reports a 'visit' signal and auto-plays any eligible scene first.
   import { onMount, untrack } from 'svelte';
   import { PIG_IDS, type Expression, type LocationId, type PigId } from '../../types';
@@ -16,12 +17,13 @@
   import { CHARACTERS } from '../../content/characters';
   import ActivityLabel from '../components/ActivityLabel.svelte';
   import { actionKind, type ActivityKind } from '../location/activities';
-  import { LOCATIONS, isBedtime, whereIs, type LocationAction } from '../../content/locations';
+  import { LOCATIONS, isBedtime, type LocationAction } from '../../content/locations';
   import { localDate, timeOfDay, weekday } from '../../time';
   import {
-    bondLevel, canPlayMinigame, freeCheckup, getItem, knownTaste, omikujiToday, recordSignal, rollOmikuji,
-    type CareResult, type OmikujiSlip,
+    bondLevel, canPlayMinigame, freeCheckup, getItem, knownTaste, omikujiToday, outingBlock, recordSignal, rollOmikuji,
+    spotOf, type CareResult, type OmikujiSlip,
   } from '../../pet';
+  import { bringCompanion } from '../location/outing';
   import { rngFor } from '../../pet/rng';
   import {
     THOUGHT, firstBeatMs, markThought, pickThought, thinkBlock, thoughtGap, thoughtName, type Thought,
@@ -52,12 +54,10 @@
   const arrived = gameClock.date();
   const tod = timeOfDay(arrived);
 
-  /** Awake pigs out here right now (an asleep Kempanion is home). */
-  const present: PigId[] = loc === 'dorm'
-    ? []
-    : PIG_IDS.filter((p) => !(game.save.pigs[p].asleep && p === companion) && whereIs(p, arrived) === loc);
+  /** Awake pigs out here right now (an asleep Kempanion is home; one on an outing is where you took him). */
+  const present: PigId[] = loc === 'dorm' ? [] : PIG_IDS.filter((p) => spotOf(game.save, p, arrived) === loc);
   /** At Sakura House: who's home (awake or asleep). */
-  const home: PigId[] = loc === 'dorm' ? PIG_IDS.filter((p) => (game.save.pigs[p].asleep && p === companion) || whereIs(p, arrived) === 'dorm') : [];
+  const home: PigId[] = loc === 'dorm' ? PIG_IDS.filter((p) => spotOf(game.save, p, arrived) === 'dorm') : [];
 
   /** "Piggy 1, Piggy 2, and Piggy 3" */
   const listNames = (ps: PigId[]) => new Intl.ListFormat('en', { type: 'conjunction' }).format(ps.map((p) => CHARACTERS[p].name));
@@ -399,7 +399,7 @@
       say(null, `You knock softly. From behind ${CHARACTERS[p].name}’s door: a sleepy “zzz…”. Better let him rest.`);
       return;
     }
-    const where = whereIs(p, t);
+    const where = spotOf(game.save, p, t);
     if (where !== 'dorm') {
       say(null, `No answer. ${CHARACTERS[p].name} is out at ${LOCATIONS[where].name} right now.`);
       return;
@@ -424,12 +424,24 @@
     'rest': null,
   };
 
+  /** Your Kempanion's row: the KempaPager where he is with you, or bring him here (null: he can't come). */
+  const companionRow = $derived.by(() => {
+    if (!companion) return null;
+    if (spotOf(game.save, companion, gameClock.date()) === loc) {
+      return loc === 'dorm'
+        ? { label: `${oneLine(companion)}’s room (KempaPager)`, icon: 'home', run: () => game.go('hub') }
+        : { label: `Hang out with ${oneLine(companion)}`, icon: 'heart', run: () => game.go('hub') };
+    }
+    if (outingBlock(game.save, loc, now())) return null;
+    return { label: loc === 'dorm' ? `Bring ${oneLine(companion)} home` : `Bring ${oneLine(companion)} here`, icon: 'pin', run: () => bringCompanion(loc, { arriving: false }) };
+  });
+
   const actions = $derived.by(() => {
     const list: { key: string; label: string; icon?: string; face?: PigId; kind?: ActivityKind; run: () => void }[] = [];
     for (const p of present) list.push({ key: `talk-${p}`, label: `Talk to ${oneLine(p)}`, face: p, run: () => talk(p) });
     if (present.length) list.push({ key: 'gift', label: 'Give a gift', icon: 'gift', run: startGift });
+    if (companionRow) list.push({ key: 'companion', ...companionRow });
     if (loc === 'dorm') {
-      if (companion) list.push({ key: 'home', label: `${oneLine(companion)}’s room (KempaPager)`, icon: 'home', run: () => game.go('hub') });
       for (const p of PIG_IDS) if (p !== companion) list.push({ key: `knock-${p}`, label: `Knock on ${oneLine(p)}’s door`, face: p, run: () => knock(p) });
     }
     for (const a of def.actions) {

@@ -11,9 +11,8 @@
   import { audio } from './lib/audio';
   import { stage } from './lib/engine/stage';
   import { dialogue, vnHooks } from './lib/vn';
-  import { THRESH, currentWant, getItem, type SignalResult, type SimEvent } from './lib/pet';
+  import { THRESH, currentWant, getItem, spotOf, type SignalResult, type SimEvent } from './lib/pet';
   import { CHARACTERS } from './lib/content/characters';
-  import { whereIs } from './lib/content/locations';
   import { featureNotice } from './lib/content/p3-features';
   import { getBigBrainChoice, onBigBrainChoice, type BigBrainChoice } from './lib/ai/choice';
   import CoachMark from './lib/ui/components/CoachMark.svelte';
@@ -349,7 +348,7 @@
     const next = PIG_IDS[(i + dir + PIG_IDS.length) % PIG_IDS.length];
     audio.sfx('ui_move');
     if (next === c) game.go('hub');
-    else game.go('location', { location: whereIs(next, gameClock.date()), focus: next });
+    else game.go('location', { location: spotOf(game.save, next, gameClock.date()), focus: next });
   }
 
   function cycleFocus() {

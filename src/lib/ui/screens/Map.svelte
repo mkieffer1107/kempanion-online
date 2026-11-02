@@ -1,6 +1,7 @@
 <script lang="ts">
   // Campus map: pins with the faces of whoever is there right now, a ♥ when a heart event is ready, a
-  // selected-place card, and a list (also the screen-reader path). GO plays a short walk, then travels.
+  // selected-place card, and a list (also the screen-reader path). GO plays a short walk, then travels; the card's
+  // Bring takes your Kempanion along to hang out there (the KempaPager at that place, pet/outing.ts).
   import { onMount } from 'svelte';
   import { PIG_IDS, type LocationId, type PigId } from '../../types';
   import { game } from '../../state/game.svelte';
@@ -8,7 +9,9 @@
   import { audio } from '../../audio';
   import { eligibleScenes } from '../../vn';
   import { CHARACTERS } from '../../content/characters';
-  import { LOCATIONS, LOCATION_IDS, whereIs } from '../../content/locations';
+  import { LOCATIONS, LOCATION_IDS } from '../../content/locations';
+  import { outingBlock, spotOf } from '../../pet';
+  import { bringCompanion } from '../location/outing';
   import { timeOfDay, weekday } from '../../time';
   import { asset, faceUrl, hasBackground } from '../sprites';
   import { viewport } from '../viewport.svelte';
@@ -29,9 +32,9 @@
    *  edge keep their faces inside it (Sakura House sits on the west edge, Midtown on the north one). */
   const pinHalf = (faces: number) => Math.max(22, (faces * 21) / 2 + 2);
 
-  /** Where each pig is right now (an asleep Kempanion is at home even outside his bedtime). */
+  /** Where each pig is right now (an asleep Kempanion is at home even outside his bedtime; out with you on an outing). */
   const whereNow = $derived(
-    Object.fromEntries(PIG_IDS.map((p) => [p, game.save.pigs[p].asleep && p === companion ? 'dorm' : whereIs(p, d)])) as Record<PigId, LocationId>,
+    Object.fromEntries(PIG_IDS.map((p) => [p, spotOf(game.save, p, d)])) as Record<PigId, LocationId>,
   );
   const pigsAt = (loc: LocationId) => PIG_IDS.filter((p) => whereNow[p] === loc);
 
@@ -61,18 +64,30 @@
     selected = id;
   }
 
-  function go(id: LocationId) {
+  /** The short walk, then `arrive` (default: the place's own screen). */
+  function go(id: LocationId, arrive = () => game.go('location', { location: id })) {
     if (traveling) return;
     audio.sfx('ui_select');
-    if (ui.reduceMotion) { game.go('location', { location: id }); return; }
+    if (ui.reduceMotion) { arrive(); return; }
     traveling = id;
     audio.sfx('whoosh');
     const steps = [120, 300, 480].map((t) => setTimeout(() => audio.sfx('step'), t));
     setTimeout(() => {
       steps.forEach(clearTimeout);
-      game.go('location', { location: id });
+      arrive();
     }, 680);
   }
+
+  /** The card's second button: hang out with your Kempanion at the selected place (null: he can't go there). */
+  const bring = $derived.by(() => {
+    if (!companion || !LOCATIONS[selected].outing) return null;
+    const name = CHARACTERS[companion].name;
+    if (whereNow[companion] === selected) return { label: `Hang out with ${name}`, ok: true };
+    const block = outingBlock(game.save, selected, d.getTime());
+    if (block === 'asleep') return { label: `${name} is asleep`, ok: false };
+    if (block === 'bedtime') return { label: `${name}’s bedtime`, ok: false };
+    return { label: `Bring ${name}`, ok: !block };
+  });
 
   function close() {
     audio.sfx('ui_back');
@@ -151,9 +166,16 @@
           {/if}
         </p>
         {#if marks[selected] === 'heart'}<p class="heart-note">♥ Something special is about to happen here…</p>{/if}
-        <button type="button" class="px-btn primary go" onclick={() => go(selected)}>
-          <Icon id="pin" size={18} /> {here === selected ? 'Enter' : 'Go'}
-        </button>
+        <div class="go-row">
+          <button type="button" class="px-btn primary go" onclick={() => go(selected)}>
+            <Icon id="pin" size={18} /> {here === selected ? 'Enter' : 'Go'}
+          </button>
+          {#if bring && companion}
+            <button type="button" class="px-btn go bring" disabled={!bring.ok} onclick={() => go(selected, () => bringCompanion(selected, { arriving: true }))}>
+              <PigFace pig={companion} size={20} /> {bring.label}
+            </button>
+          {/if}
+        </div>
       </section>
 
       <ul class="list px-scroll" aria-label="Places">
@@ -265,7 +287,9 @@
   .blurb { font-size: 14px; opacity: 0.9; }
   .who { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; font-size: 14px; }
   .heart-note { color: var(--sakura-2); font-size: 14px; }
-  .go { justify-self: start; min-width: 120px; }
+  .go-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .go { min-width: 120px; }
+  .bring { display: inline-flex; align-items: center; gap: 6px; }
   .list { flex: 1; min-height: 0; list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: 4px; }
   .list li { display: flex; gap: 6px; align-items: center; }
   .activities { display: flex; flex-wrap: wrap; gap: 2px 10px; }
