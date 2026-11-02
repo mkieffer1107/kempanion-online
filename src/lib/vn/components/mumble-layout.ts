@@ -1,8 +1,9 @@
 // Where Piggy 3's mumble bubbles go, and when (pure, bun-testable). While his quiet, fast mumble stream types out in
-// the dialogue box (chat.ts), each fragment's buzzword pops out of him in a small lilac cloud (MumbleBubbles.svelte
-// draws them): beside his face (the story’s Jev cloud may cover his cheek), clear of the phone, his muttering hoof, the dialogue window or the
-// screen's chrome. Here: the keep-out boxes of his phone portraits, where his portrait cell sits on the stage, the slot
-// search, how many bubbles a screen shows, and which bubble pops on which page of the stream.
+// the dialogue box (chat.ts, or the prologue's robot rant), each fragment's buzzword pops out of him in a small lilac
+// cloud (MumbleBubbles.svelte draws them). The clouds pile up in a loose cluster hugging his head, clear of his face,
+// the phone, his muttering hoof, the dialogue window and the screen's chrome. Here: the keep-out boxes of his phone
+// portraits, where his portrait cell sits on the stage, the cluster search, how many bubbles a screen shows, and
+// which bubble pops on which page of the stream.
 // Geometry is CSS px in the stage view's box (the layer StageHost's children live in) unless it says otherwise.
 import { lineupScale, portraitCenterX, portraitY, NARROW_W, PORTRAIT_W } from '../../engine/layout';
 import type { PortraitPos } from '../../engine/stage';
@@ -36,26 +37,26 @@ export const MUMBLE_KEEP: Readonly<Record<'everyday' | 'hoodie', { face: CellBox
 /** Stage px kept around every box: the portrait bobs 1–2 px while he talks and pops 4% on a new face. */
 export const KEEP_PAD = 3;
 
-/** Motion (ms) and drift (art px) for the whole cloud, including its text and tail. */
+/** Motion (ms) for the whole cloud, including its text and tail. */
 export const MUMBLE_TIMING = {
-  /** Gentle entrance from the tail. */
-  popMs: 450,
-  /** Drift time and the longest a bubble stays while he types (the cap usually retires it sooner). */
-  lifeMs: 3200,
-  /** Slow, continuous fade from the current entrance opacity. */
-  fadeMs: 700,
+  /** Pop to full opacity from the tail's root. */
+  popMs: 300,
+  /** A cloud retiring fades this long from wherever it is. */
+  fadeMs: 650,
   /** Every bubble pops when he snaps out of it. */
-  snapMs: 140,
-  /** A bubble popping where an older one is still fading waits this long. */
-  swapDelayMs: 400,
-  /** Art px a bubble rises over lifeMs, one per step. */
-  driftArt: 4,
+  snapMs: 160,
+  /** A new page lets the last page's clouds go one by one, oldest first, this far apart. */
+  pageStaggerMs: 140,
+  /** Words that arrive together (a tap that shows the rest) pop this far apart. */
+  cascadeMs: 90,
+  /** One idle bob (up an art px and back) while a cloud is up. */
+  bobMs: 2400,
 } as const;
 
 /** The tail sprite (scripts/make-bubbles.ts): 5×4 art px, its top row on the bubble's last row. */
 export const TAIL_ART = { w: 5, h: 4 } as const;
 
-/** Picture height (CSS px) under which an upright phone shows 2 bubbles instead of 3. */
+/** Picture height (CSS px) under which an upright phone shows 3 bubbles instead of 6. */
 export const SHORT_ZONE = 150;
 
 /** The widest bubble before its word breaks onto two lines, in art px (phone portrait, else). */
@@ -73,14 +74,14 @@ export interface MumbleGeo {
   wide?: Rect;
   /** Chrome over the stage (the top bar, the name plate and LOG strip, the window): never under a bubble. */
   obstacles: Rect[];
-  /** A group scene has room above the lineup, rather than beside the other pigs' faces. */
-  group?: boolean;
+  /** The other pigs' faces in a group shot: kept clear when there is room, covered when there is not. */
+  soft?: Rect[];
 }
 
-/** Bubbles up at once: 3 on an upright phone (2 when the picture above the window is short), 4 landscape, 5 wide. */
+/** Bubbles up at once: 6 on an upright phone (3 when the picture above the window is short), 7 landscape, 8 wide. */
 export function mumbleCap(g: Pick<MumbleGeo, 'mode' | 'zone'>): number {
-  if (g.mode === 't') return g.zone.h < SHORT_ZONE ? 2 : 3;
-  return g.mode === 's' ? 4 : 5;
+  if (g.mode === 't') return g.zone.h < SHORT_ZONE ? 3 : 6;
+  return g.mode === 's' ? 7 : 8;
 }
 
 /**
@@ -100,70 +101,34 @@ export function mumbleKeepOut(outfit: OutfitId, pos: PortraitPos, lw: number, u:
   }));
 }
 
-/** The other pigs' faces in a group shot; a narrow stage draws only the speaker. Mobile clouds may cover the center pig. */
-export function mumbleNeighbours(pos: PortraitPos, lineup: readonly PortraitPos[], lw: number, u: number, allowCenter = false): Rect[] {
+/** The other pigs' faces (brows to chin; their hair may sit under a cloud) in a group shot; a narrow stage draws only the speaker. */
+export function mumbleNeighbours(pos: PortraitPos, lineup: readonly PortraitPos[], lw: number, u: number): Rect[] {
   if (lw < NARROW_W) return [];
   const k = lineupScale(lineup, lw);
-  return lineup.filter((p) => p !== pos && !(allowCenter && p === 'center')).map((p) => ({
-    x: (portraitCenterX(p, lw, k) - 76 * k - KEEP_PAD) * u,
-    y: (portraitY(0, k) + 64 * k - KEEP_PAD) * u,
-    w: (152 * k + 2 * KEEP_PAD) * u,
-    h: (136 * k + 2 * KEEP_PAD) * u,
+  return lineup.filter((p) => p !== pos).map((p) => ({
+    x: (portraitCenterX(p, lw, k) - 70 * k - KEEP_PAD) * u,
+    y: (portraitY(0, k) + 84 * k - KEEP_PAD) * u,
+    w: (140 * k + 2 * KEEP_PAD) * u,
+    h: (100 * k + 2 * KEEP_PAD) * u,
   }));
 }
-
-/**
- * Placement slots, tried in order from a rotating start. side: which side of his keep-outs · col: columns out from them
- * (0 = hugging them) · level: bubble centre as a fraction of the face's height from its top (negative = above it).
- * The x hugs whichever keep-outs share the bubble's rows, so a bubble at cheek height on his phone side sits past the
- * phone, and one at temple height sits right beside his glasses.
- */
-export const MUMBLE_SLOTS: Readonly<Record<MumbleMode, readonly { side: 'left' | 'right'; col: number; level: number }[]>> = {
-  // T: he stands in the middle: both sides, the temple and the free side first
-  t: [
-    { side: 'right', col: 0, level: 0.0 }, { side: 'left', col: 0, level: 0.3 },
-    { side: 'right', col: 0, level: 0.62 }, { side: 'left', col: 0, level: -0.28 },
-    { side: 'left', col: 0, level: 0.82 }, { side: 'right', col: 0, level: -0.42 },
-  ],
-  // S / W: he stands on the left and the right half is free while he talks: an arc beside and above-right of him
-  s: [
-    { side: 'right', col: 0, level: 0.02 }, { side: 'right', col: 1, level: -0.32 },
-    { side: 'right', col: 0, level: 0.66 }, { side: 'right', col: 2, level: 0.22 },
-    { side: 'right', col: 1, level: 0.98 }, { side: 'right', col: 2, level: -0.52 },
-    { side: 'right', col: 3, level: 0.62 }, { side: 'right', col: 0, level: -0.62 },
-  ],
-  w: [
-    { side: 'right', col: 0, level: 0.02 }, { side: 'right', col: 1, level: -0.32 },
-    { side: 'right', col: 0, level: 0.66 }, { side: 'right', col: 2, level: 0.22 },
-    { side: 'right', col: 1, level: 0.98 }, { side: 'right', col: 2, level: -0.52 },
-    { side: 'right', col: 3, level: 0.62 }, { side: 'right', col: 0, level: -0.62 },
-  ],
-};
-
-// A loose cluster above the speaker: anchor is a fraction across his face. Unlike Talk's side slots, these stay
-// close to him even when his neighbours fill the screen, with enough height to keep their faces clear.
-const GROUP_SLOTS = [
-  { side: 'left', col: 0, level: -0.65, anchor: 0.25 }, { side: 'right', col: 0, level: -0.65, anchor: 1 },
-  { side: 'left', col: 0, level: -1.3, anchor: 0.05 }, { side: 'right', col: 0, level: -1.3, anchor: 0.8 },
-  { side: 'left', col: 0, level: -1.95, anchor: 0.2 }, { side: 'right', col: 0, level: -1.95, anchor: 1 },
-] as const;
-
-// On a phone, fill the row nearest his hair first, spreading toward the center pig before starting a second row.
-// Row spacing follows the clouds' size, rather than the portrait's height; cycling must not send clouds skyward.
-const MOBILE_GROUP_SLOTS = [
-  { side: 'right', col: 0, row: 0 }, { side: 'left', col: 1, row: 0, ear: true }, { side: 'left', col: 2, row: 0 },
-  { side: 'right', col: 0, row: 1 }, { side: 'left', col: 1, row: 1 }, { side: 'left', col: 2, row: 1 },
-] as const;
 
 /** a and b overlap, with `pad` px between them counting as overlap. */
 export const hit = (a: Rect, b: Rect, pad = 0): boolean =>
   a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
 
-const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
+/** The area a and b share. */
+const shared = (a: Rect, b: Rect): number =>
+  Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+
+/**
+ * How far a cloud is from his face (0 when they touch), height counting half: a cloud stacked over his head is still
+ * plainly his, one off to the side over someone else's soon is not.
+ */
+export const gapBetween = (a: Rect, b: Rect): number =>
+  Math.hypot(Math.max(0, b.x - (a.x + a.w), a.x - (b.x + b.w)), Math.max(0, b.y - (a.y + a.h), a.y - (b.y + b.h)) / 2);
 
 export interface BubbleBox {
-  /** Optional label for the prologue’s stable, speaker-anchored cloud positions. */
-  word?: string;
   /** The cloud, CSS px (its width is 16 + 8m art px; 16 or 24 art px tall). */
   w: number;
   h: number;
@@ -175,143 +140,85 @@ export interface Placement {
   /** The cloud's top-left. */
   x: number;
   y: number;
-  /** Everything it covers over its life: its drift above, its tail below. */
+  /** Everything it covers: the cloud, its tail below and its bob above. */
   r: Rect;
-  /** Which side of him it is on (its tail points down toward him). */
+  /** Which side of his head it is on (its tail points down toward him). */
   side: 'left' | 'right';
-  /** The slot it took (the search starts after it next time). */
-  slot: number;
-}
-
-/** The second robot page grows upward, keeping the newest thought nearest his hair. */
-export const ROBOT_STACK_WORDS = ['receding-horizon', 'action tokens', 'zero-shot laundry'] as const;
-export const isRobotStackWord = (word: string): boolean =>
-  (ROBOT_STACK_WORDS as readonly string[]).includes(word.replace(/…$/, '').toLowerCase());
-
-/** Place the whole mobile stack together so new words move earlier clouds without retiring them. */
-export function placeRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): Placement[] | null {
-  if (g.mode !== 't' || !g.group || !g.keep[0] || !boxes.length) return null;
-  const face = g.keep[0];
-  const px = g.px;
-  const snap = (v: number) => Math.round(v / px) * px;
-  const zone = g.wide ?? g.zone;
-  const gap = 3 * px;
-  let bottom = snap(face.y - 0.2 * face.h - 2 * px);
-  const placements: Placement[] = [];
-  for (let i = boxes.length - 1; i >= 0; i--) {
-    const b = boxes[i];
-    const x = clamp(snap(face.x + 0.7 * face.w - b.w / 2), Math.ceil(zone.x / px) * px, Math.floor((zone.x + zone.w - b.w) / px) * px);
-    const y = snap(bottom - b.h - b.tail);
-    const r = { x, y, w: b.w, h: b.h + b.tail };
-    if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y || r.y + r.h > zone.y + zone.h) return null;
-    if ([...g.keep, ...g.obstacles].some((o) => hit(r, o, px))) return null;
-    placements[i] = { x, y, r, side: b.word?.toLowerCase().startsWith('action tokens') ? 'left' : 'right', slot: i };
-    bottom = y - gap;
-  }
-  return placements;
-}
-
-export interface RobotStackRise extends Placement {
-  /** The shared entrance above his hair, before the cloud rises to its final row. */
-  fromY: number;
-  riseMs: number;
-  /** Minimum time after the preceding entry before this cloud has a clear entrance. */
-  clearanceMs: number;
-}
-
-/** Plan all rows up front: the first thought can rise before the next phrase reaches the typewriter. */
-export function planRobotStack(boxes: readonly BubbleBox[], g: MumbleGeo): RobotStackRise[] | null {
-  const targets = placeRobotStack(boxes, g);
-  if (!targets) return null;
-  const zone = g.wide ?? g.zone;
-  const drift = Math.min(6 * g.px, targets[0].y - zone.y);
-  const speed = 32 / 1000; // CSS px per millisecond: a gentle rise, independent of the typewriter rate.
-  return targets.map((p, i) => {
-    const entrance = placeRobotStack([boxes[i]], g)![0];
-    const y = p.y - drift;
-    return {
-      ...p, y, r: { ...p.r, y }, fromY: entrance.y,
-      riseMs: Math.max(675, (entrance.y - y) / speed),
-      clearanceMs: i ? (boxes[i].h + boxes[i].tail + 3 * g.px) / speed : 0,
-    };
-  });
 }
 
 /**
- * The first free slot (from `start`) for a bubble: inside `zone`, clear of his keep-outs and the chrome, and of the
- * bubbles up (and the fading ones too, with `avoidFading`). Null when nothing fits.
+ * The farthest a cloud sits from his face: this many face widths, or a little over two rows of clouds (44 art px) when
+ * his face is small. Past it the oldest cloud makes room instead.
  */
-export function placeMumble(
-  b: BubbleBox,
-  g: MumbleGeo,
-  live: readonly Rect[],
-  fading: readonly Rect[],
-  start: number,
-  { avoidFading = true, zone = g.zone }: { avoidFading?: boolean; zone?: Rect } = {},
-): Placement | null {
-  const compact = g.group && g.mode === 't';
-  const slots = compact ? MOBILE_GROUP_SLOTS : g.group ? [...GROUP_SLOTS, ...MUMBLE_SLOTS[g.mode]] : MUMBLE_SLOTS[g.mode];
+export const REACH = 0.45;
+export const reachOf = (face: Rect, px: number): number => Math.max(REACH * face.w, 44 * px);
+
+/**
+ * Art px a cloud may tuck under its neighbour, across or down: only the puffy rim, never the words (the text sits 4
+ * art px in from the top and bottom, past the round ends at the sides).
+ */
+export const TUCK = 5;
+
+/** a and b only touch at their rims (or not at all): neither covers the other's words. */
+export const rimsOnly = (a: Rect, b: Rect, px: number): boolean => {
+  const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return w <= TUCK * px || h <= TUCK * px;
+};
+
+/**
+ * The spot for a cloud in his cluster: as close to his head as it fits, so every cloud reads as his. Spots sit on an
+ * 8-art-px lattice (the clouds' half height), so the cluster falls into staggered rows; clouds tuck their rims under
+ * each other (TUCK) but never cover each other's words, never his face, phone or fist, the chrome or the dialogue
+ * window, and off the other pigs' faces unless it is alone and nothing else fits. Above his cheek only (the tail points down at him), within REACH of his face. Null when
+ * nothing fits.
+ */
+export function placeMumble(b: BubbleBox, g: MumbleGeo, live: readonly Rect[], fading: readonly Rect[] = []): Placement | null {
   const face = g.keep[0];
-  if (!face || !slots.length) return null;
+  if (!face) return null;
   const px = g.px;
-  const snap = (v: number) => Math.round(v / px) * px;
-  const gap = 2 * px;
-  const colW = Math.max(b.w * 0.8, 44 * px);
-  const drift = MUMBLE_TIMING.driftArt * px;
-  const rowH = compact ? Math.max(b.h, ...live.map((r) => r.h - b.tail - drift)) + b.tail + drift + gap : 0;
-  // These recurring robot labels keep their place as the other clouds cycle around them.
-  const label = b.word?.replace(/…$/, '').toLowerCase();
-  if (compact && label && ['autoregressive', 'jev', 'jepa'].includes(label)) {
-    const left = label !== 'autoregressive';
-    let x0 = label === 'jev' ? face.x - 0.45 * b.w
-      : label === 'jepa' ? face.x - 0.55 * b.w
-      : face.x + 0.7 * face.w - b.w / 2;
-    // Jev sits on his cheek by request, while the ear cloud stays above the face bounds.
-    const y0 = label === 'jev' ? Math.min(face.y + 0.2 * face.h, ...g.keep.slice(1).filter((r) => r.x < x0 + b.w + gap && r.x + r.w + gap > x0).map((r) => r.y - b.h - b.tail - gap))
-      : label === 'jepa' ? face.y - b.h - b.tail - gap
-      : face.y - 0.2 * face.h - b.h - b.tail - gap;
-    const y = snap(clamp(y0, zone.y + drift, zone.y + zone.h - b.h - b.tail));
-    if (label === 'jepa') {
-      for (const r of live) {
-        if (r.y < y + b.h + b.tail + px && r.y + r.h + px > y - drift) x0 = Math.min(x0, r.x - gap - b.w);
+  const step = 8 * px;
+  const cx = face.x + face.w / 2;
+  const zones = g.wide ? [g.zone, g.wide] : [g.zone];
+  const area = b.w * (b.h + b.tail);
+  const reach = reachOf(face, px);
+  // the side with more picture beside his face is where the cluster leans
+  const roomL = face.x - g.zone.x;
+  const roomR = g.zone.x + g.zone.w - (face.x + face.w);
+  const open: 'left' | 'right' = roomR >= roomL ? 'right' : 'left';
+  // over another pig's face only as a lone cloud: with others up, the oldest makes room instead
+  for (const spareFaces of live.length ? [true] : [true, false]) {
+    let best: { p: Placement; score: number } | null = null;
+    for (const [zi, zone] of zones.entries()) {
+      const x0 = Math.ceil(zone.x / px) * px;
+      const y0 = Math.ceil((zone.y + px) / px) * px;
+      // the cloud's bottom no lower than his cheek
+      const yMax = Math.min(zone.y + zone.h - b.h - b.tail, face.y + 0.55 * face.h - b.h);
+      for (let y = y0; y <= yMax; y += step) {
+        for (let x = x0; x + b.w <= zone.x + zone.w + 0.5; x += step) {
+          const r = { x, y: y - px, w: b.w, h: b.h + b.tail + px };
+          const gap = gapBetween(r, face);
+          if (gap > reach) continue;
+          if (g.keep.some((o) => hit(r, o, px)) || g.obstacles.some((o) => hit(r, o, px))) continue;
+          if (spareFaces && g.soft?.some((o) => hit(r, o))) continue;
+          if (!live.every((o) => rimsOnly(r, o, px))) continue;
+          let crowd = 0;
+          for (const o of live) crowd += shared(r, o) / area;
+          let score = gap / face.w * 10 + crowd * 6;
+          for (const o of fading) score += shared(r, o) / area * 1.5;
+          for (const o of g.soft ?? []) score += shared(r, o) / area * 4;
+          const mid = x + b.w / 2;
+          // stack up over his own head before spreading out sideways over someone else's
+          score += Math.max(0, Math.abs(mid - cx) - face.w / 2) / face.w * 4;
+          const side: 'left' | 'right' = mid >= cx ? 'right' : 'left';
+          if (side !== open) score += 0.6;
+          // a cloud level with his eyes beats one floating far over his hair; letterbox bars only as a fallback
+          score += Math.max(0, face.y - (y + b.h)) / face.h * 1.5 + zi * 2;
+          if (!best || score < best.score - 1e-6) best = { p: { x, y, r, side }, score };
+        }
       }
     }
-    const x = snap(clamp(x0, zone.x, zone.x + zone.w - b.w));
-    const r = { x, y: y - drift, w: b.w, h: b.h + b.tail + drift };
-    const keep = label === 'jev' ? g.keep.slice(1) : g.keep;
-    if ([...keep, ...g.obstacles, ...live, ...(avoidFading ? fading : [])].some((o) => hit(r, o, px))) return null;
-    return { x, y, r, side: left ? 'left' : 'right', slot: 0 };
-  }
-  for (let k = 0; k < slots.length; k++) {
-    const slot = compact ? k : (((start + k) % slots.length) + slots.length) % slots.length;
-    const s = slots[slot];
-    // The left cloud sits beside his ear, over the middle pig, with its right-hand tail aimed at the speaker.
-    const ear = 'ear' in s;
-    const y0 = ear ? face.y + 0.12 * face.h - b.h - b.tail
-      : 'row' in s
-      ? face.y - 0.2 * face.h - s.row * rowH - b.h - b.tail - gap
-      : face.y + s.level * face.h - b.h / 2;
-    const y = snap(clamp(y0, zone.y + drift, zone.y + zone.h - b.h - b.tail));
-    // hug the keep-outs that share the bubble's rows (over its whole drift), else his face
-    const near = g.keep.filter((r) => r.y < y + b.h + b.tail && r.y + r.h > y - drift);
-    const edge = near.length ? near : [face];
-    const rowLive = compact ? live.filter((r) => r.y < y + b.h + b.tail + px && r.y + r.h + px > y - drift).sort((a, b) => b.x - a.x) : [];
-    const x0 = ear ? face.x - gap - b.w
-      : 'row' in s
-      ? s.col > 0 && rowLive[s.col - 1]
-        ? rowLive[s.col - 1].x - gap - b.w
-        : Math.min(face.x + 0.65 * face.w - b.w / 2, zone.x + zone.w - b.w) - s.col * (b.w + gap)
-      : 'anchor' in s ? face.x + s.anchor * face.w - b.w / 2 : s.side === 'right'
-      ? Math.max(...edge.map((r) => r.x + r.w)) + gap + s.col * colW
-      : Math.min(...edge.map((r) => r.x)) - gap - b.w - s.col * colW;
-    const x = snap(clamp(x0, compact && !ear ? Math.max(zone.x, face.x - 0.5 * face.w) : zone.x, zone.x + zone.w - b.w));
-    const r = { x, y: y - drift, w: b.w, h: b.h + b.tail + drift };
-    if (r.x < zone.x - 0.5 || r.x + r.w > zone.x + zone.w + 0.5 || r.y < zone.y - 0.5 || r.y + r.h > zone.y + zone.h + 0.5) continue;
-    if (g.keep.some((o) => hit(r, o, px))) continue;
-    if (g.obstacles.some((o) => hit(r, o, px))) continue;
-    if (live.some((o) => hit(r, o, px))) continue;
-    if (avoidFading && fading.some((o) => hit(r, o, px))) continue;
-    return { x, y, r, side: s.side, slot };
+    if (best) return best.p;
   }
   return null;
 }

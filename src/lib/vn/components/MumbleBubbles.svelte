@@ -1,11 +1,10 @@
 <script lang="ts">
   // Piggy 3's Deku-style mumble bubbles. While his quiet, fast mumble stream types out in the dialogue box (chat.ts
-  // plays it, mumbleStage says which page is up), each fragment's buzzword pops out of him in a small lilac pixel cloud
-  // as the typewriter reaches it, drifts up a few UI pixels and fades, a few up at once (3 on an upright phone, 2 when
-  // its picture is short, 4 landscape, 5 wide); when he snaps out of it they all pop. They sit beside his face, never
-  // over it (except the story's Jev cheek cloud), the phone in his hoof, his fist, the dialogue window or the chrome in `avoid` (mumble-layout.ts places
-  // them); on a letterboxed picture they may sit over the bars. Reduce motion: no pop, drift or fade, and each page's
-  // words stand still beside him while that page is up.
+  // plays it, mumbleStage says which page is up; the prologue's rant passes its own pages), each fragment's buzzword
+  // pops out of him in a small lilac pixel cloud as the typewriter reaches it, and stays. They pile up in a loose
+  // cluster hugging his head (mumble-layout.ts places them: overlapping a little, never over his face, the phone, his
+  // fist, the dialogue window or the chrome in `avoid`). Past the cap the oldest fades; a new page lets the last page's
+  // clouds go one by one; when he snaps out of it they all pop. Reduce motion: no pop, bob or fade.
   // A child of StageHost: the layer is the picture's box, and one bubble art pixel is var(--px). The cloud is the
   // 9-slice from scripts/make-bubbles.ts (public/assets/mumble/, lilac). Bubbles are built imperatively: each one is
   // measured before it is placed (its word sets its width).
@@ -17,12 +16,12 @@
   import { dialogue } from '../dialogue.svelte';
   import { mumbleStage, type MumbleWord } from './mumble.svelte';
   import {
-    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, hit, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, isRobotStackWord, planRobotStack,
-    type BubbleBox, type RobotStackRise, type MumbleGeo, type MumbleMode, type Placement, type Rect,
+    MAX_BUBBLE_ART, MUMBLE_TIMING, TAIL_ART, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble,
+    type MumbleGeo, type MumbleMode, type Rect,
   } from './mumble-layout';
 
   interface Props {
-    /** viewport.mode: which side of him the bubbles take, and how many are up at once. */
+    /** viewport.mode: how many are up at once. */
     mode: MumbleMode;
     /** His portrait slot (Talk: 'left' on wide layouts, 'center' on an upright phone). */
     pos: PortraitPos;
@@ -33,7 +32,7 @@
     /** Scene dialogue can supply its own page; free chat uses mumbleStage. */
     stream?: boolean;
     page?: { id: number | string; words: readonly MumbleWord[] } | null;
-    /** All portrait slots in a group scene; mobile clouds may overlap the center pig to stay near the speaker. */
+    /** All portrait slots in a group scene: his keep-outs scale with the lineup, the others' faces are kept clear if possible. */
     lineup?: readonly PortraitPos[];
   }
 
@@ -48,28 +47,32 @@
   interface Item {
     el: HTMLDivElement;
     r: Rect;
-    box: BubbleBox;
-    startsAt?: number;
-    timer: ReturnType<typeof setTimeout> | 0;
+    /** Pops after this (a cascade); a snap before then just removes it. */
+    startsAt: number;
   }
 
   let layer = $state<HTMLDivElement>();
   let artReady = $state(false);
   const live: Item[] = [];
   const fading: Item[] = [];
-  let slotIx = 0;
+  const timers = new Set<ReturnType<typeof setTimeout>>();
   /** This page's words not popped yet, by `at`. */
   let pending: MumbleWord[] = [];
-  /** The page has typed (or Reduce motion placed its words): nothing more pops until the next page. */
-  let frozen = true;
   let seenPage: number | string = -1;
   let layoutRevision = $state(0);
   let seenGeometry = '';
-  let stackPlan: { word: string; rise: RobotStackRise }[] = [];
-  let lastStackStart: number | null = null;
+  /** Stacking order: the newest cloud is on top. */
+  let z = 0;
+  /** When the last cascade pop is due, so words arriving together pop one after another. */
+  let nextPopAt = 0;
 
   const reduceQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
   const reduce = () => game.save.settings.reduceMotion || !!reduceQuery?.matches;
+
+  function later(ms: number, fn: () => void): void {
+    const t = setTimeout(() => { timers.delete(t); fn(); }, ms);
+    timers.add(t);
+  }
 
   /** The stage, measured now: his keep-outs, the picture above the window, the chrome over it (layer px). */
   function geo(): MumbleGeo | null {
@@ -100,10 +103,9 @@
     const h = Math.min(floor, rv.bottom) - rv.top - 4 - y;
     const zone = { x: left - rv.left + 4, y, w: right - left - 8, h };
     const wide = { x: rr.left - rv.left + 4, y, w: rr.width - 8, h };
-    obstacles.push(...mumbleNeighbours(pos, lineup, lw, u, mode === 't' && lineup.length > 1));
     return {
       mode, px, keep: mumbleKeepOut(outfit, pos, lw, u, lineup), zone,
-      wide: wide.w > zone.w + 2 ? wide : undefined, obstacles, group: lineup.length > 1,
+      wide: wide.w > zone.w + 2 ? wide : undefined, obstacles, soft: mumbleNeighbours(pos, lineup, lw, u),
     };
   }
 
@@ -134,187 +136,119 @@
     // the text plus 3 art px each side fits inside 16 + 8m art px (the round ends take the rest)
     const m = Math.max(1, Math.ceil((wText / px + 6 - 16) / 8));
     el.style.setProperty('--m', String(m));
-    return { el, word, w: (16 + 8 * m) * px, h: (two ? 24 : 16) * px, tail: (TAIL_ART.h - 1) * px };
+    return { el, w: (16 + 8 * m) * px, h: (two ? 24 : 16) * px, tail: (TAIL_ART.h - 1) * px };
   }
 
-  /** Pop a word: retire the oldest at the cap, place it in the first free slot (the word he's on beats the oldest). */
-  function spawn(word: string, still: boolean): boolean {
+  /** Pop a word into his cluster, `delay` ms from now: retire the oldest at the cap, or when nothing else fits. */
+  function spawn(word: string, still: boolean, delay = 0): void {
     const g = geo();
-    if (!g || !layer || !word) return false;
-    const stack = g.group && g.mode === 't' && isRobotStackWord(word);
-    const cap = stack ? 3 : mumbleCap(g);
+    if (!g || !layer || !word) return;
+    const cap = mumbleCap(g);
     while (live.length >= cap) retire(live[0]);
     const b = build(word, g);
-    const zones = g.wide ? [g.zone, g.wide] : [g.zone];
-    const tryPlace = (avoidFading: boolean): Placement | null => {
-      for (const zone of zones) {
-        const p = placeMumble(b, g, live.map((i) => i.r), fading.map((i) => i.r), slotIx, { avoidFading, zone });
-        if (p) return p;
-      }
-      return null;
-    };
-    if (stack) {
-      const rise = stackPlan.find((entry) => entry.word === word)?.rise;
-      if (!rise) { b.el.remove(); return false; }
-      const now = performance.now();
-      const begins = still || lastStackStart === null ? now : Math.max(now, lastStackStart + rise.clearanceMs);
-      lastStackStart = begins;
-      b.el.style.left = `${rise.x}px`;
-      b.el.style.top = `${rise.y}px`;
-      b.el.style.setProperty('--rise-from', `${rise.fromY}px`);
-      b.el.style.setProperty('--rise-to', `${rise.y}px`);
-      b.el.style.setProperty('--rise-ms', `${rise.riseMs}ms`);
-      b.el.style.setProperty('--rise-delay', `${begins - now}ms`);
-      b.el.classList.add(rise.side === 'right' ? 'r' : 'l', 'stack', still ? 'still' : 'live');
-      b.el.style.visibility = '';
-      // CSS owns the delayed emergence/rise, so clearing the page also cancels every pending entrance.
-      live.push({ el: b.el, box: b, r: rise.r, startsAt: begins, timer: 0 });
-      return true;
-    }
-    // Compact story clouds reuse the near-head slots; a fading cloud already gives its replacement a pop delay.
-    let p = g.group && g.mode === 't' ? tryPlace(false) : tryPlace(true) ?? tryPlace(false);
-    while (!p && !still && live.length) {
+    const place = () => placeMumble(b, g, live.map((i) => i.r), fading.map((i) => i.r));
+    let p = place();
+    while (!p && live.length) {
       retire(live[0]);
-      p = tryPlace(false);
+      p = place();
     }
     if (!p) {
       b.el.remove();
-      return false;
+      return;
     }
-    slotIx = p.slot + 1;
-    // taking the place of a cloud that is still fading: pop once it is mostly gone
-    const r = p.r;
-    if (fading.some((o) => hit(r, o.r))) b.el.style.setProperty('--pop-delay', `${MUMBLE_TIMING.swapDelayMs}ms`);
     b.el.style.left = `${p.x}px`;
     b.el.style.top = `${p.y}px`;
-    // a bubble on his right points its tail down-left at him, one on his left down-right
+    b.el.style.zIndex = String(++z);
+    b.el.style.setProperty('--pop-delay', `${delay}ms`);
+    // each cloud bobs on its own beat
+    b.el.style.setProperty('--bob-delay', `${-((z * 617) % MUMBLE_TIMING.bobMs)}ms`);
+    // a cloud right of his head points its tail down-left at him, one on his left down-right
     b.el.classList.add(p.side === 'right' ? 'r' : 'l', still ? 'still' : 'live');
     b.el.style.visibility = '';
-    const item: Item = { el: b.el, box: b, r, timer: 0 };
-    if (!still) item.timer = setTimeout(() => retire(item), MUMBLE_TIMING.lifeMs);
-    live.push(item);
-    return true;
+    live.push({ el: b.el, r: p.r, startsAt: performance.now() + delay });
   }
 
-  function retire(item: Item, instant = false): void {
+  /** Fade a cloud out from wherever its entrance is, `delay` ms from now. */
+  function retire(item: Item, instant = false, delay = 0): void {
     const i = live.indexOf(item);
     if (i < 0) return;
     live.splice(i, 1);
-    if (item.timer) clearTimeout(item.timer);
-    if (instant || reduce()) {
+    if (instant || reduce() || item.startsAt > performance.now() + delay) {
       item.el.remove();
       return;
     }
-    fade(item.el, MUMBLE_TIMING.fadeMs);
     fading.push(item);
-    setTimeout(() => {
-      item.el.remove();
-      const j = fading.indexOf(item);
-      if (j >= 0) fading.splice(j, 1);
-    }, MUMBLE_TIMING.fadeMs);
+    const go = () => {
+      fade(item.el, MUMBLE_TIMING.fadeMs);
+      later(MUMBLE_TIMING.fadeMs, () => {
+        item.el.remove();
+        const j = fading.indexOf(item);
+        if (j >= 0) fading.splice(j, 1);
+      });
+    };
+    if (delay > 0) later(delay, go);
+    else go();
   }
 
-  /** Pause the entrance/drift at their current frame before fading the entire cloud together.
-   * A second CSS opacity animation starting at 1 would flash a half-entered cloud back to full opacity. */
+  /** Freeze the entrance at its current frame, then fade the whole cloud together from there (no flash back to full). */
   function fade(el: HTMLDivElement, duration: number, snap = false): void {
-    const frame = getComputedStyle(el);
-    // Capture every animated property before replacing the entrance animations. CSS retains the
-    // reduced-motion safety net, including when the setting changes during a fade.
-    const { opacity, scale, translate, top } = frame;
+    const { opacity, scale } = getComputedStyle(el);
     el.style.setProperty('--fade-from', opacity);
     el.style.setProperty('--scale-from', scale);
     el.style.setProperty('--fade-ms', `${duration}ms`);
-    el.style.scale = scale;
-    el.style.translate = translate;
-    el.style.top = top;
     el.classList.remove('live');
     el.classList.add(snap ? 'snap' : 'out');
   }
 
-  /** A page of the stream starts typing. */
+  /** A page of the stream starts typing: the last page's clouds go one by one, oldest first, as this one's arrive. */
   function start(words: readonly MumbleWord[]): void {
-    // Mobile story pages have independent compositions; old clouds must not block the next stack.
-    if (mode === 't' && lineup.length > 1) clear();
-    frozen = false;
     pending = [...words].sort((a, b) => a.at - b.at);
-    const geometry = geo();
-    if (geometry?.group && geometry.mode === 't') {
-      const boxes = pending.filter((w) => isRobotStackWord(w.word)).map((w) => {
-        const box = build(w.word, geometry);
-        box.el.remove();
-        return box;
-      });
-      const rises = planRobotStack(boxes, geometry);
-      stackPlan = rises ? boxes.map((b, i) => ({ word: b.word, rise: rises[i] })) : [];
-    }
+    nextPopAt = 0;
     if (reduce()) {
-      // no pop, drift or fade: the page's first words (up to the cap) stand still beside him while the page is up, and
-      // the next page swaps them at once (the text box changes at that moment anyway)
+      // no pop or fade: the page's first words (up to the cap) stand still beside him while the page is up
       for (const item of [...live]) retire(item, true);
       const g = geo();
-      for (const w of pending.slice(0, stackPlan.length || (g ? mumbleCap(g) : 2))) spawn(w.word, true);
+      for (const w of pending.slice(0, g ? mumbleCap(g) : 3)) spawn(w.word, true);
       pending = [];
-      frozen = true;
       return;
     }
-    // bubbles held over from the last page drift on and leave in their own time
-    for (const item of live) {
-      item.el.classList.remove('held');
-      if (item.timer) clearTimeout(item.timer);
-      item.timer = setTimeout(() => retire(item), MUMBLE_TIMING.lifeMs / 2);
-    }
+    live.slice().forEach((item, i) => retire(item, false, i * MUMBLE_TIMING.pageStaggerMs));
   }
 
-  /**
-   * `n` characters of the page are showing: pop the words they passed. A tap that shows the rest at once pops only the
-   * last few (the cap would retire the others before anyone saw them).
-   */
+  /** `n` characters of the page are showing: pop the words they passed, one after another if several came at once. */
   function progress(n: number): void {
-    if (frozen) return;
     const due: MumbleWord[] = [];
     while (pending.length && pending[0].at <= n) due.push(pending.shift()!);
     if (!due.length) return;
     const g = geo();
-    for (const w of due.slice(-(stackPlan.length || (g ? mumbleCap(g) : 2)))) spawn(w.word, false);
-  }
-
-  /** The page has typed: what is up holds still (its drift pauses) until the next page or the snap. */
-  function complete(): void {
-    progress(Infinity);
-    frozen = true;
-    for (const item of live) {
-      if (item.timer) clearTimeout(item.timer);
-      item.timer = 0;
-      item.el.classList.add('held');
+    const now = performance.now();
+    for (const w of due.slice(-(g ? mumbleCap(g) : 3))) {
+      const at = Math.max(now, nextPopAt);
+      nextPopAt = at + MUMBLE_TIMING.cascadeMs;
+      spawn(w.word, false, at - now);
     }
   }
 
   /** He snaps out of it: every bubble pops at once. */
   function snapAll(): void {
-    frozen = true;
     pending = [];
     for (const item of live.splice(0)) {
-      if (item.timer) clearTimeout(item.timer);
-      if (reduce() || (item.startsAt !== undefined && item.startsAt > performance.now())) {
+      if (reduce() || item.startsAt > performance.now()) {
         item.el.remove();
         continue;
       }
       fade(item.el, MUMBLE_TIMING.snapMs, true);
-      setTimeout(() => item.el.remove(), MUMBLE_TIMING.snapMs);
+      later(MUMBLE_TIMING.snapMs, () => item.el.remove());
     }
   }
 
   function clear(): void {
-    for (const item of [...live, ...fading]) {
-      if (item.timer) clearTimeout(item.timer);
-      item.el.remove();
-    }
+    for (const t of timers) clearTimeout(t);
+    timers.clear();
+    for (const item of [...live, ...fading]) item.el.remove();
     live.length = 0;
     fading.length = 0;
     pending = [];
-    stackPlan = [];
-    lastStackStart = null;
-    frozen = true;
   }
 
   // the stream's pages, and the typewriter on each
@@ -333,6 +267,7 @@
       }
       if (!current || !geo()) return;
       if (geometry !== seenGeometry) {
+        // a rotate or resize: this page's clouds again, placed for the new stage
         clear();
         seenPage = -1;
         seenGeometry = geometry;
@@ -341,8 +276,7 @@
         seenPage = current.id;
         start(current.words);
       }
-      if (typing) progress(shown);
-      else complete();
+      progress(typing ? shown : Infinity);
     });
   });
 
@@ -380,6 +314,7 @@
   bind:this={layer}
   aria-hidden="true"
   style:--mb-enter-ms={`${MUMBLE_TIMING.popMs}ms`}
+  style:--mb-bob-ms={`${MUMBLE_TIMING.bobMs}ms`}
   style:--mb-slice={cssArt(ART.slice)}
   style:--mb-tail-dl={cssArt(ART.dl)}
   style:--mb-tail-dr={cssArt(ART.dr)}
@@ -431,30 +366,21 @@
     image-rendering: pixelated;
   }
   .mumbles :global(.mb.l::after) { left: auto; right: var(--px); background-image: var(--mb-tail-dr); }
-  /* motion: pop from the tail's root, drift up one art px per step, fade. held = the page has typed (the drift
-     pauses), still = Reduce motion. Retirement freezes this motion and fades from its current opacity */
+  /* motion: pop to full from the tail's root, then bob an art px on its own beat; retiring freezes the entrance where
+     it is and fades from there. still = Reduce motion */
   .mumbles :global(.mb.r) { transform-origin: calc(6.5 * var(--px)) 100%; }
   .mumbles :global(.mb.l) { transform-origin: calc(100% - 6.5 * var(--px)) 100%; }
   .mumbles :global(.mb.live) {
-    animation: vnmb-pop var(--mb-enter-ms) ease-out var(--pop-delay, 0ms) both, vnmb-drift 3200ms steps(4, jump-end) var(--pop-delay, 0ms) both;
+    animation: vnmb-pop var(--mb-enter-ms) cubic-bezier(0.34, 1.4, 0.64, 1) var(--pop-delay, 0ms) both,
+      vnmb-bob var(--mb-bob-ms) steps(1, end) var(--bob-delay, 0ms) infinite;
   }
-  .mumbles :global(.mb.live.held) { animation-play-state: running, paused; }
-  /* Each cloud leaves the shared entrance before the next emerges, then rests in its final readable row. */
-  .mumbles :global(.mb.live.stack) {
-    animation: vnmb-emerge 520ms ease-out var(--rise-delay) both,
-      vnmb-rise var(--rise-ms) linear var(--rise-delay) both;
-  }
-  /* Finishing/skipping the text must not freeze a delayed entrance or a rise already underway. */
-  .mumbles :global(.mb.live.stack.held) { animation-play-state: running, running; }
-  .mumbles :global(.mb.out) { animation: vnmb-out var(--fade-ms) ease-out both; }
+  .mumbles :global(.mb.out) { animation: vnmb-out var(--fade-ms) ease-in both; }
   .mumbles :global(.mb.snap) { animation: vnmb-snap var(--fade-ms) ease-out both; }
   .mumbles :global(.mb.still) { animation: none; transition: none; }
   /* safety net: the Stage marks itself .reduce when Reduce motion is on */
   :global(.stage-root.reduce) .mumbles :global(.mb) { animation: none; transition: none; }
-  @keyframes -global-vnmb-emerge { from { scale: 0.86; opacity: 0; } to { scale: 1; opacity: 1; } }
-  @keyframes -global-vnmb-rise { from { top: var(--rise-from); } to { top: var(--rise-to); } }
-  @keyframes -global-vnmb-pop { from { scale: 0.9; opacity: 0; } to { scale: 1; opacity: 1; } }
-  @keyframes -global-vnmb-drift { from { translate: 0 0; } to { translate: 0 calc(-4 * var(--px)); } }
-  @keyframes -global-vnmb-out { from { opacity: var(--fade-from); } to { opacity: 0; } }
+  @keyframes -global-vnmb-pop { from { scale: 0.7; opacity: 0; } 60% { opacity: 1; } to { scale: 1; opacity: 1; } }
+  @keyframes -global-vnmb-bob { 0% { translate: 0 0; } 50% { translate: 0 calc(-1 * var(--px)); } }
+  @keyframes -global-vnmb-out { from { opacity: var(--fade-from); scale: var(--scale-from); } to { opacity: 0; scale: 0.92; } }
   @keyframes -global-vnmb-snap { from { scale: var(--scale-from); opacity: var(--fade-from); } to { scale: 1.25; opacity: 0; } }
 </style>

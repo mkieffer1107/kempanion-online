@@ -15,7 +15,7 @@ import { toExpression } from '../src/lib/vn/interpreter';
 import { charCols, PHONE_GRID, type TextGrid } from '../src/lib/vn/chat-pages';
 import { mumbleFor, mumbleReply, type MumbleKind } from '../src/lib/ai/heuristic/mumble';
 import {
-  MUMBLE_KEEP, MUMBLE_SLOTS, MUMBLE_TIMING, hit, mumbleCap, mumbleKeepOut, mumblePages, placeMumble,
+  MUMBLE_KEEP, MUMBLE_TIMING, gapBetween, hit, reachOf, rimsOnly, mumbleCap, mumbleKeepOut, mumblePages, placeMumble,
   type BubbleBox, type MumbleGeo, type MumbleMode, type Rect,
 } from '../src/lib/vn/components/mumble-layout';
 
@@ -256,42 +256,30 @@ function geoOf(s: Stage, outfit: OutfitId = 'everyday'): MumbleGeo {
   return { mode: s.mode, px: s.px, keep: mumbleKeepOut(outfit, s.pos, s.lw, s.u), zone: s.zone, wide: s.wide, obstacles: s.obstacles };
 }
 
-/** MumbleBubbles' spawn() without the DOM: retire the oldest at the cap, the picture first, then the bars. */
+/** MumbleBubbles' spawn() without the DOM: retire the oldest at the cap, or when nothing else fits. */
 function popAll(words: readonly string[], s: Stage, outfit: OutfitId = 'everyday') {
   const g = geoOf(s, outfit);
   const live: Rect[] = [];
-  const fading: Rect[] = [];
   const placed: Rect[][] = [];
-  let slot = 0;
   for (const word of words) {
-    while (live.length >= mumbleCap(g)) fading.push(live.shift()!);
+    while (live.length >= mumbleCap(g)) live.shift();
     const b = bubble(word, s);
-    const zones = g.wide ? [g.zone, g.wide] : [g.zone];
-    const tryPlace = (avoidFading: boolean) => {
-      for (const zone of zones) {
-        const p = placeMumble(b, g, live, fading, slot, { avoidFading, zone });
-        if (p) return p;
-      }
-      return null;
-    };
-    let p = tryPlace(true) ?? tryPlace(false);
+    let p = placeMumble(b, g, live);
     while (!p && live.length) {
-      fading.push(live.shift()!);
-      p = tryPlace(false);
+      live.shift();
+      p = placeMumble(b, g, live);
     }
     expect([s.name, word, !!p]).toEqual([s.name, word, true]);
     if (!p) continue;
-    slot = p.slot + 1;
     live.push(p.r);
     placed.push([...live]);
-    if (fading.length > 4) fading.shift();
   }
   return { g, placed };
 }
 
 describe('mumble bubbles on the Talk stage', () => {
-  test('3 up on an upright phone (2 when the picture is short), 4 in landscape, 5 on desktop', () => {
-    expect(STAGES.map((s) => mumbleCap(geoOf(s)))).toEqual([3, 2, 4, 5]);
+  test('6 up on an upright phone (3 when the picture is short), 7 in landscape, 8 on desktop', () => {
+    expect(STAGES.map((s) => mumbleCap(geoOf(s)))).toEqual([6, 3, 7, 8]);
   });
 
   test('his keep-outs sit where world.ts draws his portrait: centered in T, at the left slot in S and W', () => {
@@ -336,19 +324,23 @@ describe('mumble bubbles on the Talk stage', () => {
     }
   });
 
-  test('every bubble of a long mumble finds a place, clear of his face, the phone, the fist, the chrome and each other', () => {
+  test('every bubble of a long mumble finds a place hugging his head, clear of his face, the phone, the fist and the chrome', () => {
     const words = someMumbles().slice(0, 8).flatMap((m) => m.bubbles.map((b) => b.word));
     for (const s of STAGES) {
       for (const outfit of ['everyday', 'hoodie'] as OutfitId[]) {
         const { g, placed } = popAll(words, s, outfit);
+        const face = g.keep[0];
         for (const up of placed) {
           for (const r of up) {
             for (const k of g.keep) expect([s.name, hit(r, k)]).toEqual([s.name, false]);
             for (const o of g.obstacles) expect([s.name, hit(r, o)]).toEqual([s.name, false]);
-            const inside = (z: Rect) => r.x >= z.x - 0.5 && r.y >= z.y - 0.5 && r.x + r.w <= z.x + z.w + 0.5 && r.y + r.h <= z.y + z.h + 0.5;
+            const inside = (z: Rect) => r.x >= z.x - 0.5 && r.y >= z.y - 1.5 && r.x + r.w <= z.x + z.w + 0.5 && r.y + r.h <= z.y + z.h + 0.5;
             expect([s.name, inside(g.zone) || (!!g.wide && inside(g.wide))]).toEqual([s.name, true]);
+            // clearly coming from him, not across the picture
+            expect([s.name, gapBetween(r, face) <= reachOf(face, s.px) + 0.01]).toEqual([s.name, true]);
           }
-          for (let i = 0; i < up.length; i++) for (let j = i + 1; j < up.length; j++) expect(hit(up[i], up[j])).toBe(false);
+          // a pile: clouds tuck their rims under each other, never over each other's words
+          for (let i = 0; i < up.length; i++) for (let j = i + 1; j < up.length; j++) expect(rimsOnly(up[i], up[j], s.px)).toBe(true);
         }
         // a full screen of bubbles is up at some point
         expect(Math.max(...placed.map((p) => p.length))).toBe(mumbleCap(g));
@@ -356,24 +348,20 @@ describe('mumble bubbles on the Talk stage', () => {
     }
   });
 
-  test('beside him on a phone, to his right on wide layouts (the tail points at him)', () => {
+  test('the first cloud sits right by his head, its tail toward him', () => {
     for (const s of STAGES) {
       const g = geoOf(s);
-      const p = placeMumble(bubble('RLHF…', s), g, [], [], 0);
+      const p = placeMumble(bubble('RLHF…', s), g, []);
       expect(p).not.toBeNull();
-      if (s.mode !== 't') {
-        expect(MUMBLE_SLOTS[s.mode].every((slot) => slot.side === 'right')).toBe(true);
-        // right of his face, and of whatever else shares its rows (at temple height that's only the face)
-        expect(p!.x).toBeGreaterThanOrEqual(g.keep[0].x + g.keep[0].w);
-        for (const k of g.keep) if (k.y < p!.r.y + p!.r.h && k.y + k.h > p!.r.y) expect(p!.x).toBeGreaterThanOrEqual(k.x + k.w);
-      } else {
-        expect(new Set(MUMBLE_SLOTS.t.map((slot) => slot.side))).toEqual(new Set(['left', 'right']));
-      }
+      const face = g.keep[0];
+      expect(gapBetween(p!.r, face)).toBeLessThanOrEqual(8 * s.px);
+      expect(p!.side).toBe(p!.x + p!.r.w / 2 >= face.x + face.w / 2 ? 'right' : 'left');
     }
   });
 
-  test('timing: gentle entrance, a 3.2 s drift of 4 art px, slow fade; the snap is quick', () => {
-    expect(MUMBLE_TIMING).toMatchObject({ popMs: 450, lifeMs: 3200, fadeMs: 700, snapMs: 140, driftArt: 4 });
+  test('timing: a quick pop to full, a slow fade, a quick snap; nothing expires while the page is up', () => {
+    expect(MUMBLE_TIMING).toMatchObject({ popMs: 300, fadeMs: 650, snapMs: 160 });
+    expect(MUMBLE_TIMING).not.toHaveProperty('lifeMs');
   });
 });
 
