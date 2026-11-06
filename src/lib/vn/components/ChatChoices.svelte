@@ -327,7 +327,12 @@
           {#if left !== null}
             <span class="left" class:none={left === 0} aria-hidden="true">{left}</span>
           {/if}
-          <button type="button" class="x" aria-label="Back to the reply options" title="Back (Esc)" onclick={(e) => { e.stopPropagation(); closeField(); }}>×</button>
+          {#if gameKeyboard}
+            <!-- like a text message: SEND sits in the field; "Back to replies" under the keyboard does the ×'s job -->
+            <button type="submit" class="x send" onpointerdown={(e) => e.preventDefault()} onclick={(e) => e.stopPropagation()}>SEND</button>
+          {:else}
+            <button type="button" class="x" aria-label="Back to the reply options" title="Back (Esc)" onclick={(e) => { e.stopPropagation(); closeField(); }}>×</button>
+          {/if}
         </form>
       {:else}
         <button
@@ -351,14 +356,20 @@
 
     {#if writing && mobile.current}
       <div class="kb">
-        {#if gameKeyboard}<IntakeKeyboard bind:value {field} maxLength={max} punctuation={CHAT_MARKS} onSend={() => send()} />{/if}
-        <button type="button" class="kb-switch" onclick={(e) => { e.stopPropagation(); switchKeyboard(); }}>
-          {native ? 'Game keyboard' : 'Use phone keyboard'}
-        </button>
+        {#if gameKeyboard}<IntakeKeyboard bind:value {field} maxLength={max} punctuation={CHAT_MARKS} />{/if}
+        <div class="kb-links">
+          {#if gameKeyboard}
+            <button type="button" class="kb-switch" onpointerdown={(e) => e.preventDefault()} onclick={(e) => { e.stopPropagation(); closeField(); }}>Back to replies</button>
+          {/if}
+          <button type="button" class="kb-switch" onclick={(e) => { e.stopPropagation(); switchKeyboard(); }}>
+            {native ? 'Game keyboard' : 'Use phone keyboard'}
+          </button>
+        </div>
       </div>
     {/if}
 
-    {#if goodbye}
+    <!-- the game keyboard needs the room; Goodbye is back with the reply options -->
+    {#if goodbye && !(writing && gameKeyboard)}
       <div class="foot">
         <button type="button" class="px-btn ghost small bye" title="Say goodbye (Esc)" onclick={(e) => { e.stopPropagation(); bye(); }}>Goodbye</button>
       </div>
@@ -367,9 +378,11 @@
 {/if}
 
 <style>
-  .kb { display: grid; gap: 4px; }
+  .kb { display: grid; gap: 2px; }
+  .kb-links { display: flex; justify-content: space-between; }
+  .kb-links :only-child { margin-left: auto; }
   .kb-switch {
-    justify-self: end; min-height: 28px; padding: 4px 0 4px 8px; border: 0; background: none; color: var(--sakura-1);
+    min-height: 28px; padding: 4px 0 4px 8px; border: 0; background: none; color: var(--sakura-1);
     font: 12px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
   }
   .cc {
@@ -512,7 +525,9 @@
     text-shadow: 1px 1px 0 #000;
     cursor: pointer;
   }
+  .x.send { font-family: var(--font-display); font-size: 0.7em; letter-spacing: 0.08em; color: var(--ink); background: var(--sakura-2); text-shadow: none; }
   .x:hover { color: var(--sakura-2); }
+  .x.send:hover { color: var(--ink); background: var(--sakura-1); }
   .x:focus-visible { outline: var(--px) dashed var(--gold); outline-offset: calc(var(--px) * -2); }
   @media (pointer: coarse) {
     .x { min-width: 44px; }
