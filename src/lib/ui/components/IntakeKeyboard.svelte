@@ -1,10 +1,15 @@
 <script lang="ts">
   import { flushSync } from 'svelte';
   import { editIntakeText, type KeyboardEdit } from './intakeKeyboard';
-  let { value = $bindable(''), field, maxLength, disabled = false, compact = false, onInput, onToggleNative }: {
+  let { value = $bindable(''), field, maxLength, disabled = false, compact = false, punctuation = [], onInput, onToggleNative, onSend }: {
     value?: string; field?: HTMLInputElement; maxLength: number; disabled?: boolean; compact?: boolean;
+    /** Extra keys around SPACE in the full layout (free chat: ? ! , .); the intake answers need letters only. */
+    punctuation?: readonly string[];
     onInput?: () => void; onToggleNative?: () => void;
+    /** A SEND key at the end of the full layout's bottom row (free chat has no SEND button of its own). */
+    onSend?: () => void;
   } = $props();
+  const half = $derived(Math.ceil(punctuation.length / 2));
   let shifted = $state(true);
   const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
 
@@ -56,8 +61,21 @@
   {/each}
   {#if !compact}
     <div class="key-row controls">
-      {@render shiftKey()}{@render spaceKey()}{@render backspaceKey()}
+      {@render shiftKey()}
+      {#each punctuation.slice(0, half) as char (char)}
+        <button type="button" class="key mark" {disabled} onpointerdown={keepSelection} onclick={() => edit({ text: char })}>{char}</button>
+      {/each}
+      {@render spaceKey()}
+      {#each punctuation.slice(half) as char (char)}
+        <button type="button" class="key mark" {disabled} onpointerdown={keepSelection} onclick={() => edit({ text: char })}>{char}</button>
+      {/each}
+      {@render backspaceKey()}
     </div>
+    {#if onSend}
+      <div class="key-row controls">
+        <button type="button" class="key send" {disabled} onpointerdown={keepSelection} onclick={onSend}>SEND</button>
+      </div>
+    {/if}
   {/if}
 </div>
 
@@ -79,6 +97,7 @@
   .controls .key { max-width: none; }
   .controls .space { flex: 3; background: var(--paper); font-size: 13px; letter-spacing: 0.12em; }
   .shift, .erase, .native { font: 20px system-ui, sans-serif; }
+  .controls .send { flex: 1; background: var(--sakura-2); font-size: 15px; letter-spacing: 0.12em; }
   .compact { height: 100%; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 3px; padding-bottom: 2px; }
   .compact .key-row { gap: 3px; }
   .compact .key { max-width: none; height: 100%; font-size: 16px; box-shadow: inset 0 1px 0 #fff, 0 2px 0 #9d758e; }

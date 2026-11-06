@@ -5,13 +5,17 @@
   // badge). The field takes the ask's whole maxLength (48 in free chat) on every screen and scrolls sideways once the
   // message is wider than the row, so a narrow phone never cuts a message short (a cut-off "…kill myse" could slip
   // past the crisis check). Enter sends, Esc or × brings the options back, and an empty field can't be sent. Goodbye
-  // leaves.
+  // leaves. On phones the field types with the game keyboard (the intake's, plus ? ! , .) under it, like the name and
+  // comfort-food questions; "Use phone keyboard" switches to the system one (other languages, emoji).
   // Shown only while the pig waits for the player (free chat with an open ask); hidden while he types or thinks.
   //
   // Keys (window, like ChoiceMenu): 1–4 · ↑↓ · Enter/Space/Z/X. screenKey() adds T or / (open the field) and Esc
   // (close it) for screens that route keys through setScreenKeys (App offers them before its own shortcuts).
   import { flushSync, tick, untrack } from 'svelte';
+  import { MediaQuery } from 'svelte/reactivity';
   import { audio } from '../../audio';
+  import IntakeKeyboard from '../../ui/components/IntakeKeyboard.svelte';
+  import { editIntakeText, type KeyboardEdit } from '../../ui/components/intakeKeyboard';
   import { game } from '../../state/game.svelte';
   import { dialogue } from '../dialogue.svelte';
   import { charsLeftHint, replyRows } from './chat-choices';
@@ -55,6 +59,12 @@
   const max = $derived(Math.max(1, opts?.maxLength ?? DEFAULT_MAX));
   const left = $derived(charsLeftHint(value.length, max));
   const rows = $derived(writing ? [] : replies);
+
+  /** Phones type with the game keyboard (as IntakeTextInput does) unless the player switched to the phone's own. */
+  const mobile = new MediaQuery('(pointer: coarse) and (max-width: 960px)');
+  const CHAT_MARKS = ['?', '!', ',', '.'] as const;
+  let native = $state(false);
+  const gameKeyboard = $derived(mobile.current && !native);
 
   let rootEl: HTMLDivElement | undefined = $state();
   let field: HTMLInputElement | undefined = $state();
@@ -130,8 +140,8 @@
     if (refocus) void tick().then(() => buttons[other]?.focus({ preventScroll: true }));
   }
 
-  function send(e: SubmitEvent) {
-    e.preventDefault();
+  function send(e?: SubmitEvent) {
+    e?.preventDefault();
     const text = value.trim();
     if (!ready || !text) {
       field?.focus({ preventScroll: true });
@@ -144,11 +154,37 @@
     preferOther = true;
   }
 
+  /** A hardware keyboard still types into the read-only field the game keyboard uses. */
+  function edit(change: KeyboardEdit) {
+    const start = field?.selectionStart ?? value.length;
+    const end = field?.selectionEnd ?? start;
+    const next = editIntakeText(value, start, end, change, max);
+    flushSync(() => { value = next.value; });
+    field?.setSelectionRange(next.cursor, next.cursor);
+  }
+
   function fieldKey(e: KeyboardEvent) {
-    if (e.key !== 'Escape') return;
-    e.preventDefault();
-    e.stopPropagation();
-    closeField();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeField();
+      return;
+    }
+    if (!gameKeyboard || e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      edit({ action: e.key === 'Backspace' ? 'backspace' : 'delete' });
+    } else if (Array.from(e.key).length === 1) {
+      e.preventDefault();
+      edit({ text: e.key });
+    }
+  }
+
+  function switchKeyboard() {
+    // Keep focus inside the tap so iOS opens its keyboard when asked for it.
+    field?.blur();
+    flushSync(() => { native = !native; });
+    field?.focus({ preventScroll: true });
   }
 
   // Leaving an empty field (tapping elsewhere, the phone keyboard's Done) brings the options back.
@@ -280,6 +316,8 @@
               autocomplete="off"
               autocapitalize="sentences"
               spellcheck="true"
+              readonly={gameKeyboard}
+              inputmode={gameKeyboard ? 'none' : 'text'}
               placeholder={opts?.placeholder ?? `Say something to ${name}…`}
               aria-label="Your reply to {name}"
               onkeydown={fieldKey}
@@ -311,6 +349,15 @@
       {/if}
     </div>
 
+    {#if writing && mobile.current}
+      <div class="kb">
+        {#if gameKeyboard}<IntakeKeyboard bind:value {field} maxLength={max} punctuation={CHAT_MARKS} onSend={() => send()} />{/if}
+        <button type="button" class="kb-switch" onclick={(e) => { e.stopPropagation(); switchKeyboard(); }}>
+          {native ? 'Game keyboard' : 'Use phone keyboard'}
+        </button>
+      </div>
+    {/if}
+
     {#if goodbye}
       <div class="foot">
         <button type="button" class="px-btn ghost small bye" title="Say goodbye (Esc)" onclick={(e) => { e.stopPropagation(); bye(); }}>Goodbye</button>
@@ -320,6 +367,11 @@
 {/if}
 
 <style>
+  .kb { display: grid; gap: 4px; }
+  .kb-switch {
+    justify-self: end; min-height: 28px; padding: 4px 0 4px 8px; border: 0; background: none; color: var(--sakura-1);
+    font: 12px var(--font-body); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  }
   .cc {
     display: flex;
     flex-direction: column;
