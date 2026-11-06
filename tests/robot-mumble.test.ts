@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { parseKScript } from '../src/lib/vn/kscript';
 import { paginate } from '../src/lib/vn/typewriter';
 import { robotMumbleWords } from '../src/lib/vn/components/robot-mumble';
-import { gapBetween, hit, reachOf, rimsOnly, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
+import { SIDE_REACH, gapBetween, hit, reachOf, rimsOnly, mumbleCap, mumbleKeepOut, mumbleNeighbours, placeMumble, type MumbleGeo, type Rect } from '../src/lib/vn/components/mumble-layout';
 
 const scene = parseKScript(readFileSync(join(import.meta.dir, '../src/lib/content/scenes/prologue.ks'), 'utf8'), 'prologue.ks')[0];
 const rant = scene.ops.find((o) => o.op === 'say' && o.speaker === 'piggy-3' && o.expression === 'phone_mumble');
@@ -58,6 +58,8 @@ describe('the prologue robot mumble', () => {
         // clearly his: within reach of his face
         const gap = gapBetween(r, face);
         expect([lw, floor, word, gap <= reachOf(face, px) + 0.01 ? 0 : Math.round(gap / face.w * 100)]).toEqual([lw, floor, word, 0]);
+        // centred over him, never over the next pig's face
+        expect([word, Math.abs(r.x + r.w / 2 - (face.x + face.w / 2)) <= SIDE_REACH * face.w + 0.01]).toEqual([word, true]);
         // the tail points at him
         expect(p!.side).toBe(r.x + r.w / 2 >= face.x + face.w / 2 ? 'right' : 'left');
         for (const o of live) expect(rimsOnly(r, o, px)).toBe(true);

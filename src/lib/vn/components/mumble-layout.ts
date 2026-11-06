@@ -152,6 +152,8 @@ export interface Placement {
  */
 export const REACH = 0.45;
 export const reachOf = (face: Rect, px: number): number => Math.max(REACH * face.w, 44 * px);
+/** How far a cloud's centre may sit from his head's centre, sideways, in face widths. */
+export const SIDE_REACH = 0.85;
 
 /**
  * Art px a cloud may tuck under its neighbour, across or down: only the puffy rim, never the words (the text sits 4
@@ -208,6 +210,8 @@ export function placeMumble(b: BubbleBox, g: MumbleGeo, live: readonly Rect[], f
           for (const o of fading) score += shared(r, o) / area * 1.5;
           for (const o of g.soft ?? []) score += shared(r, o) / area * 4;
           const mid = x + b.w / 2;
+          // never centred out past his own head (over the next pig): the oldest cloud makes room instead
+          if (Math.abs(mid - cx) > SIDE_REACH * face.w) continue;
           // stack up over his own head before spreading out sideways over someone else's
           score += Math.max(0, Math.abs(mid - cx) - face.w / 2) / face.w * 4;
           const side: 'left' | 'right' = mid >= cx ? 'right' : 'left';
